@@ -9,7 +9,7 @@
 | [independent-tech-research-notes](https://github.com/moruku36/independent-tech-research-notes) | 日英ノート、テーマ別索引、読書履歴 | 論文整理の結果と明示的な訂正を経験として記録。最初のpilot |
 | [oss-contributor-agent](https://github.com/moruku36/oss-contributor-agent) | README上では収集・トリアージ実装、対象はcollect-only。パッチと外部PRは後続段階 | 初めは収集・トリアージの理由と結果だけを記録。sleepが外部PRを出さない |
 | [gemma4-developer-agent](https://github.com/moruku36/gemma4-developer-agent) | README上のオフラインコーディングハーネス、タスク・時間・トークン制約 | 公開可能な練習ログから固定記憶を作り、実行前にバンドルへ組み込む案 |
-| [ChatGPT dots](https://learn.chatgpt.com/docs/dots) | 公式ドキュメントで記憶仕様を確認（2026-11-08）。実接続なし | 忘れることを前提に、正本を外部へ置き、想起バンドルを依頼に同梱する。詳細は dots-integration.ja.md |
+| [ChatGPT dots](https://learn.chatgpt.com/docs/dots) | 公式ドキュメントで記憶仕様を確認（2026-11-08）。実接続なし | 忘れることを前提に、正本を外部へ置き、想起バンドルを依頼に同梱する。詳細は[dots との接続設計](dots-integration.ja.md) |
 
 後二者のREADMEだけを確認しているため、実装APIや内部ログ形式は未確認。実装時には対象commitのコード・設定・規約を読み直す。他のチャットやアプリの履歴を一括収集する前提は置かない。
 

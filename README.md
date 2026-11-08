@@ -19,7 +19,9 @@ Existing agent → logs/results/corrections → memory candidates → evidence c
 
 Triggers are explicit requests, task completion, or accumulated experience. No recurring automation is configured.
 
-Start with paper/article curation, then consider OSS triage and offline coding experiments. None is connected yet. Existing agents retain their own execution permissions and publication policies. A further design target is a ChatGPT dots integration that assumes the agent forgets and keeps the source of truth outside it (docs/dots-integration.ja.md).
+Start with paper/article curation, then consider OSS triage and offline coding experiments. None is connected yet. Existing agents retain their own execution permissions and publication policies. A further design target is a [ChatGPT dots integration](docs/dots-integration.ja.md) that assumes the agent forgets and keeps the source of truth outside it.
+
+**Design premise:** target agents are assumed to forget. Their internal memory is treated as an unverified cache, and the source of truth stays in this harness's external memory. See [ADR 0002: assume the agent forgets](docs/decisions/0002-assume-agent-forgets.md) and the [dots integration design](docs/dots-integration.ja.md).
 
 ## Design documents
 
