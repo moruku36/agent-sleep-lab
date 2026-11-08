@@ -3,7 +3,7 @@
 This repository currently contains a design scaffold, not a running sleep engine.
 
 - Read README.md and the architecture/evaluation documents before changing the design.
-- Keep Japanese documentation primary; update README.en.md when the purpose or status changes.
+- Keep README.md in English as the default landing page and README.ja.md in Japanese, with reciprocal language links. Update both when the purpose or status changes. README.en.md is a compatibility link to README.md; detailed design documents may remain in Japanese until translated.
 - Distinguish proposed, implemented, executed, and independently verified claims.
 - Preserve the distinction between external-memory consolidation and model-weight training.
 - Keep real transcripts, credentials, private memories, and evaluation answers outside this public repository.
