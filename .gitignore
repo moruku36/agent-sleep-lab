@@ -1,0 +1,17 @@
+# Real execution state belongs outside this public repository.
+.env
+.env.*
+!.env.example
+.secrets/
+private/
+state/
+runs/
+artifacts/
+memory/
+transcripts/
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+.DS_Store
+Thumbs.db
