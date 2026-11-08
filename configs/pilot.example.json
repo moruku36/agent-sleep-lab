@@ -26,7 +26,21 @@
     "max_input_output_tokens": 40000,
     "max_wall_seconds": 600,
     "rehearsal_enabled": false,
-    "weight_updates": false
+    "weight_updates": false,
+    "phases": {
+      "light": true,
+      "rem": false,
+      "deep": true
+    },
+    "diary_enabled": false,
+    "proposal_only": true,
+    "promotion_requires": [
+      "verified-evidence",
+      "held-out-evaluation",
+      "live-source-recheck",
+      "expected-parent-match"
+    ],
+    "on_failure": "keep-current-active"
   },
   "spending": {
     "currency": "USD",
