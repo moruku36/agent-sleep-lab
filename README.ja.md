@@ -42,6 +42,7 @@ sleepは作業終了時、経験が蓄積した時、または明示的な実行
 1. **論文・技術記事の整理**：日英の形式、分類、根拠の確認、ユーザーの訂正を記憶し、別の記事で再発が減るか調べます。
 2. **OSS contributor agent**：収集・トリアージの判断を対象にする接続案。対象側のcollect-onlyやdraft PR方針を維持します。
 3. **Gemmaのコーディング実験**：学習用ログと評価用課題を分離し、記憶を固定してオフライン実行へ渡す接続案。コンペ規約や利用可能データの確認後に限定します。
+4. **ChatGPT dots との連携**：保持ノートが完全な記録ではないことを公式仕様とする常駐エージェントに対し、正本を外部に置き、想起を依頼に同梱する接続案。詳細は[dots との接続設計](docs/dots-integration.ja.md)。
 
 現時点で接続済みの対象はありません。[接続設計](docs/integration.ja.md)に、公開READMEで確認した範囲と提案を分けています。
 
@@ -51,8 +52,10 @@ sleepは作業終了時、経験が蓄積した時、または明示的な実行
 - [評価計画](docs/evaluation.ja.md)：比較条件、データ分割、費用、採用条件
 - [最初の手動実験](docs/manual-pilot.ja.md)：実装前に小さく確かめる手順
 - [接続設計](docs/integration.ja.md)：既存環境への境界とアダプター
+- [dots との接続設計](docs/dots-integration.ja.md)：忘れることを前提にした対象別の接続案
 - [実装ロードマップ](docs/roadmap.ja.md)：各段階の成果物と完了条件
 - [設計判断](docs/decisions/0001-external-memory-first.md)
+- [設計判断 0002：対象エージェントは忘れる前提](docs/decisions/0002-assume-agent-forgets.md)
 - [データ契約](schemas/README.md)／[設定例](configs/pilot.example.json)
 - [整理プロンプト](prompts/sleep-consolidator.ja.md)／[取得プロンプト](prompts/memory-reader.ja.md)
 - [合成データ例](examples/README.md)／[実験レポート雛形](templates/experiment-report.ja.md)
@@ -68,3 +71,4 @@ sleepは作業終了時、経験が蓄積した時、または明示的な実行
 原ログ検索のみの条件と、整理した外部記憶を追加する条件を、同じモデル・ツール・予算で比較できる最小ループを作ります。改善が測定できてから、練習課題やwiki、複数エージェントへの展開を追加します。
 
 作成日：2026-11-08 JST。実験結果：未取得。
+

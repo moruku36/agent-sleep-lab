@@ -19,7 +19,7 @@ Existing agent → logs/results/corrections → memory candidates → evidence c
 
 Triggers are explicit requests, task completion, or accumulated experience. No recurring automation is configured.
 
-Start with paper/article curation, then consider OSS triage and offline coding experiments. None is connected yet. Existing agents retain their own execution permissions and publication policies.
+Start with paper/article curation, then consider OSS triage and offline coding experiments. None is connected yet. Existing agents retain their own execution permissions and publication policies. A further design target is a ChatGPT dots integration that assumes the agent forgets and keeps the source of truth outside it (docs/dots-integration.ja.md).
 
 ## Design documents
 
@@ -31,6 +31,8 @@ The detailed documents are initially in Japanese.
 - [Existing-environment integration](docs/integration.ja.md)
 - [Roadmap](docs/roadmap.ja.md)
 - [Decision: external memory first](docs/decisions/0001-external-memory-first.md)
+- [Decision: assume the agent forgets](docs/decisions/0002-assume-agent-forgets.md)
+- [Dots integration: designing for an agent that forgets](docs/dots-integration.ja.md)
 - [Data contracts](schemas/README.md) and [example configuration](configs/pilot.example.json)
 - [Consolidation prompt](prompts/sleep-consolidator.ja.md) and [retrieval prompt](prompts/memory-reader.ja.md)
 - [Synthetic fixtures](examples/README.md) and [report template](templates/experiment-report.ja.md)
@@ -42,3 +44,4 @@ Retain provenance and scope. Distinguish verified observations from hypotheses. 
 Keep real transcripts and private memory outside this public repository. Publish only design material, synthetic fixtures, and explicitly reviewed public artifacts. Measure memory preparation and maintenance costs in addition to answering costs.
 
 Created November 8, 2026 JST. Experimental results: not yet collected.
+
