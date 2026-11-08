@@ -12,22 +12,25 @@ AIエージェントが作業経験を振り返り、根拠付きの記憶へ整
 
 作業履歴は残っていても、次のセッションで必要な教訓が読まれなければ、同じ調査や修正を繰り返します。一方、履歴をすべて毎回渡すと、古い情報や余計な文脈が増えます。本プロジェクトでは「何を残すか」「根拠は何か」「いつ修正するか」「使うと改善するか」を一つのループとして扱います。
 
-## 下地となる二つの研究
+## 下地となる研究・実装資料
 
 | 資料 | 採り入れる発想 | 初期版の境界 |
 |---|---|---|
 | [Google Research: Sleep framework](https://research.google/blog/the-sleep-framework-a-new-way-for-llms-to-retain-knowledge-in-continual-learning/)／[Language Models Need Sleep](https://arxiv.org/abs/2606.03979) | 活動と整理を分け、経験を定着させ、練習で確かめる | Google方式は重み更新を伴う。本プロジェクトでは当面、外部記憶と検証課題で応用する |
 | [Anthropic: The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory) | 原ログ・記憶ノート・構造化表現・小さな注入文脈、オフラインでの訂正 | 外部記憶の整理を初期の中心とする。特定製品の内部機能には依存しない |
+| [OpenClaw: Dreaming](https://docs.openclaw.ai/concepts/dreaming) | 選別・振り返り・昇格の分離、生成物を証拠に戻さない設計 | 独立評価の採用ゲートを維持。REM・日記は任意、定期処理は無効。接続済みとはしない |
 
-両社の公式実装・再現実験ではありません。研究の報告と、ここで提案する設計を区別します。詳細は[研究との対応](docs/research-basis.ja.md)に記載します。
+参照したシステムの公式実装・再現実験ではありません。研究の報告と、ここで提案する設計を区別します。詳細は[研究との対応](docs/research-basis.ja.md)に記載します。
 
 ## 全体像
 
 ```mermaid
 flowchart LR
   A[既存エージェントの作業] --> B[原ログ・結果・訂正]
-  B --> C[記憶候補の抽出]
-  C --> D[根拠確認・統合・失効]
+  B --> C[Light: 許可・出典確認と候補選別]
+  C --> R[REM: 任意の仮説・検証案]
+  C --> D[Deep: 根拠確認と記憶差分]
+  R --> D
   D --> E[候補スナップショット]
   E --> F[独立した評価課題]
   F --> G{採用条件を満たすか}
@@ -37,7 +40,9 @@ flowchart LR
   J --> A
 ```
 
-sleepは作業終了時、経験が蓄積した時、または明示的な実行指示で開始します。毎晩の定期実行は初期版に含めません。
+sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を想定しています。初回は手動だけで、毎晩の定期実行は設定しません。通常タスクと分離し、新しい依頼への応答を止める「睡眠」にはしません。
+
+最初はLight＋Deepで比較し、REMと夢日記は無効にします。夢日記は人向けの説明であり、事実の根拠・長期記憶・権限とは分離します。詳しくは[Sleep / dreaming設計](docs/dreaming.ja.md)。
 
 ## 最初の適用先
 
@@ -51,6 +56,8 @@ sleepは作業終了時、経験が蓄積した時、または明示的な実行
 ## 読む順序
 
 - [全体設計](docs/architecture.ja.md)：コンポーネント、状態遷移、GitHub上の運用、障害時の扱い
+- [Sleep / dreaming設計](docs/dreaming.ja.md)：段階、証拠と仮説、昇格条件、中断・再開・忘却
+- [研究・実装資料との対応](docs/research-basis.ja.md)：採用する発想と移植しないもの
 - [評価計画](docs/evaluation.ja.md)：比較条件、データ分割、費用、採用条件
 - [最初の手動実験](docs/manual-pilot.ja.md)：実装前に小さく確かめる手順
 - [接続設計](docs/integration.ja.md)：既存環境への境界とアダプター
@@ -58,9 +65,18 @@ sleepは作業終了時、経験が蓄積した時、または明示的な実行
 - [実装ロードマップ](docs/roadmap.ja.md)：各段階の成果物と完了条件
 - [設計判断](docs/decisions/0001-external-memory-first.md)
 - [設計判断 0002：対象エージェントは忘れる前提](docs/decisions/0002-assume-agent-forgets.md)
+- [設計判断 0003：振り返り・証拠・採用を分離](docs/decisions/0003-grounded-dreaming.md)
 - [データ契約](schemas/README.md)／[設定例](configs/pilot.example.json)
-- [整理プロンプト](prompts/sleep-consolidator.ja.md)／[取得プロンプト](prompts/memory-reader.ja.md)
+- [整理プロンプト](prompts/sleep-consolidator.ja.md)／[任意のREMプロンプト](prompts/dream-reflector.ja.md)／[取得プロンプト](prompts/memory-reader.ja.md)
 - [合成データ例](examples/README.md)／[実験レポート雛形](templates/experiment-report.ja.md)
+
+## 収録済みと未実装
+
+- **収録済み**：設計文書、event／memoryのv0.1 schema、合成例、設定案、プロンプト雛形。
+- **未実装**：取り込み・取得adapter、各sleep段階、出典検証、永続化、日記、スケジューラー。
+- **未実施**：対象エージェントとの接続、有料モデル実行、A/B性能実験。
+
+[手動実験](docs/manual-pilot.ja.md)から開始し、実運用前に[不足している契約](schemas/README.md#dreaming設計で追加が必要な契約未実装)を実装します。文書・合成例の検査は、性能改善の証明ではありません。
 
 ## 実験の原則
 
@@ -72,5 +88,5 @@ sleepは作業終了時、経験が蓄積した時、または明示的な実行
 
 原ログ検索のみの条件と、整理した外部記憶を追加する条件を、同じモデル・ツール・予算で比較できる最小ループを作ります。改善が測定できてから、練習課題やwiki、複数エージェントへの展開を追加します。
 
-作成日：2026-11-08 JST。実験結果：未取得。
+作成日：2026-11-08 JST。dreaming設計更新：2026-11-09 JST。実験結果：未取得。
 

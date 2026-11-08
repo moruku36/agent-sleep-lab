@@ -5,19 +5,19 @@
 | 段階 | 成果物 | 完了条件 |
 |---|---|---|
 | 0：設計 | 目的、構成、契約、合成例、プロンプト、評価計画 | 文書の整合性とリンクを確認し、PRで保存 |
-| 1：ローカルの記録・取得 | event検証、追記ログ、内容hash、project分離、単純検索、snapshot | 合成fixtureで重複・訂正・scope分離・atomic更新・rollbackが確認できる |
-| 2：sleep候補生成 | provider adapter、候補抽出、根拠照合、予算制御、差分報告 | 偽応答を使った異常系確認と、上限内の小さな実モデル試行。未確認項目が昇格しない |
+| 1：ローカルの記録・取得 | event検証、出典契約、追記ログ、内容hash、project分離、単純検索、snapshot、削除対象管理 | 合成fixtureで重複・訂正・scope分離・atomic更新・削除後の非復活が確認できる |
+| 2：sleep候補生成 | 手動coordinator、Light＋Deep、run状態・操作契約、provider adapter、根拠照合、予算制御 | 偽応答で中断／再開・競合・不正操作・証拠変更を確認。認可済み上限内の小さな実モデル試行。未確認項目が昇格しない |
 | 3：論文整理の比較 | fixture adapter、固定課題、A/B実行、採点、費用集計 | 全試行と欠測を含む報告。採用／見送りを事前基準で判断 |
 | 4：実運用の接続 | 一つの既存agentへのcapture/retrieve追加 | 対象側の権限と制約を維持し、前版へ戻せる |
-| 5：練習・構造化 | rehearsal、必要ならwiki | Bに対する追加効果と総費用を独立評価 |
+| 5：振り返り・練習・構造化 | 任意のREM、日記、rehearsal、必要ならwiki | REMとrehearsalを別々にBと比較。日記の証拠混入がないことと総費用を確認 |
 | 6：横展開 | 複数agent、共有記憶、必要なら定期処理 | 分離・競合・失効が評価でき、対象ごとの運用条件が決まっている |
 
 ## 次に実装する具体的な単位
 
 1. schemaとfixtureを検証するローカルCLI。
-2. イベントのappend／dedupeと、記憶snapshotの読み書き。
+2. 出典・run manifest・操作schemaを固定し、イベントのappend／dedupeと、記憶snapshotの読み書きを実装。
 3. scopeで絞り込む原ログ検索と記憶取得。
-4. consolidatorに対する入出力adapterと使用量の計測。
+4. Light＋Deepの入出力adapter、権限を持たない生成処理、実行側の検証・使用量・中断／再開。
 5. 論文整理fixture上での比較runner。
 
 CLIのコマンド名や依存パッケージは実装PRで確定する。現時点で動くように見える架空の実行コマンドを案内しない。
@@ -25,6 +25,10 @@ CLIのコマンド名や依存パッケージは実装PRで確定する。現時
 ## 対象の追加（2026-11-08）
 
 ChatGPT dots との接続設計（忘れることを前提にする）を追加した。パイロットは論文整理の比較（Phase 3）の後とし、Phase 4 の接続候補として扱う。実装順序そのものは変えない。
+
+## Dreaming設計の追加（2026-11-09）
+
+OpenClawを参考文献に加え、[段階別設計](dreaming.ja.md)と[ADR 0003](decisions/0003-grounded-dreaming.md)を追加した。Phase 0の設計更新であり、sleepランタイム実装やdotsへの導入完了ではない。最初の比較は引き続きA/Bで、REMと日記は後続の選択肢とする。
 
 ## 後で判断すること
 

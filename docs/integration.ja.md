@@ -11,16 +11,19 @@
 | [gemma4-developer-agent](https://github.com/moruku36/gemma4-developer-agent) | README上のオフラインコーディングハーネス、タスク・時間・トークン制約 | 公開可能な練習ログから固定記憶を作り、実行前にバンドルへ組み込む案 |
 | [ChatGPT dots](https://learn.chatgpt.com/docs/dots) | 公式ドキュメントで記憶仕様を確認（2026-11-08）。実接続なし | 忘れることを前提に、正本を外部へ置き、想起バンドルを依頼に同梱する。詳細は[dots との接続設計](dots-integration.ja.md) |
 
-後二者のREADMEだけを確認しているため、実装APIや内部ログ形式は未確認。実装時には対象commitのコード・設定・規約を読み直す。他のチャットやアプリの履歴を一括収集する前提は置かない。
+OSS contributorとGemmaはREADMEだけを確認しているため、実装APIや内部ログ形式は未確認。実装時には対象commitのコード・設定・規約を読み直す。他のチャットやアプリの履歴を一括収集する前提は置かない。
 
 ## Adapterの最小契約（設計）
 
 ```text
 capture(task, observation, feedback) -> event[]
-sleep(event_snapshot, active_memory, budget) -> candidate_snapshot + report
+sleep(event_snapshot, active_memory, budget) -> candidate_snapshot + run_report
+promote(candidate_snapshot, evaluation_report, expected_parent) -> active_reference | rejection
 retrieve(project, task_family, query, memory_snapshot, token_budget) -> memory_bundle
 evaluate(task_set, adapter_revision, memory_snapshot, config) -> evaluation_report
 ```
+
+sleepはLight＋任意REM＋Deepの提案生成で、promoteは証拠と評価を再確認する別の書込み境界にする（[詳細](dreaming.ja.md)）。日記はこの契約の証拠入力には含めない。
 
 既存タスクループからはcaptureとretrieveだけを呼ぶ構成を優先する。sleepと評価は通常の作業ループから分離し、対象repoや実行中のタスクを書き換えない。データ契約は[schemas](../schemas/README.md)を参照。
 

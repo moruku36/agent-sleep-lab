@@ -10,12 +10,15 @@ An experimental harness that adds a sleep phase to existing AI-agent workflows: 
 
 - [Google's Sleep framework](https://research.google/blog/the-sleep-framework-a-new-way-for-llms-to-retain-knowledge-in-continual-learning/) and [Language Models Need Sleep](https://arxiv.org/abs/2606.03979) motivate separating activity, consolidation, and practice. Their method updates model weights; our initial design uses external memory and rehearsal tasks.
 - [Anthropic's The components of agent memory](https://www.anthropic.com/research/components-of-agent-memory) motivates retaining original logs, correcting notes against evidence, structured representations, and compact injected context.
+- [OpenClaw Dreaming](https://docs.openclaw.ai/concepts/dreaming) provides an architectural reference for separating selection, reflection, and durable promotion. Our [sleep design](docs/dreaming.ja.md) keeps generated reflections separate from evidence and retains the independent evaluation gate.
 
-This is an independent application proposal, not an official implementation or reproduction of either method. See the [research mapping](docs/research-basis.ja.md).
+This is an independent application proposal, not an official implementation or reproduction of these systems. See the [research mapping](docs/research-basis.ja.md).
 
 ## Proposed loop
 
-Existing agent → logs/results/corrections → memory candidates → evidence checks and consolidation → candidate snapshot → held-out evaluation → versioned promotion or rejection → relevant memory retrieval for subsequent work.
+Existing agent → authorized evidence → Light: select candidates → optional REM: propose hypotheses and checks → Deep: verify evidence and propose memory changes → candidate snapshot → held-out evaluation → atomic promotion or rejection → scoped retrieval for subsequent work.
+
+REM and a human-readable dream diary are proposed extensions, disabled in the first pilot. A diary is never evidence or permission. Sleep runs outside the foreground task loop; it does not make the assistant unavailable.
 
 Triggers are explicit requests, task completion, or accumulated experience. No recurring automation is configured.
 
@@ -28,16 +31,27 @@ Start with paper/article curation, then consider OSS triage and offline coding e
 The detailed documents are initially in Japanese.
 
 - [Architecture](docs/architecture.ja.md)
+- [Sleep / dreaming: phases, promotion gates, recovery](docs/dreaming.ja.md)
+- [Research and design mapping](docs/research-basis.ja.md)
 - [Evaluation protocol](docs/evaluation.ja.md)
 - [Manual pilot](docs/manual-pilot.ja.md)
 - [Existing-environment integration](docs/integration.ja.md)
 - [Roadmap](docs/roadmap.ja.md)
 - [Decision: external memory first](docs/decisions/0001-external-memory-first.md)
 - [Decision: assume the agent forgets](docs/decisions/0002-assume-agent-forgets.md)
+- [Decision: separate reflection from evidence and promotion](docs/decisions/0003-grounded-dreaming.md)
 - [Dots integration: designing for an agent that forgets](docs/dots-integration.ja.md)
 - [Data contracts](schemas/README.md) and [example configuration](configs/pilot.example.json)
-- [Consolidation prompt](prompts/sleep-consolidator.ja.md) and [retrieval prompt](prompts/memory-reader.ja.md)
+- [Consolidation prompt](prompts/sleep-consolidator.ja.md), [optional REM prompt](prompts/dream-reflector.ja.md), and [retrieval prompt](prompts/memory-reader.ja.md)
 - [Synthetic fixtures](examples/README.md) and [report template](templates/experiment-report.ja.md)
+
+## What exists today
+
+- **Authored:** design documents, v0.1 event/memory schemas, synthetic fixtures, proposed configuration, and prompt templates.
+- **Not implemented:** capture/retrieval adapters, sleep phases, provenance enforcement, durable writer, diary, and scheduling.
+- **Not executed:** target-agent integration, paid model runs, and A/B performance experiments.
+
+Start with the [manual pilot](docs/manual-pilot.ja.md). The [contract gaps](schemas/README.md#dreaming設計で追加が必要な契約未実装) must be closed before runtime adoption. Document and fixture checks are not evidence of performance improvement.
 
 ## Operating principles
 
@@ -45,5 +59,5 @@ Retain provenance and scope. Distinguish verified observations from hypotheses. 
 
 Keep real transcripts and private memory outside this public repository. Publish only design material, synthetic fixtures, and explicitly reviewed public artifacts. Measure memory preparation and maintenance costs in addition to answering costs.
 
-Created November 8, 2026 JST. Experimental results: not yet collected.
+Created November 8, 2026 JST. Dreaming design updated November 9, 2026 JST. Experimental results: not yet collected.
 

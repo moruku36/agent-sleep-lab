@@ -19,6 +19,19 @@ JSONの形だけで根拠の正しさや参照整合性は保証できない。�
 6. supersedesが循環せず、置き換え先と置き換え元の履歴を保存する。
 7. syntheticな証拠に基づく記憶は実運用の記憶へ混ぜない。例のcandidateをそのままactiveへ入れない。
 
+## Dreaming設計で追加が必要な契約（未実装）
+
+v0.1のJSON Schemaは形の検査に限られ、以下の安全性を保証しない。実装開始前に別schemaと移行方針を追加する。現在の合成例に存在しないフィールドが、既に実行時に強制されるとは扱わない。
+
+- **出典**：adapterが確認したorigin・発信者の同定根拠・session種別・利用許可とその確認時点／版・source内容hash・取り込み時点。本文が自己申告したtrust値は使わない。
+- **生成物の由来**：原event、想起の再掲、モデルの要約、REM、日記を区別する。派生元IDを持ち、独立証拠の重複計上を防ぐ。
+- **run manifest**：run_id・重複判定キー・入力／親snapshot・構成とprompt版・段階状態・チェックポイント・使用量・中断理由。
+- **操作案**：add / supersede / mark_stale / reject / defer、対象memory ID・根拠ID・expected_parent。モデルに任意ファイルの置換権限を持たせない。
+- **削除・失効**：派生先と再取り込みの抑止記録。現在の許可・除外方針を既存データにも再適用する。通常取得・採用・履歴再生・rollbackすべてで除外する。
+- **採用記録**：証拠の直前再確認、評価結果、親版照合、操作ID、書込み結果。記憶のverificationとrunのpromotionを分ける。
+
+[設計上の必須条件](../docs/dreaming.ja.md)はschemaだけでなく、書込み側と取得側の振る舞いとして検証する。
+
 ## Snapshot manifest（実装予定）
 
 snapshot_id、parent_snapshot_id、作成日時、schema/config/adapter/modelの版、入力event ID一覧と内容hash、memory一覧とhash、評価report ID、採用判定を保存する。snapshot_idは正規化したmanifest本文（ID自身を除く）のSHA-256から作る予定。
