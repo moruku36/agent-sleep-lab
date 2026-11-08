@@ -1,0 +1,53 @@
+{
+  "schema_version": "0.1",
+  "status": "design-only",
+  "project": "synthetic-paper-curation",
+  "task_family": "article-summary",
+  "trigger": "manual",
+  "schedule_enabled": false,
+  "runtime": {
+    "adapter": "not-implemented",
+    "model": null,
+    "provider": null,
+    "private_store": "SET_OUTSIDE_PUBLIC_REPOSITORY"
+  },
+  "memory": {
+    "retrieval": "keyword",
+    "injected_token_limit": 2000,
+    "eligible_statuses": [
+      "verified"
+    ],
+    "allow_cross_project": false,
+    "allow_synthetic_in_production": false
+  },
+  "sleep": {
+    "max_events": 20,
+    "max_candidates": 10,
+    "max_input_output_tokens": 40000,
+    "max_wall_seconds": 600,
+    "rehearsal_enabled": false,
+    "weight_updates": false
+  },
+  "spending": {
+    "currency": "USD",
+    "max_total_amount": null,
+    "paid_execution_enabled": false
+  },
+  "evaluation": {
+    "conditions": [
+      "raw-retrieval",
+      "consolidated-memory"
+    ],
+    "smoke_tasks": 5,
+    "held_out_tasks": 20,
+    "repetitions": 3,
+    "memory_frozen": true,
+    "cost_ratio_limit": 1.3,
+    "max_task_seconds": null
+  },
+  "publication": {
+    "raw_logs": false,
+    "private_memories": false,
+    "public_reports": "explicit-allowlist-only"
+  }
+}
