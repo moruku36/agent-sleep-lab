@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parent.parent
 FILES = ("README.md", "README.ja.md", "docs/gate-1.md", "docs/gate-1.ja.md",
          "schemas/README.md", "reports/gate-1-progress.md",
          "docs/gate-2a.md", "docs/gate-2a.ja.md", "docs/decisions/0004-local-evidence-store.md",
-         "docs/roadmap.ja.md", "reports/gate-2a-progress.md")
+         "docs/roadmap.ja.md", "reports/gate-2a-progress.md",
+         "docs/implementation-status.md", "docs/implementation-status.ja.md")
 
 
 if __name__ == "__main__":

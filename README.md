@@ -4,7 +4,9 @@
 
 An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
-**Status: Gate 1 delivered; Gate 2A provenance/evidence library implemented and locally tested.** The full suite passes 110 tests on macOS arm64 / Python 3.13.18. Gate 2A is synthetic-only and does not adopt memory. See [Gate 2A scope and acceptance](docs/gate-2a.md). There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
+**Status: Gate 1 and Gate 2A are implemented, checked and merged into main. Gate 2B is planned, not implemented.** See the [implementation status](docs/implementation-status.md) for delivered capabilities, merge/CI evidence and next acceptance targets.
+
+The full suite passes 110 tests on macOS arm64 / Python 3.13.18. Gate 2A is synthetic-only and does not adopt memory. See [Gate 2A scope and acceptance](docs/gate-2a.md). There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
 
 ## Research basis
 
