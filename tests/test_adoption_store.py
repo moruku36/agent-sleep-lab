@@ -34,7 +34,7 @@ class AdoptionTests(StoreCase):
         return store
 
     def proposal(self, store, operation_id="op-1", mid="m-1", parent=None, revision=1,
-                 kind="procedure", evaluation_override=None):
+                 kind="procedure", evaluation_override=None, run_id="fixture-run"):
         blob = support.dumps(support.good_memory(memory_id=mid, kind=kind))
         vr = store.register_verification(
             make_verifier(), verification_claim(store, receipt_id="vr-" + operation_id,
@@ -61,7 +61,7 @@ class AdoptionTests(StoreCase):
         claim.update(evaluation_override or {})
         er = store.register_evaluation(make_evaluator(), claim)
         req, _ = build_adoption_request(
-            operation_id=operation_id, plan=plan, expected_policy_revision=revision,
+            operation_id=operation_id, run_id=run_id, plan=plan, expected_policy_revision=revision,
             evaluation_receipt={"receipt_id": er.receipt_id, "receipt_sha256": er.receipt_sha256},
         )
         return dict(request_bytes=req, manifest_bytes=ops, source_manifest_bytes=src,
@@ -99,7 +99,7 @@ class AdoptionTests(StoreCase):
         })
         plan = build_candidate(manifest_bytes=ops, source_manifest_bytes=src, parent_bytes=None,
                                memory_bytes={}, known_ids=(), now=self.clock())
-        req, _ = build_adoption_request(operation_id="audit-1", plan=plan,
+        req, _ = build_adoption_request(operation_id="audit-1", run_id="fixture-run", plan=plan,
                                        expected_policy_revision=1, evaluation_receipt=None)
         result = store.commit_adoption(request_bytes=req, manifest_bytes=ops,
                                        source_manifest_bytes=src, memory_bytes={})

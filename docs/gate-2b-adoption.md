@@ -23,7 +23,7 @@ Audit-only reject/defer operations need no evaluation, write a journal entry and
 
 `resolve_operation(operation_id)` is read-only reconciliation for acknowledgement loss. `current_snapshot(scope)` returns **historical metadata only**, never a currently eligible retrieval bundle. Replay can succeed after exclusion without changing the head or the current policy; it is not permission to reuse the memory.
 
-## Current acceptance
+## Historical core acceptance (before run-ID v2)
 
 Seven selected synthetic cases, **one local invocation, seven executions total**:
 
@@ -35,12 +35,20 @@ Seven selected synthetic cases, **one local invocation, seven executions total**
 - Injected failure at the final head write rolls back memory, snapshot and journal.
 - Explicit v2→v3 upgrade preserves evidence and policy.
 
-Command: `.venv/bin/python tests/run_tests.py --limit 7 test_adoption_store.AdoptionTests`. Result: seven passed on Python 3.13.18/macOS arm64. No full-suite, wheel-runtime, or matrix test was run. Three executions remain in the ten-case trial cap; default future PR CI selects only three affected cases. Do not rerun these seven just because CI or a session changes.
+Command: `.venv/bin/python tests/run_tests.py --limit 7 test_adoption_store.AdoptionTests`. Result: seven passed on Python 3.13.18/macOS arm64. No full-suite, wheel-runtime, or matrix test was run. A continuation executed three new process cases once (see below), exhausting this same trial cap: ten case executions in two invocations. No more local/CI executions in this trial without an explicit budget increase. Do not open a PR that automatically reruns cases against this exhausted budget.
+
+### Process continuation
+
+Before the run-ID v2 change, three additional cases passed in one invocation (0.579 s): spawned-writer SIGKILL after head write/before COMMIT, SIGKILL after COMMIT/before acknowledgement, and two spawned competing null-parent writers with exactly one successful adoption. Test-only synchronization uses pipes with bounded waits; no production hooks. [Exact results and limitations](../reports/gate-2b-process-acceptance.md). At that milestone the trial totaled ten cases in two invocations; see the later explicitly expanded thirteen-case total below. These process cases have not been rerun on the v2 payload code. No new PR/CI; publication receipts are recorded separately.
+
+## Versioned run-ID binding
+
+[Implemented run-ID slice](gate-2b-run-id.md): strict request/2 and receipt/2 preserve legacy replay and bind caller-supplied audit labels. Three selected cases passed once (0.239 s) after explicit owner increase to thirteen total executions in three invocations. No remaining budget, new PR or CI. Earlier ten writer/process cases are historical, not rerun on this code. Muse Wonder supplied advice; incompatible audit-only advice was rejected.
 
 ## Publication and remaining work
 
-Branch: `feat/gate-2b-durable-adoption`, based on candidate-planning PR #9 head `31353d17035394840856283ad932c8005d120133`. PR #9 was observed OPEN before this development; this milestone is not merged and has no new PR/CI result. Commit/push receipts are recorded separately; a branch name is not delivery evidence.
+Branch: `feat/gate-2b-durable-adoption`, based on candidate-planning PR #9 head `31353d17035394840856283ad932c8005d120133`. PR #9 was originally observed OPEN but a fresh read now confirms MERGED (merge commit `122fed26305a5d039de3d14b5c42633811b8affc`); the later writer/run-ID milestone itself is not merged and has no new PR/CI result. Commit/push receipts are recorded separately; a branch name is not delivery evidence.
 
-Full Gate 2B still needs run-ID audit association with a versioned request contract, broader source/receipt corruption and preference-root fixtures, actual simultaneous multi-process contention and process exits before/after commit/ACK loss. SQL rollback and reopen are not process-crash, power-loss or network-filesystem durability evidence. Immutable SQLite hashes detect inconsistency, not coordinated forgery by a database owner.
+Full Gate 2B still needs trusted run registration beyond caller-supplied audit labels, broader source/receipt corruption and preference-root fixtures, broader crash points beyond the three historical process cases above. Process SIGKILL acceptance is not power-loss or network-filesystem durability evidence. Immutable SQLite hashes detect inconsistency, not coordinated forgery by a database owner.
 
-Present-time retrieval/filtering, rollback/deletion semantics, Light/Deep coordinator, evaluation runner, one-agent integration, real adapters/authentication and measured performance remain pending. Overall initial-version progress is estimated at about **30% (roughly 25–35%)**, not measured from test counts and not a claim of performance improvement.
+Present-time retrieval/filtering, rollback/deletion semantics, Light/Deep coordinator, evaluation runner, one-agent integration, real adapters/authentication and measured performance remain pending. Overall initial-version progress is estimated at about **35% (roughly 30–40%)**, not measured from test counts and not a claim of performance improvement.

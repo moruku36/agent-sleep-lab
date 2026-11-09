@@ -292,16 +292,19 @@ def build_candidate(
 def build_adoption_request(
     *,
     operation_id: str,
+    run_id: str,
     plan: CandidatePlan,
     expected_policy_revision: int,
     evaluation_receipt: dict[str, str] | None,
 ) -> tuple[bytes, str]:
     """Canonical request bytes and their digest (the durable operation digest). The request names
     the *constructed* snapshot hash, never a caller-chosen one; ``expected_policy_revision`` is the
-    single control-policy chain revision, not the legacy authorization/exclusion integer pair."""
+    single control-policy chain revision, not the legacy authorization/exclusion integer pair.
+    run_id is a caller-supplied audit label, not a registered/authenticated run."""
     doc = {
-        "schema_version": "agent-sleep-adoption-request/1",
+        "schema_version": "agent-sleep-adoption-request/2",
         "operation_id": operation_id,
+        "run_id": run_id,
         "scope": dict(plan.scope),
         "expected_parent_snapshot_sha256": plan.parent_sha256,
         "expected_policy_revision": expected_policy_revision,
@@ -325,8 +328,9 @@ def build_committed_receipt(
         raise ValueError("now must be a timezone-aware datetime")
     adopted = request["candidate_snapshot_sha256"] is not None
     parent = request["expected_parent_snapshot_sha256"]
+    version = "2" if request["schema_version"] == "agent-sleep-adoption-request/2" else "1"
     doc = {
-        "schema_version": "agent-sleep-committed-operation-receipt/1",
+        "schema_version": "agent-sleep-committed-operation-receipt/" + version,
         "operation_id": request["operation_id"],
         "request_sha256": sha256_hex(bytes(request_bytes)),  # type: ignore[arg-type]
         "scope": request["scope"],
@@ -337,5 +341,7 @@ def build_committed_receipt(
         "outcome": "adopted" if adopted else "audit_only",
         "committed_at": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
+    if version == "2":
+        doc["run_id"] = request["run_id"]
     data = encode_artifact("committed_receipt", doc)
     return data, sha256_hex(data)

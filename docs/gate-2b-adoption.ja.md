@@ -22,7 +22,7 @@ reject/deferだけなら評価不要で、履歴だけを残し、現在版を�
 
 `resolve_operation`は応答消失時の結果照会です。`current_snapshot`は**過去のsnapshotメタデータ**で、現在利用可能な記憶bundleではありません。除外後に元の採用結果を照会できても、現在の除外を解除したり再採用したりはしません。
 
-## 今回の確認
+## 過去の中核受入（run ID v2追加前）
 
 **重点7項目・ローカル1回実行・合計7項目合格**。全件テスト・matrix・wheel実行検証は行っていません。
 
@@ -34,12 +34,20 @@ reject/deferだけなら評価不要で、履歴だけを残し、現在版を�
 6. 最終head書込みの失敗で記憶・snapshot・履歴すべてrollback。
 7. 明示v2→v3移行で原証拠・方針を維持。
 
-コマンド：`.venv/bin/python tests/run_tests.py --limit 7 test_adoption_store.AdoptionTests`。Python 3.13.18／macOS arm64で合格。試行上限10項目の残りは3項目で、将来のPR用CI既定も関係する3項目だけにします。セッション変更を理由に7項目を再実行しません。
+コマンド：`.venv/bin/python tests/run_tests.py --limit 7 test_adoption_store.AdoptionTests`。Python 3.13.18／macOS arm64で合格。続行で下記の追加3項目を1回実行し、同じ試行は計10項目・2回実行で上限到達です。追加の許可なしにローカル／CIを再実行せず、自動CIが走るPRも作成しません。
+
+### プロセス検証の続行
+
+run ID v2追加前に追加3項目を1回実行し、0.579秒で全件合格。head保存後・COMMIT直前のSIGKILL、COMMIT後・応答前のSIGKILL、2つのspawnプロセスによるnull親競合を確認しました。pipeと上限付き待機を使うテスト限定の同期で、本番hookは追加していません。[正確な結果・限界](../reports/gate-2b-process-acceptance.md)。当時は同じ試行で計10項目・2回実行。後述の明示増枠後は計13項目です。プロセス3項目はv2追加コードでは再実行していません。新PR・CIなし。公開根拠は別途記録します。
+
+## 版付きrun ID結合
+
+[run ID結合](gate-2b-run-id.ja.md)を実装。request/2・receipt/2に監査ラベルを結び付け、旧履歴の完全一致再送を維持します。明示増枠により追加3項目を1回・0.239秒で合格、累計13項目・3回実行で上限到達。先の10項目は今回再実行していない履歴です。新PR・CIなし。Muse Wonderの助言から既存契約に合わない監査操作の変更案は採用していません。
 
 ## 公開状態と残る範囲
 
-作業branch：`feat/gate-2b-durable-adoption`。候補構築PR #9のhead `31353d17035394840856283ad932c8005d120133`を土台にしています。開始時点でPR #9はOPEN。今回の成果も未マージで、新PR・CI結果はありません。commit／pushの根拠は別記録で照合し、branch名だけで公開済みとは扱いません。
+作業branch：`feat/gate-2b-durable-adoption`。候補構築PR #9のhead `31353d17035394840856283ad932c8005d120133`を土台にしています。開始時点でPR #9はOPENでしたが、最新の読取り確認ではMERGED（merge commit `122fed26305a5d039de3d14b5c42633811b8affc`）。後続writer／run ID連携の成果は未マージで、新PR・CI結果はありません。commit／pushの根拠は別記録で照合し、branch名だけで公開済みとは扱いません。
 
-2B全体では、run IDを結び付ける版付きrequest契約、追加の証拠／受領破損・preference root検査、実際の同時複数プロセス、commit前後の強制終了・応答消失検査が残ります。SQL rollback・再openはプロセスクラッシュ・電源断・ネットワークFS耐久性の検証ではありません。hashもDB所有者による協調的改ざんを認証するものではありません。
+2B全体では、監査ラベルを超える登録runの照合、追加の証拠／受領破損・preference root検査、上記の過去3項目以外のクラッシュ境界が残ります。プロセス強制終了の検証は電源断・ネットワークFS耐久性の検証ではありません。hashもDB所有者による協調的改ざんを認証するものではありません。
 
-現在方針を適用した取得、rollback／削除、Light/Deep、比較評価runner、既存agent1つへの接続、実環境adapter／認証・性能実験はこれからです。初期版全体の目安は**約30%前後（25〜35%程度）**。テスト件数からの算出や性能改善率ではありません。
+現在方針を適用した取得、rollback／削除、Light/Deep、比較評価runner、既存agent1つへの接続、実環境adapter／認証・性能実験はこれからです。初期版全体の目安は**約35%前後（30〜40%程度）**。テスト件数からの算出や性能改善率ではありません。

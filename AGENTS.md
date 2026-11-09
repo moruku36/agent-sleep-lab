@@ -1,6 +1,6 @@
 # Working in agent-sleep-lab
 
-This repository contains an offline contract validator, synthetic-only evidence/receipt/policy helpers, a pure candidate planner and a locally checked v3 durable-adoption core. Full run-ID/crash acceptance, present-time retrieval and the running sleep engine remain pending. Check the current gate reports for executed acceptance and remaining boundaries.
+This repository contains an offline contract validator, synthetic-only evidence/receipt/policy helpers, a pure candidate planner and a locally checked v3 durable-adoption core. Versioned run-ID audit labels and selected process fixtures are locally checked; full run registration/broader fault acceptance, present-time retrieval and the running sleep engine remain pending. Check the current gate reports for executed acceptance and remaining boundaries.
 
 - Read README.md and the architecture/evaluation documents before changing the design.
 - Keep README.md in English as the default landing page and README.ja.md in Japanese, with reciprocal language links. Update both when the purpose or status changes. README.en.md is a compatibility link to README.md; detailed design documents may remain in Japanese until translated.

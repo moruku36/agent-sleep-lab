@@ -1,6 +1,6 @@
 # データ契約 v0.1
 
-状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。ゲート2Bの最初の受領・現在方針を実装し、全152テストと別環境wheel受入が合格。記憶snapshotの永続採用・取得・撤回は未実装。
+状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。ゲート2Bの最初の受領・現在方針を実装し、全152テストと別環境wheel受入が合格。後続の合成限定採用writerとrun ID監査ラベルは重点受入済み。現在利用可能な記憶の取得・撤回は未実装。
 
 CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・自己supersede、verifiedの確認情報、verified hypothesisの拒否まで。保存先全体の一意性、参照実在、出典・issuer認証、現在の許可・除外、採用条件は確認しない。
 
@@ -14,7 +14,7 @@ CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・
 - [evaluation-receipt.schema.json](evaluation-receipt.schema.json)：snapshot・操作・原証拠manifest hash・親版・protocol・完了性を結ぶ模擬評価受領。登録だけでは採用判定しない。
 - [control-policy.schema.json](control-policy.schema.json)：snapshot外の現在方針と追加のみの除外。模擬control境界からCASで版を進める。
 
-後続の[候補構築](../docs/gate-2b-candidates.ja.md)で、[operation manifest](operation-manifest.schema.json)、[source manifest](source-manifest.schema.json)、[candidate snapshot](candidate-snapshot.schema.json)、[adoption request](adoption-request.schema.json)、[committed receiptの形式](committed-operation-receipt.schema.json)も追加。純粋な構築・形式検査のみで、永続採用やrun ID監査の統合は未実装。形式を生成できてもcommit済みの証拠にはならない。
+後続の[候補構築](../docs/gate-2b-candidates.ja.md)で、[operation manifest](operation-manifest.schema.json)、[source manifest](source-manifest.schema.json)、[candidate snapshot](candidate-snapshot.schema.json)、[adoption request](adoption-request.schema.json)、[committed receiptの形式](committed-operation-receipt.schema.json)も追加。後続の[採用writer](../docs/gate-2b-adoption.ja.md)で永続採用を実装し、[run ID結合](../docs/gate-2b-run-id.ja.md)では[request/2](adoption-request-v2.schema.json)・[receipt/2](committed-operation-receipt-v2.schema.json)を追加しました。v1は履歴読取り用に不変。形式の生成だけではcommit済みの証拠にならず、run_idも認証済みrunではありません。
 
 schema単独では認証・事実性・採用の原子性を保証しない。ゲート1のCLI種別は増やしておらず、これらはライブラリAPIで検査する。
 

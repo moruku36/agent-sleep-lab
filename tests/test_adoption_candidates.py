@@ -370,7 +370,7 @@ class ContractCrossFieldTests(Base):
 
         plan = initial_plan()
         data, _ = ac.build_adoption_request(
-            operation_id="op-1", plan=plan, expected_policy_revision=1, evaluation_receipt=dict(EVAL))
+            operation_id="op-1", run_id="fixture-run", plan=plan, expected_policy_revision=1, evaluation_receipt=dict(EVAL))
         request = json.loads(data)
         self.assertEqual(self.codes("adoption_request", request), set())
         self.assertIn("contract.evaluation_required",
@@ -392,9 +392,9 @@ class RequestAndReceiptBuilderTests(Base):
     def test_request_names_the_constructed_snapshot_and_is_deterministic(self):
         plan = initial_plan()
         data, digest = ac.build_adoption_request(
-            operation_id="op-1", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
+            operation_id="op-1", run_id="fixture-run", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
         again, digest2 = ac.build_adoption_request(
-            operation_id="op-1", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
+            operation_id="op-1", run_id="fixture-run", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
         self.assertEqual((data, digest), (again, digest2))
         self.assertEqual(digest, sha256_hex(data))
         request = ac.parse_canonical("adoption_request", data)
@@ -404,25 +404,25 @@ class RequestAndReceiptBuilderTests(Base):
         self.assertNotIn("authorization_revision", request)  # one combined policy revision
         self.assertNotIn("exclusion_revision", request)
         other, other_digest = ac.build_adoption_request(
-            operation_id="op-2", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
+            operation_id="op-2", run_id="fixture-run", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
         self.assertNotEqual(digest, other_digest)
 
     def test_active_change_requires_evaluation_and_audit_only_forbids_it(self):
         plan = initial_plan()
         self.assertCode("contract.evaluation_required", lambda: ac.build_adoption_request(
-            operation_id="op-1", plan=plan, expected_policy_revision=1, evaluation_receipt=None))
+            operation_id="op-1", run_id="fixture-run", plan=plan, expected_policy_revision=1, evaluation_receipt=None))
         audit = plan_for([op("reject", "m-9", mem("m-9"))], parent=self.parent())
         self.assertCode("contract.unexpected_evaluation", lambda: ac.build_adoption_request(
-            operation_id="op-1", plan=audit, expected_policy_revision=1, evaluation_receipt=dict(EVAL)))
+            operation_id="op-1", run_id="fixture-run", plan=audit, expected_policy_revision=1, evaluation_receipt=dict(EVAL)))
         data, _ = ac.build_adoption_request(
-            operation_id="op-1", plan=audit, expected_policy_revision=1, evaluation_receipt=None)
+            operation_id="op-1", run_id="fixture-run", plan=audit, expected_policy_revision=1, evaluation_receipt=None)
         request = ac.parse_canonical("adoption_request", data)
         self.assertIsNone(request["candidate_snapshot_sha256"])
         self.assertEqual(request["expected_parent_snapshot_sha256"], audit.parent_sha256)
 
     def test_receipt_builder_rejects_naive_time_and_policy_drift(self):
         data, _ = ac.build_adoption_request(
-            operation_id="op-1", plan=initial_plan(), expected_policy_revision=3,
+            operation_id="op-1", run_id="fixture-run", plan=initial_plan(), expected_policy_revision=3,
             evaluation_receipt=dict(EVAL))
         for revision in (2, 4, True, "3", 3.0):
             with self.subTest(revision=revision):
@@ -434,7 +434,7 @@ class RequestAndReceiptBuilderTests(Base):
     def test_committed_receipt_builder(self):
         plan = initial_plan()
         data, _ = ac.build_adoption_request(
-            operation_id="op-1", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
+            operation_id="op-1", run_id="fixture-run", plan=plan, expected_policy_revision=3, evaluation_receipt=dict(EVAL))
         receipt_bytes, receipt_sha = ac.build_committed_receipt(data, policy_revision=3, now=NOW)
         receipt = ac.parse_canonical("committed_receipt", receipt_bytes)
         self.assertEqual((receipt["outcome"], receipt["snapshot_sha256"], receipt["parent_snapshot_sha256"]),
@@ -445,7 +445,7 @@ class RequestAndReceiptBuilderTests(Base):
 
         audit = plan_for([op("defer", "m-9", mem("m-9"))])
         audit_request, _ = ac.build_adoption_request(
-            operation_id="op-2", plan=audit, expected_policy_revision=3, evaluation_receipt=None)
+            operation_id="op-2", run_id="fixture-run", plan=audit, expected_policy_revision=3, evaluation_receipt=None)
         audit_receipt = ac.parse_canonical(
             "committed_receipt", ac.build_committed_receipt(audit_request, policy_revision=3, now=NOW)[0])
         self.assertEqual((audit_receipt["outcome"], audit_receipt["snapshot_sha256"]), ("audit_only", None))

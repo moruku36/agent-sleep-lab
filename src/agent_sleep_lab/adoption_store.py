@@ -195,7 +195,9 @@ class AdoptionStore(RuntimeStore):
                 or manifest["scope"] != req["scope"] or source["scope"] != req["scope"]
                 or manifest["expected_parent_snapshot_sha256"] != req["expected_parent_snapshot_sha256"]):
             raise StorageError("adoption.journal_corrupt", "stored payload binding mismatch")
+        version = "2" if req["schema_version"] == "agent-sleep-adoption-request/2" else "1"
         expected_rec = {
+            "schema_version": "agent-sleep-committed-operation-receipt/" + version,
             "operation_id": operation_id, "request_sha256": req_sha,
             "scope": req["scope"],
             "parent_snapshot_sha256": req["expected_parent_snapshot_sha256"],
@@ -206,7 +208,9 @@ class AdoptionStore(RuntimeStore):
             "evaluation_receipt": req["evaluation_receipt"],
             "outcome": "adopted" if req["candidate_snapshot_sha256"] is not None else "audit_only",
         }
-        if req["operation_id"] != operation_id or any(rec[k] != v for k, v in expected_rec.items()):
+        if version == "2":
+            expected_rec["run_id"] = req["run_id"]
+        if req["operation_id"] != operation_id or any(rec.get(k) != v for k, v in expected_rec.items()):
             raise StorageError("adoption.journal_corrupt", "journal receipt binding mismatch")
         return req_sha, req_data, AdoptionResult("replayed", rec_data, rec_sha)
 
@@ -345,6 +349,10 @@ class AdoptionStore(RuntimeStore):
                     if prior[0] != req_sha or prior[1] != req_data:
                         raise ConflictError("adoption.operation_conflict", "operation ID already has different content")
                     return prior[2]  # NO head write or current-policy assertion on historical replay
+                if req["schema_version"] != "agent-sleep-adoption-request/2":
+                    raise ContractViolation(
+                        "adoption.legacy_write", "new operations require request/2 and an explicit run_id"
+                    )
                 now = self._now()
                 policy = self.current_policy()
                 if policy.revision != req["expected_policy_revision"]:
