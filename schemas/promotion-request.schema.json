@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Memory promotion request (design sleep-promotion/1)",
+  "$comment": "Design contract only. Runtime semantic checks and authorization are required.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "proposal_only",
+    "synthetic",
+    "operation_id",
+    "run_id",
+    "scope",
+    "expected_parent_sha256",
+    "candidate_snapshot",
+    "operations_manifest",
+    "source_manifest",
+    "verification_receipt",
+    "evaluation_receipt",
+    "authorization_ref",
+    "authorization_revision",
+    "exclusion_revision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "sleep-promotion/1"
+    },
+    "proposal_only": {
+      "type": "boolean"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "operation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "task_family"
+      ],
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "task_family": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "expected_parent_sha256": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "candidate_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "operations_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "source_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "verification_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "evaluation_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "authorization_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authorization_revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "exclusion_revision": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

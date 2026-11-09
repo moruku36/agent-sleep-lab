@@ -36,4 +36,10 @@ v0.1のJSON Schemaは形の検査に限られ、以下の安全性を保証し�
 
 snapshot_id、parent_snapshot_id、作成日時、schema/config/adapter/modelの版、入力event ID一覧と内容hash、memory一覧とhash、評価report ID、採用判定を保存する。snapshot_idは正規化したmanifest本文（ID自身を除く）のSHA-256から作る予定。
 
-active.jsonの更新時には親snapshot_idを照合する。manifestの細部と正規化方式はPhase 1で固定し、それまではスキーマ互換性を保証しない。
+active.jsonの更新時には親snapshot_idを照合する。構造化manifestの正規化は三ハーネス契約のRFC 8785 JCSを用い、自身のID・hash・署名を除く。原artifactは保存bytesのSHA-256。既存v0.1の不足情報を自動補完せず、新しい採用契約と明示的移行で扱う。
+
+## 採用requestの追加契約
+
+[promotion-request.schema.json](promotion-request.schema.json)（`sleep-promotion/1`）はv0.1を変更せず、候補snapshot・操作・原証拠・検証・評価の参照と、期待親版・許可版・除外版を要求する。[合成例](../examples/promotion-request.synthetic.json)はproposal_only=trueで、0埋めhashは未解決の記号。実在する証拠や採用許可ではない。
+
+schema合格だけでwriterが採用してはならない。proposal_only、synthetic／production境界、実参照の存在／hash／issuer、scope、現行policy、transaction、循環を[仕様](../docs/contracts-and-acceptance.ja.md)どおり検証する。未対応版は拒否し、migrationは旧新hashと未確認事項を記録。既存v0.1のverified自己申告を信頼しない。

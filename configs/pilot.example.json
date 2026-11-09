@@ -36,9 +36,9 @@
     "proposal_only": true,
     "promotion_requires": [
       "verified-evidence",
-      "held-out-evaluation",
+      "frozen-adoption-evaluation",
       "live-source-recheck",
-      "expected-parent-match"
+      "expected-parent-and-policy-match"
     ],
     "on_failure": "keep-current-active"
   },
@@ -57,7 +57,9 @@
     "repetitions": 3,
     "memory_frozen": true,
     "cost_ratio_limit": 1.3,
-    "max_task_seconds": null
+    "max_task_seconds": null,
+    "promotion_suite_role": "development-regression",
+    "final_comparison_policy": "freeze-candidate-first; retire-final-set-after-feedback"
   },
   "publication": {
     "raw_logs": false,

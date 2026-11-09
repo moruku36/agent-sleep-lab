@@ -1,0 +1,35 @@
+{
+  "schema_version": "sleep-promotion/1",
+  "proposal_only": true,
+  "synthetic": true,
+  "operation_id": "synthetic-promotion-1",
+  "run_id": "synthetic-run-1",
+  "scope": {
+    "project": "synthetic-paper-curation",
+    "task_family": "article-summary"
+  },
+  "expected_parent_sha256": null,
+  "candidate_snapshot": {
+    "id": "synthetic-unresolvable-candidate-snapshot",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "operations_manifest": {
+    "id": "synthetic-unresolvable-operations",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "source_manifest": {
+    "id": "synthetic-unresolvable-sources",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "verification_receipt": {
+    "id": "synthetic-unresolvable-verification",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "evaluation_receipt": {
+    "id": "synthetic-unresolvable-evaluation",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "authorization_ref": "synthetic-unresolvable-authorization",
+  "authorization_revision": 0,
+  "exclusion_revision": 0
+}

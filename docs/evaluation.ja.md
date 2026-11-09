@@ -86,3 +86,7 @@ consolidationはLight・REM・Deepを分け、maintenanceには任意の日記�
 実行日時、対象repoのcommit、課題セットのhash、構成hash、モデルIDと取得できるrevision、記憶snapshot、乱数設定、ツール環境、制限値、全試行と中断理由を保存する。非決定的なAPIでは完全な再現性を保証しない。
 
 [レポート雛形](../templates/experiment-report.ja.md)を使用する。実際の成績が出るまで数値を埋めない。
+
+## 実装担当への契約補足（2026-11-09）
+
+[採用・復旧・取得の仕様](contracts-and-acceptance.ja.md)を本書と併せて適用する。繰り返す採用判定は固定した開発／回帰評価で行い、科学的な性能主張には候補固定後の別の最終比較を用いる。同じ最終集合を繰り返し使えば開発データとして記録する。原子的な採用は期待親版・現在の許可／除外版・operation ID・評価対象hashを一緒に照合し、file replaceだけで並行更新を保証したとしない。SLP-01〜12は将来の実行時受入で、今回は未実施。
