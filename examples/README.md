@@ -14,3 +14,5 @@ fixture:// URIは上記イベントのsource_uriと対応する説明用の識�
 訂正がsynthetic-event-002の失敗を指すこと、候補が訂正と成功例の両方を参照すること、synthetic-paper-curationの範囲にとどまることを確認する。
 
 異常系fixtureとして、根拠ID不在、他projectの参照、期限切れ、同じIDの内容違い、外部命令を含む記事、競合する訂正を追加する予定。Phase 1以降の実装テストに使う。
+
+新しい[promotion request](promotion-request.synthetic.json)は採用境界の無効例。proposal_only=true、参照と0埋めhashは記号で、元v0.1候補を採用済みに変更しない。

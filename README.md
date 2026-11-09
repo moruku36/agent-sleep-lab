@@ -16,7 +16,7 @@ This is an independent application proposal, not an official implementation or r
 
 ## Proposed loop
 
-Existing agent → authorized evidence → Light: select candidates → optional REM: propose hypotheses and checks → Deep: verify evidence and propose memory changes → candidate snapshot → held-out evaluation → atomic promotion or rejection → scoped retrieval for subsequent work.
+Existing agent → authorized evidence → Light: select candidates → optional REM: propose hypotheses and checks → Deep: verify evidence and propose memory changes → candidate snapshot → frozen adoption evaluation → atomic promotion or rejection → scoped retrieval for subsequent work.
 
 REM and a human-readable dream diary are proposed extensions, disabled in the first pilot. A diary is never evidence or permission. Sleep runs outside the foreground task loop; it does not make the assistant unavailable.
 
@@ -61,3 +61,8 @@ Keep real transcripts and private memory outside this public repository. Publish
 
 Created November 8, 2026 JST. Dreaming design updated November 9, 2026 JST. Experimental results: not yet collected.
 
+## Design handoff update — 2026-11-09
+
+Read the [implementation contract and acceptance cases](docs/contracts-and-acceptance.md) before implementing. This update specifies state ownership, immutable evidence, retry/recovery behavior and evaluation boundaries; it adds design schemas and synthetic examples only. Runtime implementation belongs to a later AI-led change. No performance result or live integration is claimed.
+
+The three repositories remain independently usable. Optional integration follows the [reference-only handoff contract](https://github.com/moruku36/ai-agent-scientist/blob/main/docs/11-harness-boundaries.md); it does not create shared authority or a new agent runtime.
