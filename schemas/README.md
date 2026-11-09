@@ -14,6 +14,8 @@ CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・
 - [evaluation-receipt.schema.json](evaluation-receipt.schema.json)：snapshot・操作・原証拠manifest hash・親版・protocol・完了性を結ぶ模擬評価受領。登録だけでは採用判定しない。
 - [control-policy.schema.json](control-policy.schema.json)：snapshot外の現在方針と追加のみの除外。模擬control境界からCASで版を進める。
 
+後続の[候補構築](../docs/gate-2b-candidates.ja.md)で、[operation manifest](operation-manifest.schema.json)、[source manifest](source-manifest.schema.json)、[candidate snapshot](candidate-snapshot.schema.json)、[adoption request](adoption-request.schema.json)、[committed receiptの形式](committed-operation-receipt.schema.json)も追加。純粋な構築・形式検査のみで、永続採用やrun ID監査の統合は未実装。形式を生成できてもcommit済みの証拠にはならない。
+
 schema単独では認証・事実性・採用の原子性を保証しない。ゲート1のCLI種別は増やしておらず、これらはライブラリAPIで検査する。
 
 日時はUTCのRFC 3339形式で保存し、表示時にJSTへ変換する。projectとtask_familyの組が取得範囲。別projectへの移植は自動で行わない。

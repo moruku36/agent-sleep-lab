@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Sleep Lab operation manifest (Gate 2B, agent-sleep-operation-manifest/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope", "expected_parent_snapshot_sha256", "operations"],
+  "properties": {
+    "schema_version": {"const": "agent-sleep-operation-manifest/1"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "task_family"],
+      "properties": {
+        "project": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "task_family": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+      }
+    },
+    "expected_parent_snapshot_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["op", "memory_id", "memory_sha256", "target_id", "receipt"],
+        "properties": {
+          "op": {"enum": ["add", "supersede", "mark_stale", "reject", "defer"]},
+          "memory_id": {"type": ["string", "null"], "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+          "memory_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+          "target_id": {"type": ["string", "null"], "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+          "receipt": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["receipt_id", "receipt_sha256"],
+            "properties": {
+              "receipt_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+              "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

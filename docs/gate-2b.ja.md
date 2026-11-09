@@ -30,8 +30,8 @@ v1移行時とv2起動時に、テーブル・index・triggerの定義を、既�
 
 `.venv/bin/python tests/run_tests.py`で**152件合格**。追加42件は契約、自己申告identity、受領破損、現在の除外・期限・許可、方針CAS・再open、同一接続でのlock、v1/v2の定義照合、証拠保持・途中失敗rollback等です。別接続のlockや順序付き更新の検査であって、プロセス間採用競合やクラッシュの検証ではありません。
 
-[wheel検証スクリプト](../tools/check_runtime_installed.py)を新環境・checkout外から実行し、schemaコピー、明示移行、capture、検証／評価受領、解決、方針CAS、祖先root除外、再openを確認。既存CLI・証拠ストアのwheel確認も合格しました。Python 3.11／3.13のCIへ追加済みですが、成功は実際の実行記録と区別します。
+[wheel検証スクリプト](../tools/check_runtime_installed.py)を新環境・checkout外から実行し、schemaコピー、明示移行、capture、検証／評価受領、解決、方針CAS、祖先root除外、再openを確認。既存CLI・証拠ストアのwheel確認も合格しました。当初はPython 3.11／3.13のCIへ追加しましたが、後続の[テスト上限方針](testing-budget.ja.md)で自動実行はPR時・Python 3.13・重点3項目に変更しました。全件・wheel動作確認は毎回は行いません。上記は当時の受入記録です。
 
 ## 未実装
 
-操作・候補・原証拠manifest・採用受領契約、親版からの候補構築、記憶種別の条件、評価の採用判定、active参照、operation ID/digestの永続照会・再送、原子的な採用writer。同時採用・プロセスクラッシュ・応答消失fixtureも未実装です。ゲート3の取得・rollback・削除、SLP全体受入、実adapter、定期実行、性能実験はまだありません。
+後続の[純粋な候補構築](gate-2b-candidates.ja.md)で操作・候補・原証拠manifest・request・受領形式と、親版からの構築を実装しました。ただしDBの権威とは未接続です。記憶種別の実出典との照合、評価の採用判定、active参照、operation ID/digestの永続照会・再送、原子的な採用writerは未実装です。同時採用・プロセスクラッシュ・応答消失fixtureも未実装です。ゲート3の取得・rollback・削除、SLP全体受入、実adapter、定期実行、性能実験はまだありません。
