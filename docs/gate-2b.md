@@ -30,7 +30,7 @@ Runtime evidence, receipts and policy read through the **same store connection**
 
 `.venv/bin/python tests/run_tests.py` passed **152 tests**. The 42 additions cover contracts, forged claim identity, receipt resolution/tampering, current exclusions/expiry/authorization, policy CAS/reopen, one-connection locking, v1/v2 schema guards, preserved evidence and upgrade rollback. These are independent-connection/sequential-policy checks, not cross-process adoption races.
 
-The wheel was installed in a fresh environment. [check_runtime_installed.py](../tools/check_runtime_installed.py), invoked outside the checkout, checked all new packaged schemas, explicit upgrade, capture, verification/evaluation registration, resolution, policy CAS, ancestor exclusion and reopen. Gate 1 and 2A installed checks also passed. CI includes the runtime helper on Python 3.11/3.13; read actual workflow results before claiming CI success.
+The wheel was installed in a fresh environment. [check_runtime_installed.py](../tools/check_runtime_installed.py), invoked outside the checkout, checked all new packaged schemas, explicit upgrade, capture, verification/evaluation registration, resolution, policy CAS, ancestor exclusion and reopen. Gate 1 and 2A installed checks also passed. The original CI included this helper on Python 3.11/3.13. The later [owner test-budget policy](testing-budget.ja.md) uses only 3 selected cases on PRs/Python 3.13; full and installed-wheel checks are not automatic. Results here remain dated acceptance.
 
 ## Pending
 

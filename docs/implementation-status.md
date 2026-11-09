@@ -6,6 +6,10 @@ Last updated: 2026-11-10 JST. **Gate 1, Gate 2A and Gate 2B receipt/policy helpe
 
 Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.md), executed gate acceptance, and performance experiments are separate claims.
 
+## Test-budget policy (2026-11-10 owner update)
+
+Future trials execute at most 10 selected cases total, counting local/CI/retries. Default is 3 concise cases, and PR-only CI has one Python 3.13 job with 3 cases; full-suite, duplicate push/PR and multi-version runs are no longer automatic. The 174-case result below is historical acceptance of the candidate implementation, not a claim of rerunning all cases on this policy commit. [Details](testing-budget.ja.md).
+
 ## Overall progress estimate
 
 Approximately **25% (a rough 20–30% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts and candidate planning exist; the adoption writer, retrieval, coordinator, evaluation runner and integration still represent most remaining work.

@@ -30,7 +30,7 @@ v1移行時とv2起動時に、テーブル・index・triggerの定義を、既�
 
 `.venv/bin/python tests/run_tests.py`で**152件合格**。追加42件は契約、自己申告identity、受領破損、現在の除外・期限・許可、方針CAS・再open、同一接続でのlock、v1/v2の定義照合、証拠保持・途中失敗rollback等です。別接続のlockや順序付き更新の検査であって、プロセス間採用競合やクラッシュの検証ではありません。
 
-[wheel検証スクリプト](../tools/check_runtime_installed.py)を新環境・checkout外から実行し、schemaコピー、明示移行、capture、検証／評価受領、解決、方針CAS、祖先root除外、再openを確認。既存CLI・証拠ストアのwheel確認も合格しました。Python 3.11／3.13のCIへ追加済みですが、成功は実際の実行記録と区別します。
+[wheel検証スクリプト](../tools/check_runtime_installed.py)を新環境・checkout外から実行し、schemaコピー、明示移行、capture、検証／評価受領、解決、方針CAS、祖先root除外、再openを確認。既存CLI・証拠ストアのwheel確認も合格しました。当初はPython 3.11／3.13のCIへ追加しましたが、後続の[テスト上限方針](testing-budget.ja.md)で自動実行はPR時・Python 3.13・重点3項目に変更しました。全件・wheel動作確認は毎回は行いません。上記は当時の受入記録です。
 
 ## 未実装
 

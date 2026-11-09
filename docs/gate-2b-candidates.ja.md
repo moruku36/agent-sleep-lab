@@ -32,4 +32,4 @@
 
 `.venv/bin/python tests/run_tests.py`で174件合格。初回に1件あったscope fixtureの不整合を修正し、重複証拠・受領の方針版／日時も補強しました。決定的な構築、操作ごとの意味、履歴保持、ID競合、親版・scope・期限・種別・過大候補の拒否等を確認しています。
 
-新wheelを別環境へ入れ、[候補構築の検証](../tools/check_candidates_installed.py)をcheckout外から実行。schema同梱、追加・置換と履歴、request・受領形式のhash結合が合格しました。ここでの参照は記号的な合成データで、登録済み証拠ではありません。既存CLI・証拠ストア・受領／方針のwheel検証も合格。Python 3.11／3.13のCIへ追加していますが、実際の結果は別途確認します。
+新wheelを別環境へ入れ、[候補構築の検証](../tools/check_candidates_installed.py)をcheckout外から実行。schema同梱、追加・置換と履歴、request・受領形式のhash結合が合格しました。ここでの参照は記号的な合成データで、登録済み証拠ではありません。既存CLI・証拠ストア・受領／方針のwheel検証も合格。当初はPython 3.11／3.13のCIへ追加しましたが、後続の[所有者のテスト上限方針](testing-budget.ja.md)により、自動実行はPR時のPython 3.13・重点3項目へ変更しました。この174項目・wheelの記録は実装時の履歴であり、以後毎回は実行しません。

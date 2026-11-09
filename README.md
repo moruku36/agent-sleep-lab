@@ -8,6 +8,10 @@ An experimental harness that adds a sleep phase to existing AI-agent workflows: 
 
 The current combined suite passes 174 tests on macOS arm64 / Python 3.13.18 (152 prior + 22 new). [Pure candidate planning](docs/gate-2b-candidates.md) adds parent+operation construction, not active adoption. The [first Gate 2B slice](docs/gate-2b.md) adds registered synthetic receipts and persisted policy/exclusion checks; its fresh installed wheel passed outside-checkout acceptance. Gate 2A is synthetic-only and does not adopt memory. See [Gate 2A scope and acceptance](docs/gate-2a.md). There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
 
+## Personal-development test budget
+
+At most **10 selected test-case executions per development trial**, including local/CI retries; normally one concise invocation of 3–5 relevant cases. The runner defaults to 3 cases and rejects over-budget selections. CI runs only on relevant PR changes, once on Python 3.13 with 3 cases; no duplicate push/matrix/full-suite run. Historical 174-case acceptance remains a dated result, not the new default. See [the testing policy](docs/testing-budget.ja.md) and `AGENTS.md`.
+
 ## Research basis
 
 - [Google's Sleep framework](https://research.google/blog/the-sleep-framework-a-new-way-for-llms-to-retain-knowledge-in-continual-learning/) and [Language Models Need Sleep](https://arxiv.org/abs/2606.03979) motivate separating activity, consolidation, and practice. Their method updates model weights; our initial design uses external memory and rehearsal tasks.

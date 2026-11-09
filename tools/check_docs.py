@@ -13,7 +13,7 @@ FILES = ("README.md", "README.ja.md", "docs/gate-1.md", "docs/gate-1.ja.md",
          "docs/gate-2b.md", "docs/gate-2b.ja.md",
          "docs/decisions/0005-runtime-store-extension.md", "reports/gate-2b-progress.md",
          "docs/gate-2b-candidates.md", "docs/gate-2b-candidates.ja.md",
-         "reports/gate-2b-candidates-progress.md")
+         "reports/gate-2b-candidates-progress.md", "docs/testing-budget.ja.md")
 
 
 if __name__ == "__main__":
