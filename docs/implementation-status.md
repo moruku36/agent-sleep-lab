@@ -43,7 +43,15 @@ Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.
 
 Acceptance reports preserve observations made at each gate. This page also summarizes later publication, merge and CI observations. Passing tests are not independent security certification or evidence of performance improvement.
 
-## Next: Gate 2B acceptance targets (not executed)
+### Gate 2B first slice: registered receipts and current policy
+
+- Published as [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8). The live PR records current merge state; a passing test does not imply merge.
+- Runtime implementation commit: `55dbb9f06d790e31c193faa479f24cc4d16b7ec0`. Later status-only commits do not expand the implementation scope.
+- **152 combined tests passed (110 prior + 42 new)**; fresh installed-wheel receipt/policy/explicit-upgrade checks and existing CLI/evidence checks passed outside the checkout.
+- [Observed CI success on the implementation commit](https://github.com/moruku36/agent-sleep-lab/actions/runs/42701391859), Python 3.11/3.13. See the PR for checks on any later documentation commit.
+- [Scope](gate-2b.md) / [acceptance and remaining limits](../reports/gate-2b-progress.md). Active memory/adoption is still not implemented.
+
+## Next: remaining Gate 2B acceptance targets (not executed)
 
 The first receipt/policy runtime slice and three schemas are locally accepted: 152 tests (110 prior + 42 new) and fresh installed-wheel checks passed. Review fixes cover exact schema recognition, malformed boundary inputs and receipt replay integrity. See [the acceptance record](../reports/gate-2b-progress.md) and [live PRs](https://github.com/moruku36/agent-sleep-lab/pulls) for publication/merge/CI evidence. The acceptance targets below are for the remaining full Gate 2B; memory adoption is not available.
 

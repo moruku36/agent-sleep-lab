@@ -43,7 +43,15 @@
 
 受入記録はその時点で実際に行った確認を残す履歴です。本ページは、その後の公開・マージ・CI確認もまとめる入口です。テスト合格は独立したセキュリティ認証や性能改善の証明ではありません。
 
-## 次：ゲート2Bの完了条件（未実施）
+### ゲート2Bの最初の単位：受領と現在の方針
+
+- [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8)として公開。現在のマージ状態はこのPRが正本で、テスト合格をマージ完了とは扱いません。
+- runtime実装commit：`55dbb9f06d790e31c193faa479f24cc4d16b7ec0`。後続の進捗リンクだけのcommitは実装範囲を広げません。
+- **全152テスト合格（既存110件＋追加42件）**。新wheelの受領・方針・明示移行と、既存CLI・証拠ストアの検証もcheckout外で合格。
+- 実装commitのPython 3.11／3.13で[CI成功を確認](https://github.com/moruku36/agent-sleep-lab/actions/runs/42701391859)。後続文書commitのCIはPRで区別できます。
+- [範囲](gate-2b.ja.md)／[受入と残る限界](../reports/gate-2b-progress.md)。記憶採用・active更新はまだ未実装です。
+
+## 次：残るゲート2Bの完了条件（未実施）
 
 受領・方針管理の最初のruntimeと3種類のschemaをローカル受入済みで、全152テスト（既存110件＋追加42件）と別環境wheel検証が合格しました。schema定義照合・不正入力・受領再送の整合性も補強済みです。[受入記録](../reports/gate-2b-progress.md)と[実際のPR](https://github.com/moruku36/agent-sleep-lab/pulls)で公開・マージ・CIを確認できます。以下は残る2B全体の条件で、記憶採用はまだできません。
 

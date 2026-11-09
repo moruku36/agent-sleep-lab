@@ -2,6 +2,8 @@
 
 Status: **first receipt/policy slice locally accepted**, macOS arm64 / CPython 3.13.18. **Full Gate 2B adoption is NOT complete.** Publication, merge and Linux CI are separate observations; consult the [feature branch](https://github.com/moruku36/agent-sleep-lab/tree/feat/gate-2b-adoption-boundary) and [live PRs](https://github.com/moruku36/agent-sleep-lab/pulls) for delivery state.
 
+Published implementation commit: `55dbb9f06d790e31c193faa479f24cc4d16b7ec0`, [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8). Implementation-commit [CI run 42701391859](https://github.com/moruku36/agent-sleep-lab/actions/runs/42701391859) passed Python 3.11/3.13. Later status-link commits have their own checks; current merge state is recorded by the live PR.
+
 ## Delivered
 
 Three strict runtime artifact schemas mirrored in repository/package; simulated verifier/evaluator/control boundary stamping; immutable receipt registration and exact ID/hash resolution; independent persisted policy with expected-current CAS, consecutive revisions and additive exclusions; evidence/ancestor/current-policy eligibility rechecks on the same store connection; explicit SQLite v1-to-v2 extension without evidence rewriting.
