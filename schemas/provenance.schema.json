@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Sleep Lab provenance sidecar (Gate 2A, agent-sleep-provenance/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event",
+    "adapter",
+    "origin",
+    "source",
+    "observed_at",
+    "captured_at",
+    "lineage",
+    "authorization",
+    "partition"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "agent-sleep-provenance/1"
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "sha256", "scope"],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["project", "task_family"],
+          "properties": {
+            "project": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            },
+            "task_family": {
+              "type": "string",
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          }
+        }
+      }
+    },
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_id", "adapter_version"],
+      "properties": {
+        "adapter_id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        },
+        "adapter_version": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+        }
+      }
+    },
+    "origin": {
+      "enum": [
+        "user_correction",
+        "tool_observation",
+        "external_document",
+        "model_derived_summary",
+        "recall",
+        "rem",
+        "diary",
+        "generated_answer"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "sha256", "locator"],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["original_root_id", "derived_from"],
+      "properties": {
+        "original_root_id": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "derived_from": {
+          "type": "array",
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          }
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "revision", "purpose", "retention", "expires_at"],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "purpose": {
+          "enum": ["offline_consolidation", "evaluation_fixture", "regression_fixture"]
+        },
+        "retention": {
+          "enum": ["ephemeral_test", "until_expiry"]
+        },
+        "expires_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        }
+      }
+    },
+    "partition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["synthetic", "evaluation"],
+      "properties": {
+        "synthetic": {
+          "type": "boolean"
+        },
+        "evaluation": {
+          "enum": ["experience", "development", "evaluation"]
+        }
+      }
+    }
+  }
+}
