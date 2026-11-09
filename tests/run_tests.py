@@ -1,6 +1,6 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: 3 focused candidate-planner cases. Pass explicit unittest names to select
+Default: 3 focused durable-adoption cases. Pass explicit unittest names to select
 checks for another change. --list validates/selects without executing test bodies.
 Historical tests remain available, but this entry never starts a full discovery run.
 """
@@ -13,9 +13,9 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_adoption_candidates.InitializationTests.test_first_snapshot_is_deterministic_sorted_and_active",
-    "test_adoption_candidates.FollowUpTests.test_supersede_and_add_preserve_unrelated_members_and_history",
-    "test_adoption_candidates.RequestAndReceiptBuilderTests.test_receipt_builder_rejects_naive_time_and_policy_drift",
+    "test_adoption_store.AdoptionTests.test_commit_reopen_replay_after_exclusion",
+    "test_adoption_store.AdoptionTests.test_carried_member_is_rechecked_under_current_policy",
+    "test_adoption_store.AdoptionTests.test_late_write_failure_rolls_back_payloads_and_head",
 )
 
 
