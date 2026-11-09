@@ -1,6 +1,6 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: 3 focused durable-adoption cases. Pass explicit unittest names to select
+Default: 3 focused versioned run-ID adoption cases. Pass explicit unittest names to select
 checks for another change. --list validates/selects without executing test bodies.
 Historical tests remain available, but this entry never starts a full discovery run.
 """
@@ -13,9 +13,9 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_adoption_store.AdoptionTests.test_commit_reopen_replay_after_exclusion",
-    "test_adoption_store.AdoptionTests.test_carried_member_is_rechecked_under_current_policy",
-    "test_adoption_store.AdoptionTests.test_late_write_failure_rolls_back_payloads_and_head",
+    "test_adoption_run_id.RunIdTests.test_legacy_journal_replay_preserves_original_bytes_after_exclusion",
+    "test_adoption_run_id.RunIdTests.test_v2_run_label_is_bound_and_different_run_same_operation_conflicts",
+    "test_adoption_run_id.RunIdTests.test_new_v1_rejected_and_v2_audit_only_coexists_with_v1_history",
 )
 
 

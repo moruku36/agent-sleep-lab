@@ -1,5 +1,12 @@
 # Run-ID binding acceptance — 2026-11-10 JST
 
+## Test-count correction — 2026-11-10 merge preparation
+
+The earlier 13-case/three-invocation total omitted [PR #10 CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42712205113). Its log proves three cases passed once (0.235 s) on the older writer commit. Actual cumulative execution is **16 cases in four invocations**: 7 local core + 3 prior PR CI + 3 local process + 3 local run-ID. The owner-approved cap was 13; this is a reporting/budget overrun, not retroactive permission. No new tests ran while discovering it. Earlier totals below are superseded by this reconciliation. A new run-ID PR would execute exactly three selected cases once, requiring explicit permission for **three more executions, reaching 19 total**, before PR creation. No bypass, CI suppression or test-budget reset.
+
+PR #10 writer core is already MERGED (`629560858b5aef5423d75d90a71df99b6eec65d3`); only the later run-ID/process continuation remains unmerged. Local merge-tree against current main reported no conflicts. Overall completion remains about35%.
+
+
 Synthetic-only local library milestone, not authenticated run registration or completed Gate 2B.
 Branch feat/gate-2b-durable-adoption; prior pushed base61253e314a96a9d1dd9c967dcf80dbd1c679c0e5. These continuation changes are not yet committed/pushed at record creation; no PR/merge/CI. Publication evidence is recorded separately in the private handoff/final response.
 

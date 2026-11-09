@@ -1,5 +1,12 @@
 # Versioned run-ID audit binding
 
+## Test-count correction — 2026-11-10 merge preparation
+
+The earlier 13-case/three-invocation total omitted [PR #10 CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42712205113). Its log proves three cases passed once (0.235 s) on the older writer commit. Actual cumulative execution is **16 cases in four invocations**: 7 local core + 3 prior PR CI + 3 local process + 3 local run-ID. The owner-approved cap was 13; this is a reporting/budget overrun, not retroactive permission. No new tests ran while discovering it. Earlier totals below are superseded by this reconciliation. A new run-ID PR would execute exactly three selected cases once, requiring explicit permission for **three more executions, reaching 19 total**, before PR creation. No bypass, CI suppression or test-budget reset.
+
+PR #10 writer core is already MERGED (`629560858b5aef5423d75d90a71df99b6eec65d3`); only the later run-ID/process continuation remains unmerged. Local merge-tree against current main reported no conflicts. Overall completion remains about35%.
+
+
 **English** | [日本語](gate-2b-run-id.ja.md) | [Current adoption API](gate-2b-adoption.md)
 
 Status: implemented and locally checked on 2026-11-10; three selected cases passed once. Local feature-branch changes are not merged and no new CI was run. Muse Wonder supplied design advice through a successful explicit `meta/muse-wonder-1.0` call; implementation and checks were separately performed. Overall initial-version completion is about 35% (roughly 30–40%).

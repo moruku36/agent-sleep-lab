@@ -1,5 +1,12 @@
 # Implementation status
 
+## Test-count correction — 2026-11-10 merge preparation
+
+The earlier 13-case/three-invocation total omitted [PR #10 CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42712205113). Its log proves three cases passed once (0.235 s) on the older writer commit. Actual cumulative execution is **16 cases in four invocations**: 7 local core + 3 prior PR CI + 3 local process + 3 local run-ID. The owner-approved cap was 13; this is a reporting/budget overrun, not retroactive permission. No new tests ran while discovering it. Earlier totals below are superseded by this reconciliation. A new run-ID PR would execute exactly three selected cases once, requiring explicit permission for **three more executions, reaching 19 total**, before PR creation. No bypass, CI suppression or test-budget reset.
+
+PR #10 writer core is already MERGED (`629560858b5aef5423d75d90a71df99b6eec65d3`); only the later run-ID/process continuation remains unmerged. Local merge-tree against current main reported no conflicts. Overall completion remains about35%.
+
+
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
 Last updated: 2026-11-10 JST. **Gate 1, Gate 2A and Gate 2B receipt/policy helpers are merged. Pure candidate planning is merged via PR #9 (verified merge commit `122fed26305a5d039de3d14b5c42633811b8affc`). The synthetic durable-adoption core is implemented on a dependent feature branch: three current run-ID cases passed once, with earlier seven writer and three process cases retained as history (thirteen executions in three invocations, explicitly expanded cap); not merged, no new CI.**
