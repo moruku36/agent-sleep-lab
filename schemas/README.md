@@ -1,12 +1,20 @@
 # データ契約 v0.1
 
-状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。記憶snapshotの永続採用・取得・撤回は未実装。
+状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。ゲート2Bの最初の受領・現在方針を実装し、全152テストと別環境wheel受入が合格。記憶snapshotの永続採用・取得・撤回は未実装。
 
 CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・自己supersede、verifiedの確認情報、verified hypothesisの拒否まで。保存先全体の一意性、参照実在、出典・issuer認証、現在の許可・除外、採用条件は確認しない。
 
 - [event.schema.json](event.schema.json)：一つの観測・成功・失敗・訂正。JSONLの各行に適用。
 - [memory.schema.json](memory.schema.json)：再利用する一つの記憶。配列の場合は各要素に適用。
 - [provenance.schema.json](provenance.schema.json)：ゲート2Aの`agent-sleep-provenance/1`出典sidecar。[ライブラリ](../docs/gate-2a.ja.md)がhash・scope・系譜・合成区分等を追加照合する。schemaだけで認証や記憶採用を保証しない。
+
+ゲート2Bの最初の単位で追加した実行時契約（[範囲と限界](../docs/gate-2b.ja.md)）：
+
+- [verification-receipt.schema.json](verification-receipt.schema.json)：memory hash・原証拠hash・scope・手法・結果・期限を結ぶ模擬検証受領。
+- [evaluation-receipt.schema.json](evaluation-receipt.schema.json)：snapshot・操作・原証拠manifest hash・親版・protocol・完了性を結ぶ模擬評価受領。登録だけでは採用判定しない。
+- [control-policy.schema.json](control-policy.schema.json)：snapshot外の現在方針と追加のみの除外。模擬control境界からCASで版を進める。
+
+schema単独では認証・事実性・採用の原子性を保証しない。ゲート1のCLI種別は増やしておらず、これらはライブラリAPIで検査する。
 
 日時はUTCのRFC 3339形式で保存し、表示時にJSTへ変換する。projectとtask_familyの組が取得範囲。別projectへの移植は自動で行わない。
 
@@ -24,7 +32,7 @@ JSONの形だけで根拠の正しさや参照整合性は保証できない。�
 
 ## Dreaming設計で追加が必要な契約（未実装）
 
-v0.1のJSON Schemaは形の検査に限られ、以下の安全性を保証しない。実装開始前に別schemaと移行方針を追加する。現在の合成例に存在しないフィールドが、既に実行時に強制されるとは扱わない。
+v0.1のJSON Schemaは形の検査に限られ、以下の安全性を保証しない。出典・受領・方針の一部は後続ライブラリで実装済みだが、以下全体の採用・取得契約は未完了。実装開始前に別schemaと移行方針を追加する。現在の合成例に存在しないフィールドが、既に実行時に強制されるとは扱わない。
 
 - **出典**：adapterが確認したorigin・発信者の同定根拠・session種別・利用許可とその確認時点／版・source内容hash・取り込み時点。本文が自己申告したtrust値は使わない。
 - **生成物の由来**：原event、想起の再掲、モデルの要約、REM、日記を区別する。派生元IDを持ち、独立証拠の重複計上を防ぐ。

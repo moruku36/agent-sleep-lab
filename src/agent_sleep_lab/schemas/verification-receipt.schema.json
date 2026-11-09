@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Sleep Lab verification receipt (Gate 2B, agent-sleep-verification-receipt/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "receipt_id", "memory_id", "memory_sha256", "scope", "evidence", "method", "protocol_sha256", "outcome", "issued_at", "expires_at", "limits", "boundary"],
+  "properties": {
+    "schema_version": {"const": "agent-sleep-verification-receipt/1"},
+    "receipt_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "memory_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "memory_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "task_family"],
+      "properties": {
+        "project": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "task_family": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["event_id", "event_sha256", "source_sha256", "provenance_sha256"],
+        "properties": {
+          "event_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+          "event_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "provenance_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"},
+        "version": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"}
+      }
+    },
+    "protocol_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "outcome": {"enum": ["confirmed", "rejected", "pending"]},
+    "issued_at": {"type": "string", "maxLength": 20, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "expires_at": {"type": ["string", "null"], "maxLength": 20, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_evidence", "synthetic_only"],
+      "properties": {
+        "max_evidence": {"type": "integer", "minimum": 1, "maximum": 32},
+        "synthetic_only": {"const": true}
+      }
+    },
+    "boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["boundary_id", "boundary_version"],
+      "properties": {
+        "boundary_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"},
+        "boundary_version": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"}
+      }
+    }
+  }
+}
