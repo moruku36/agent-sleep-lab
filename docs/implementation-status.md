@@ -2,7 +2,7 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-Last updated: 2026-11-10 JST. **Gate 1 and Gate 2A are implemented, checked and merged into main. Gate 2B has a prepared design/acceptance plan only; no runtime implementation yet.**
+Last updated: 2026-11-10 JST. **Gate 1 and Gate 2A are implemented, checked and merged into main. The first Gate 2B receipt/policy slice is implemented and locally accepted (152 combined tests); adoption remains unimplemented. Publication/merge state is recorded by the live delivery links, not inferred from local tests.**
 
 Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.md), executed gate acceptance, and performance experiments are separate claims.
 
@@ -14,6 +14,7 @@ Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.
 | Provenance sidecar and original evidence storage | Implemented, checked, merged | Synthetic-only SQLite library; atomic event/source/provenance capture |
 | Replay, conflicting IDs and root deduplication | Implemented, checked, merged | Byte-identical replay, conflict rejection, generated artifacts cannot become independent roots |
 | Stored evidence integrity checks | Implemented, checked, merged | Hashes, source presence and expiry; descendant capture also checks ancestors against configured current authorization revisions and evaluation partition |
+| Verification/evaluation receipts and current control policy | Implemented and locally accepted | [First Gate 2B slice](gate-2b.md); 42 new tests, 152 combined, fresh installed-wheel checks passed |
 | Memory adoption and active-version updates | **Not implemented: next, Gate 2B** | Requires trusted-boundary receipts, current policy/exclusions, expected parent and operation IDs |
 | Retrieval, revocation and rollback | Not implemented: planned Gate 3 | Scoped bounded bundles and non-resurrection under current exclusions |
 | Light/Deep candidate generation | Not implemented: planned Gate 4 | Manual coordinator with fake providers and recovery checks first |
@@ -42,9 +43,17 @@ Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.
 
 Acceptance reports preserve observations made at each gate. This page also summarizes later publication, merge and CI observations. Passing tests are not independent security certification or evidence of performance improvement.
 
-## Next: Gate 2B acceptance targets (not executed)
+### Gate 2B first slice: registered receipts and current policy
 
-Only design and acceptance preparation exists. No Gate 2B runtime, schemas or tests have been added; memory adoption is not available.
+- Published as [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8). The live PR records current merge state; a passing test does not imply merge.
+- Runtime implementation commit: `55dbb9f06d790e31c193faa479f24cc4d16b7ec0`. Later status-only commits do not expand the implementation scope.
+- **152 combined tests passed (110 prior + 42 new)**; fresh installed-wheel receipt/policy/explicit-upgrade checks and existing CLI/evidence checks passed outside the checkout.
+- [Observed CI success on the implementation commit](https://github.com/moruku36/agent-sleep-lab/actions/runs/42701391859), Python 3.11/3.13. See the PR for checks on any later documentation commit.
+- [Scope](gate-2b.md) / [acceptance and remaining limits](../reports/gate-2b-progress.md). Active memory/adoption is still not implemented.
+
+## Next: remaining Gate 2B acceptance targets (not executed)
+
+The first receipt/policy runtime slice and three schemas are locally accepted: 152 tests (110 prior + 42 new) and fresh installed-wheel checks passed. Review fixes cover exact schema recognition, malformed boundary inputs and receipt replay integrity. See [the acceptance record](../reports/gate-2b-progress.md) and [live PRs](https://github.com/moruku36/agent-sleep-lab/pulls) for publication/merge/CI evidence. The acceptance targets below are for the remaining full Gate 2B; memory adoption is not available.
 
 1. Resolve verification/evaluation receipts through separately configured simulated boundaries, not candidate-asserted identity. Bind receipts to exact memory/snapshot bytes, evidence, scope, method and protocol hashes.
 2. Build the candidate from the expected parent and validated operation manifest; reject unrelated omissions, unknown targets, ID collisions, cycles and scope changes.
