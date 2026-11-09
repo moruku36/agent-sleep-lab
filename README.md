@@ -4,7 +4,7 @@
 
 An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
-**Status: Gate 1 locally accepted.** The read-only offline contract validator passes 87 tests and isolated wheel/CLI checks on macOS arm64 / Python 3.13.18. There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
+**Status: Gate 1 delivered; Gate 2A provenance/evidence library implemented and locally tested.** The full suite passes 110 tests on macOS arm64 / Python 3.13.18. Gate 2A is synthetic-only and does not adopt memory. See [Gate 2A scope and acceptance](docs/gate-2a.md). There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
 
 ## Research basis
 
@@ -48,9 +48,9 @@ The detailed documents are initially in Japanese.
 ## What exists today
 
 - **Authored:** design documents, v0.1 event/memory schemas, synthetic fixtures, proposed configuration, and prompt templates.
-- **Implemented and locally checked:** Gate 1 read-only offline contract validation, 87 behavior tests, and isolated wheel/CLI acceptance. See [usage and limits](docs/gate-1.md).
-- **Not implemented:** capture/retrieval adapters, sleep phases, provenance enforcement, durable writer, diary, and scheduling.
-- **Not executed:** target-agent integration, paid model runs, and A/B performance experiments.
+- **Implemented and locally checked:** Gate 1 read-only offline contract validation and wheel/CLI acceptance; Gate 2A strict provenance and a synthetic-only SQLite evidence library. The combined suite has 110 passing tests. See [Gate 1](docs/gate-1.md) and [Gate 2A](docs/gate-2a.md).
+- **Not implemented:** real capture/retrieval adapters, sleep phases, authenticated provenance, transactional memory-adoption writer, diary, and scheduling.
+- **Not executed:** target-agent integration, sleep-provider trials, and A/B performance experiments. Claude Code development sessions are separate from harness experiments.
 
 Start with the [manual pilot](docs/manual-pilot.ja.md). The [contract gaps](schemas/README.md#dreaming設計で追加が必要な契約未実装) must be closed before runtime adoption. Document and fixture checks are not evidence of performance improvement.
 

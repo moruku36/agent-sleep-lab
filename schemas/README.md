@@ -1,11 +1,12 @@
 # データ契約 v0.1
 
-状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。永続化・記憶採用は未実装。
+状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。記憶snapshotの永続採用・取得・撤回は未実装。
 
 CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・自己supersede、verifiedの確認情報、verified hypothesisの拒否まで。保存先全体の一意性、参照実在、出典・issuer認証、現在の許可・除外、採用条件は確認しない。
 
 - [event.schema.json](event.schema.json)：一つの観測・成功・失敗・訂正。JSONLの各行に適用。
 - [memory.schema.json](memory.schema.json)：再利用する一つの記憶。配列の場合は各要素に適用。
+- [provenance.schema.json](provenance.schema.json)：ゲート2Aの`agent-sleep-provenance/1`出典sidecar。[ライブラリ](../docs/gate-2a.ja.md)がhash・scope・系譜・合成区分等を追加照合する。schemaだけで認証や記憶採用を保証しない。
 
 日時はUTCのRFC 3339形式で保存し、表示時にJSTへ変換する。projectとtask_familyの組が取得範囲。別projectへの移植は自動で行わない。
 
