@@ -1,0 +1,7 @@
+# Direct runtime dependencies of agent-sleep-lab (Gate 1), pinned exactly.
+# This is a pin list, NOT a lock file: transitive dependencies of jsonschema
+# (attrs, jsonschema-specifications, rpds-py, six, ...) are not pinned here.
+# Keep in sync with [project].dependencies in pyproject.toml (a test checks this).
+jsonschema==4.23.0
+referencing==0.37.0
+rfc3339-validator==0.1.4

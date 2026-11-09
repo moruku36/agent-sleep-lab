@@ -4,7 +4,7 @@
 
 An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
-**Status: design and experiment preparation. There is no runtime, connected adapter, or measured performance improvement yet.** This initial version provides architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and an implementation roadmap.
+**Status: Gate 1 locally accepted.** The read-only offline contract validator passes 87 tests and isolated wheel/CLI checks on macOS arm64 / Python 3.13.18. There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
 
 ## Research basis
 
@@ -48,6 +48,7 @@ The detailed documents are initially in Japanese.
 ## What exists today
 
 - **Authored:** design documents, v0.1 event/memory schemas, synthetic fixtures, proposed configuration, and prompt templates.
+- **Implemented and locally checked:** Gate 1 read-only offline contract validation, 87 behavior tests, and isolated wheel/CLI acceptance. See [usage and limits](docs/gate-1.md).
 - **Not implemented:** capture/retrieval adapters, sleep phases, provenance enforcement, durable writer, diary, and scheduling.
 - **Not executed:** target-agent integration, paid model runs, and A/B performance experiments.
 
@@ -63,6 +64,6 @@ Created November 8, 2026 JST. Dreaming design updated November 9, 2026 JST. Expe
 
 ## Design handoff update — 2026-11-09
 
-Read the [implementation contract and acceptance cases](docs/contracts-and-acceptance.md) before implementing. This update specifies state ownership, immutable evidence, retry/recovery behavior and evaluation boundaries; it adds design schemas and synthetic examples only. Runtime implementation belongs to a later AI-led change. No performance result or live integration is claimed.
+Read the [implementation contract and acceptance cases](docs/contracts-and-acceptance.md) before implementing. This update specifies state ownership, immutable evidence, retry/recovery behavior and evaluation boundaries; it adds design schemas and synthetic examples only. The later Gate 1 change implements read-only contract validation; the sleep engine and durable adoption boundary remain unimplemented. No performance result or live integration is claimed.
 
 The three repositories remain independently usable. Optional integration follows the [reference-only handoff contract](https://github.com/moruku36/ai-agent-scientist/blob/main/docs/11-harness-boundaries.md); it does not create shared authority or a new agent runtime.
