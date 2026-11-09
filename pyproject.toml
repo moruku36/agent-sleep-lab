@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-sleep-lab"
+version = "0.1.0.dev0"
+description = "Read-only offline contract validator for Agent Sleep Lab schemas and synthetic fixtures (Gate 1)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "UNLICENSED" }
+# Direct dependencies are pinned exactly. Transitive dependencies of jsonschema
+# (attrs, jsonschema-specifications, rpds-py, ...) are NOT pinned:
+# requirements.txt is a pin list of direct dependencies, not a lock file.
+dependencies = [
+    "jsonschema==4.23.0",
+    "referencing==0.37.0",
+    "rfc3339-validator==0.1.4",
+]
+
+[project.scripts]
+agent-sleep-lab = "agent_sleep_lab.cli:console_main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agent_sleep_lab = ["schemas/*.json"]
