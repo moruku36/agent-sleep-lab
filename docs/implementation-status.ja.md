@@ -2,9 +2,13 @@
 
 [English](implementation-status.md) | [ホーム](../README.ja.md)
 
-最終更新：2026-11-10 JST。**実装済みはゲート1とゲート2Aまでで、どちらもmainへマージ済みです。ゲート2Bの最初の受領・方針管理は実装・ローカル受入済み（全152テスト合格）です。記憶採用はまだ未実装です。公開・マージ状態は実際の配送リンクと区別します。**
+最終更新：2026-11-10 JST。**ゲート1・2A・2Bの受領／方針管理はmainへマージ済みです。後続の候補snapshot構築もローカル受入済みで、全174テスト合格。DBへの記憶採用はまだ未実装です。**
 
 これは「今、何が動くか」を把握するためのページです。[ロードマップ](roadmap.ja.md)の将来計画、各ゲートの受入結果、性能実験の結果は区別します。
+
+## 全体の進捗目安
+
+初期版全体は**約25%前後（20〜30%程度の粗い見積もり）**です。記録→採用→取得→Light/Deep→比較評価→既存エージェント1つへの接続が動く状態を100%とし、REM・日記・複数agent展開は除きます。ファイル数やテスト件数から算出した率ではありません。検証・保存・受領と候補構築の土台ができた一方、採用writer・取得・coordinator・評価runner・接続が残るため、まだ前半です。性能改善を25%達成したという意味でもありません。
 
 ## 今できること／まだできないこと
 
@@ -14,7 +18,8 @@
 | 出典sidecarと原証拠の保存 | 実装・検証・マージ済み | 合成データ限定のSQLiteライブラリ。event・原証拠・出典を一括保存 |
 | 再送、ID競合、root重複の扱い | 実装・検証・マージ済み | byte一致の再送、競合拒否、生成物を独立rootにしない系譜検査 |
 | 保存済み証拠の完全性確認 | 実装・検証・マージ済み | hash・原証拠の存在・期限。派生追加時は祖先の現在設定の許可版・partitionも確認 |
-| 検証／評価受領と現在の方針管理 | 実装・ローカル受入済み | [2Bの最初の単位](gate-2b.ja.md)。追加42件・合計152件と別環境wheel検証が合格 |
+| 検証／評価受領と現在の方針管理 | 実装・検証・マージ済み | [2Bの最初の単位](gate-2b.ja.md)。追加42件・合計152件と別環境wheel検証が合格 |
+| 親版＋操作から候補snapshotを構築 | 実装・ローカル受入済み | [候補構築](gate-2b-candidates.ja.md)。追加22件・合計174件。DB書込みや採用はしない |
 | 記憶の採用・active版の更新 | **未実装：次の2B** | 検証／評価受領、現在の許可・除外、期待親版、operation IDを結び付ける必要がある |
 | 記憶取得・撤回・rollback | 未実装：ゲート3予定 | scopeでの絞込、上限付きbundle、現在の除外を適用した非復活 |
 | Light／Deepによる候補生成 | 未実装：ゲート4予定 | 偽providerでの手動coordinatorと復旧検査から開始 |
@@ -45,18 +50,24 @@
 
 ### ゲート2Bの最初の単位：受領と現在の方針
 
-- [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8)として公開。現在のマージ状態はこのPRが正本で、テスト合格をマージ完了とは扱いません。
+- [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8)はマージ済み。merge commit：`a43301ff28f50ccaeb4975162c17e3d8410b38ab`。[マージ後mainのCIも成功](https://github.com/moruku36/agent-sleep-lab/actions/runs/42702164583)。
 - runtime実装commit：`55dbb9f06d790e31c193faa479f24cc4d16b7ec0`。後続の進捗リンクだけのcommitは実装範囲を広げません。
 - **全152テスト合格（既存110件＋追加42件）**。新wheelの受領・方針・明示移行と、既存CLI・証拠ストアの検証もcheckout外で合格。
 - 実装commitのPython 3.11／3.13で[CI成功を確認](https://github.com/moruku36/agent-sleep-lab/actions/runs/42701391859)。後続文書commitのCIはPRで区別できます。
 - [範囲](gate-2b.ja.md)／[受入と残る限界](../reports/gate-2b-progress.md)。記憶採用・active更新はまだ未実装です。
+
+### 後続の単位：候補snapshot構築
+
+- [範囲と使い方](gate-2b-candidates.ja.md)／[受入記録](../reports/gate-2b-candidates-progress.md)。5種類の契約と、親版＋操作からの決定的な候補構築を追加。
+- 全174テスト（既存152件＋追加22件）と新wheelのcheckout外検証が合格。公開・マージ状態は受入記録と実際のPRで区別します。
+- `active`ラベルは候補内だけの状態で、受領形式を作れても実際のcommitの証拠にはなりません。原子的採用writerは後続です。
 
 ## 次：残るゲート2Bの完了条件（未実施）
 
 受領・方針管理の最初のruntimeと3種類のschemaをローカル受入済みで、全152テスト（既存110件＋追加42件）と別環境wheel検証が合格しました。schema定義照合・不正入力・受領再送の整合性も補強済みです。[受入記録](../reports/gate-2b-progress.md)と[実際のPR](https://github.com/moruku36/agent-sleep-lab/pulls)で公開・マージ・CIを確認できます。以下は残る2B全体の条件で、記憶採用はまだできません。
 
 1. 候補本文の自己申告とは別の模擬境界から、検証・評価受領を解決する。受領は対象memory／snapshot・原証拠・scope・手法／protocolの正確なhashに結び付ける。
-2. writerが親snapshotと操作manifestから候補を構築する。無関係な記憶の欠落、未知のtarget、ID衝突、循環、scope変更を拒否する。
+2. 受入済みの純粋な候補構築を、writerの信頼できる現在親版・全ID履歴の照合へ接続する。無関係な記憶の欠落、未知のtarget、ID衝突、循環、scope変更を拒否する。
 3. 現在の許可・除外、祖先を含む証拠、期限、期待親版を、active更新と同じSQLite transactionで照合する。
 4. operation ID・request digest・採用受領・active参照を一括commitし、応答消失後はoperation照会で結果を確認できるようにする。
 5. 偽造／不一致の受領、証拠の変更・消失、同時null親初期化、競合writer、commit前後のプロセス終了、応答消失を合成fixtureで検査する。

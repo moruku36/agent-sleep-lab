@@ -2,9 +2,13 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-Last updated: 2026-11-10 JST. **Gate 1 and Gate 2A are implemented, checked and merged into main. The first Gate 2B receipt/policy slice is implemented and locally accepted (152 combined tests); adoption remains unimplemented. Publication/merge state is recorded by the live delivery links, not inferred from local tests.**
+Last updated: 2026-11-10 JST. **Gate 1, Gate 2A and Gate 2B receipt/policy helpers are merged into main. Subsequent pure candidate planning is locally accepted: 174 combined tests passed. Database adoption remains unimplemented.**
 
 Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.md), executed gate acceptance, and performance experiments are separate claims.
+
+## Overall progress estimate
+
+Approximately **25% (a rough 20–30% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts and candidate planning exist; the adoption writer, retrieval, coordinator, evaluation runner and integration still represent most remaining work.
 
 ## Capability overview
 
@@ -14,7 +18,8 @@ Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.
 | Provenance sidecar and original evidence storage | Implemented, checked, merged | Synthetic-only SQLite library; atomic event/source/provenance capture |
 | Replay, conflicting IDs and root deduplication | Implemented, checked, merged | Byte-identical replay, conflict rejection, generated artifacts cannot become independent roots |
 | Stored evidence integrity checks | Implemented, checked, merged | Hashes, source presence and expiry; descendant capture also checks ancestors against configured current authorization revisions and evaluation partition |
-| Verification/evaluation receipts and current control policy | Implemented and locally accepted | [First Gate 2B slice](gate-2b.md); 42 new tests, 152 combined, fresh installed-wheel checks passed |
+| Verification/evaluation receipts and current control policy | Implemented, checked, merged | [First Gate 2B slice](gate-2b.md); 42 new tests, 152 combined, fresh installed-wheel checks passed |
+| Candidate snapshot from parent + operations | Implemented and locally accepted | [Pure planning](gate-2b-candidates.md); 22 new tests, 174 combined; no database write/adoption |
 | Memory adoption and active-version updates | **Not implemented: next, Gate 2B** | Requires trusted-boundary receipts, current policy/exclusions, expected parent and operation IDs |
 | Retrieval, revocation and rollback | Not implemented: planned Gate 3 | Scoped bounded bundles and non-resurrection under current exclusions |
 | Light/Deep candidate generation | Not implemented: planned Gate 4 | Manual coordinator with fake providers and recovery checks first |
@@ -45,18 +50,24 @@ Acceptance reports preserve observations made at each gate. This page also summa
 
 ### Gate 2B first slice: registered receipts and current policy
 
-- Published as [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8). The live PR records current merge state; a passing test does not imply merge.
+- [PR #8](https://github.com/moruku36/agent-sleep-lab/pull/8) is merged; merge commit `a43301ff28f50ccaeb4975162c17e3d8410b38ab`. [Post-merge main CI passed](https://github.com/moruku36/agent-sleep-lab/actions/runs/42702164583).
 - Runtime implementation commit: `55dbb9f06d790e31c193faa479f24cc4d16b7ec0`. Later status-only commits do not expand the implementation scope.
 - **152 combined tests passed (110 prior + 42 new)**; fresh installed-wheel receipt/policy/explicit-upgrade checks and existing CLI/evidence checks passed outside the checkout.
 - [Observed CI success on the implementation commit](https://github.com/moruku36/agent-sleep-lab/actions/runs/42701391859), Python 3.11/3.13. See the PR for checks on any later documentation commit.
 - [Scope](gate-2b.md) / [acceptance and remaining limits](../reports/gate-2b-progress.md). Active memory/adoption is still not implemented.
+
+### Subsequent slice: pure candidate planning
+
+- [Scope](gate-2b-candidates.md) / [acceptance](../reports/gate-2b-candidates-progress.md): five contracts and deterministic parent+operation candidate construction.
+- 174 tests (152 prior + 22 new) and fresh outside-checkout installed-wheel checks passed. Publication/merge are recorded separately in the acceptance record and live PR.
+- Candidate `active` labels and receipt-format builders are not actual activation or proof of commit. The atomic writer remains pending.
 
 ## Next: remaining Gate 2B acceptance targets (not executed)
 
 The first receipt/policy runtime slice and three schemas are locally accepted: 152 tests (110 prior + 42 new) and fresh installed-wheel checks passed. Review fixes cover exact schema recognition, malformed boundary inputs and receipt replay integrity. See [the acceptance record](../reports/gate-2b-progress.md) and [live PRs](https://github.com/moruku36/agent-sleep-lab/pulls) for publication/merge/CI evidence. The acceptance targets below are for the remaining full Gate 2B; memory adoption is not available.
 
 1. Resolve verification/evaluation receipts through separately configured simulated boundaries, not candidate-asserted identity. Bind receipts to exact memory/snapshot bytes, evidence, scope, method and protocol hashes.
-2. Build the candidate from the expected parent and validated operation manifest; reject unrelated omissions, unknown targets, ID collisions, cycles and scope changes.
+2. Integrate the accepted pure candidate builder with the writer's trusted current parent and full ID history; reject unrelated omissions, unknown targets, ID collisions, cycles and scope changes.
 3. Recheck current authorization/exclusions, original evidence and ancestors, expiry and expected parent in the same SQLite transaction as active adoption.
 4. Commit operation ID, request digest, adoption receipt and active reference together; resolve lost acknowledgements through durable operation lookup.
 5. Exercise forged/mismatched receipts, source change/loss, concurrent null-parent initialization, competing writers, process exits before/after commit and ACK loss with synthetic fixtures.

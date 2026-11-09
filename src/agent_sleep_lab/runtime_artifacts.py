@@ -10,9 +10,9 @@ or a policy; hashes detect inconsistent edits, not coordinated forgery. A propos
 carry its own boundary identity, receipt object or policy: it may only *reference* a
 registered receipt by ID and exact hash (see ``runtime_store``).
 
-Not in this slice (pending, see docs/gate-2b.md): operation manifests, candidate snapshots,
-source manifests, committed-operation receipts, and the transactional adoption writer. Their
-contracts are still pending; nothing here writes an active pointer.
+Also includes pure operation/source/candidate/request/receipt-format contracts for the
+candidate-planning slice (docs/gate-2b-candidates.md). Formatting a receipt does not commit
+anything. The transactional adoption writer and active pointer remain unimplemented.
 """
 
 from __future__ import annotations
@@ -46,7 +46,96 @@ ARTIFACT_KINDS: dict[str, tuple[str, str]] = {
     "verification": (VERIFICATION_VERSION, "verification-receipt.schema.json"),
     "evaluation": (EVALUATION_VERSION, "evaluation-receipt.schema.json"),
     "policy": (POLICY_VERSION, "control-policy.schema.json"),
+    "operation_manifest": ("agent-sleep-operation-manifest/1", "operation-manifest.schema.json"),
+    "source_manifest": ("agent-sleep-source-manifest/1", "source-manifest.schema.json"),
+    "candidate_snapshot": ("agent-sleep-candidate-snapshot/1", "candidate-snapshot.schema.json"),
+    "adoption_request": ("agent-sleep-adoption-request/1", "adoption-request.schema.json"),
+    "committed_receipt": (
+        "agent-sleep-committed-operation-receipt/1",
+        "committed-operation-receipt.schema.json",
+    ),
 }
+
+# operation -> which of (memory_id, memory_sha256, target_id, receipt) must be present
+_OPERATION_SHAPES: dict[str, tuple[bool, bool, bool, bool]] = {
+    "add": (True, True, False, True),
+    "supersede": (True, True, True, True),
+    "mark_stale": (False, False, True, False),
+    "reject": (True, True, False, False),
+    "defer": (True, True, False, False),
+}
+
+
+def operation_sort_key(op: dict[str, Any]) -> tuple[str, str, str]:
+    """Canonical operation order. The manifest must already be listed in this order."""
+    return (op["op"], op["memory_id"] or "", op["target_id"] or "")
+
+
+def _adoption_problems(kind: str, doc: dict[str, Any], problems: list[Problem]) -> None:
+    def bad(code: str, message: str) -> None:
+        problems.append(Problem(code, message))
+
+    if kind == "operation_manifest":
+        ops = doc["operations"]
+        keys = [operation_sort_key(o) for o in ops]
+        if keys != sorted(keys) or len(set(keys)) != len(keys):
+            bad("contract.operations_not_canonical", "operations must be unique and in canonical order")
+        for o in ops:
+            present = (
+                o["memory_id"] is not None,
+                o["memory_sha256"] is not None,
+                o["target_id"] is not None,
+                o["receipt"] is not None,
+            )
+            if present != _OPERATION_SHAPES[o["op"]]:
+                bad("contract.operation_shape", f"{o['op']} operation has the wrong fields")
+            if o["target_id"] is not None and o["target_id"] == o["memory_id"]:
+                bad("contract.operation_self_target", "an operation may not target its own memory")
+    elif kind == "source_manifest":
+        ids = [e["memory_id"] for e in doc["entries"]]
+        if ids != sorted(ids) or len(set(ids)) != len(ids):
+            bad("contract.entries_not_canonical", "entries must be unique and sorted by memory_id")
+        for entry in doc["entries"]:
+            events = [e["event_id"] for e in entry["evidence"]]
+            if len(set(events)) != len(events):
+                bad("contract.duplicate_evidence", "an entry repeats an evidence event_id")
+    elif kind == "candidate_snapshot":
+        members = doc["members"]
+        ids = [m["memory_id"] for m in members]
+        if ids != sorted(ids) or len(set(ids)) != len(ids):
+            bad("contract.members_not_canonical", "members must be unique and sorted by memory_id")
+            return
+        by = {m["memory_id"]: m for m in members}
+        for m in members:
+            successor = m["superseded_by_id"]
+            if (m["state"] == "superseded") != (successor is not None):
+                bad("contract.supersession_state", "superseded_by_id is set exactly when superseded")
+            elif successor is not None and (successor == m["memory_id"] or successor not in by):
+                bad("contract.supersession_target", "superseded_by_id must name another member")
+        for start in by:
+            seen = {start}
+            current = by[start]["superseded_by_id"]
+            while current is not None and current in by:
+                if current in seen:
+                    bad("contract.supersession_cycle", "supersession forms a cycle")
+                    break
+                seen.add(current)
+                current = by[current]["superseded_by_id"]
+    elif kind == "adoption_request":
+        has_candidate = doc["candidate_snapshot_sha256"] is not None
+        if has_candidate and doc["evaluation_receipt"] is None:
+            bad("contract.evaluation_required", "an active change needs an evaluation receipt")
+        if not has_candidate and doc["evaluation_receipt"] is not None:
+            bad("contract.unexpected_evaluation", "an audit-only request carries no evaluation receipt")
+    elif kind == "committed_receipt":
+        parent, snapshot = doc["parent_snapshot_sha256"], doc["snapshot_sha256"]
+        if doc["outcome"] == "adopted":
+            if snapshot is None or snapshot == parent:
+                bad("contract.adopted_snapshot", "an adopted outcome needs a new snapshot")
+            if doc["evaluation_receipt"] is None:
+                bad("contract.evaluation_required", "an adopted outcome needs an evaluation receipt")
+        elif snapshot != parent or doc["evaluation_receipt"] is not None:
+            bad("contract.audit_only_changed", "an audit-only outcome leaves the snapshot unchanged")
 
 MAX_ARTIFACT_BYTES = 256 * 1024
 
@@ -148,6 +237,7 @@ def validate_artifact(kind: str, doc: object) -> list[Problem]:
         for field, values in doc["exclusions"].items():
             if len(set(values)) != len(values):
                 problems.append(Problem("contract.duplicate_entry", f"exclusions.{field} repeats"))
+    _adoption_problems(kind, doc, problems)
     if kind in ("verification", "evaluation") and doc["expires_at"] is not None:
         if parse_timestamp(doc["expires_at"]) <= parse_timestamp(doc["issued_at"]):
             problems.append(Problem("contract.expiry_order", "expires_at must follow issued_at"))

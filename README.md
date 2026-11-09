@@ -4,9 +4,9 @@
 
 An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
-**Status: Gate 1 and Gate 2A are implemented, checked and merged into main. The first Gate 2B receipt/policy slice is implemented and locally accepted; full adoption is still unimplemented.** See the [implementation status](docs/implementation-status.md) for delivered capabilities, merge/CI evidence and next acceptance targets.
+**Status: Gate 1 and Gate 2A are implemented, checked and merged into main. Gate 2B receipt/policy helpers are also merged. Pure candidate planning is locally accepted; database adoption is still unimplemented.** See the [implementation status](docs/implementation-status.md) for delivered capabilities, merge/CI evidence and next acceptance targets.
 
-The current combined suite passes 152 tests on macOS arm64 / Python 3.13.18 (110 prior + 42 new). The [first Gate 2B slice](docs/gate-2b.md) adds registered synthetic receipts and persisted policy/exclusion checks; its fresh installed wheel passed outside-checkout acceptance. Gate 2A is synthetic-only and does not adopt memory. See [Gate 2A scope and acceptance](docs/gate-2a.md). There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
+The current combined suite passes 174 tests on macOS arm64 / Python 3.13.18 (152 prior + 22 new). [Pure candidate planning](docs/gate-2b-candidates.md) adds parent+operation construction, not active adoption. The [first Gate 2B slice](docs/gate-2b.md) adds registered synthetic receipts and persisted policy/exclusion checks; its fresh installed wheel passed outside-checkout acceptance. Gate 2A is synthetic-only and does not adopt memory. See [Gate 2A scope and acceptance](docs/gate-2a.md). There is no sleep engine, connected adapter, or measured performance improvement yet. See [Gate 1 usage and acceptance](docs/gate-1.md). Architecture, data contracts, prompts, synthetic fixtures, evaluation criteria, and the implementation roadmap remain the design basis.
 
 ## Research basis
 
@@ -50,7 +50,7 @@ The detailed documents are initially in Japanese.
 ## What exists today
 
 - **Authored:** design documents, v0.1 event/memory schemas, synthetic fixtures, proposed configuration, and prompt templates.
-- **Implemented and locally checked:** Gate 1 read-only offline contract validation and wheel/CLI acceptance; Gate 2A strict provenance and a synthetic-only SQLite evidence library. The first Gate 2B slice adds strict receipts, persisted current policy and same-connection eligibility helpers. The combined suite has 152 passing tests. See [Gate 1](docs/gate-1.md), [Gate 2A](docs/gate-2a.md) and [Gate 2B first slice](docs/gate-2b.md).
+- **Implemented and locally checked:** Gate 1 read-only offline contract validation and wheel/CLI acceptance; Gate 2A strict provenance and a synthetic-only SQLite evidence library. The first Gate 2B slice adds strict receipts, persisted current policy and same-connection eligibility helpers. The pure candidate planner is also locally accepted; the combined suite has 174 passing tests. See [Gate 1](docs/gate-1.md), [Gate 2A](docs/gate-2a.md) and [Gate 2B first slice](docs/gate-2b.md).
 - **Not implemented:** real capture/retrieval adapters, sleep phases, authenticated provenance, transactional memory-adoption writer, diary, and scheduling.
 - **Not executed:** target-agent integration, sleep-provider trials, and A/B performance experiments. Claude Code development sessions are separate from harness experiments.
 

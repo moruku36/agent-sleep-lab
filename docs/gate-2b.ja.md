@@ -34,4 +34,4 @@ v1移行時とv2起動時に、テーブル・index・triggerの定義を、既�
 
 ## 未実装
 
-操作・候補・原証拠manifest・採用受領契約、親版からの候補構築、記憶種別の条件、評価の採用判定、active参照、operation ID/digestの永続照会・再送、原子的な採用writer。同時採用・プロセスクラッシュ・応答消失fixtureも未実装です。ゲート3の取得・rollback・削除、SLP全体受入、実adapter、定期実行、性能実験はまだありません。
+後続の[純粋な候補構築](gate-2b-candidates.ja.md)で操作・候補・原証拠manifest・request・受領形式と、親版からの構築を実装しました。ただしDBの権威とは未接続です。記憶種別の実出典との照合、評価の採用判定、active参照、operation ID/digestの永続照会・再送、原子的な採用writerは未実装です。同時採用・プロセスクラッシュ・応答消失fixtureも未実装です。ゲート3の取得・rollback・削除、SLP全体受入、実adapter、定期実行、性能実験はまだありません。

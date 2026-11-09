@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Sleep Lab candidate snapshot (Gate 2B, agent-sleep-candidate-snapshot/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope", "parent_snapshot_sha256", "members"],
+  "properties": {
+    "schema_version": {"const": "agent-sleep-candidate-snapshot/1"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "task_family"],
+      "properties": {
+        "project": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "task_family": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+      }
+    },
+    "parent_snapshot_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "members": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["memory_id", "memory_sha256", "kind", "state", "superseded_by_id", "verification_receipt"],
+        "properties": {
+          "memory_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+          "memory_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "kind": {"enum": ["preference", "procedure", "fact"]},
+          "state": {"enum": ["active", "stale", "superseded"]},
+          "superseded_by_id": {"type": ["string", "null"], "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+          "verification_receipt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["receipt_id", "receipt_sha256"],
+            "properties": {
+              "receipt_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+              "receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

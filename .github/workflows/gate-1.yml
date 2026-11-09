@@ -34,3 +34,4 @@ jobs:
           "$RUNNER_TEMP/wheel-env/bin/python" "$GITHUB_WORKSPACE/tools/check_installed.py" "$GITHUB_WORKSPACE"
           "$RUNNER_TEMP/wheel-env/bin/python" "$GITHUB_WORKSPACE/tools/check_evidence_installed.py" "$GITHUB_WORKSPACE"
           "$RUNNER_TEMP/wheel-env/bin/python" "$GITHUB_WORKSPACE/tools/check_runtime_installed.py" "$GITHUB_WORKSPACE"
+          "$RUNNER_TEMP/wheel-env/bin/python" "$GITHUB_WORKSPACE/tools/check_candidates_installed.py" "$GITHUB_WORKSPACE"
