@@ -1,18 +1,29 @@
 # agent-sleep-lab
 
+## Gate 4A 受入結果 — 2026-11-10
+
+[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17)は未マージ。
+対象head `a5d64acb294186c840fee7222be5f000661940e2`、
+[CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)で
+**新規5項目／1回・0.197秒・全合格**、wheel成功。Ubuntu／Python 3.13.18。
+ローカル実行0項目。試行累計5項目／1回。文書更新で二重CIは起動しません。
+合成の記録→Light→Deep→独立受領→採用→取得と中断境界の重点受入により、
+初期版全体見積りは**約35〜40%**。本番接続・比較評価・広い障害受入は未完。
+
+
 [English](README.md) | **日本語**
 
 AIエージェントが作業経験を振り返り、根拠付きの記憶へ整理し、次の作業で活用するための実験用ハーネスです。GitHubを含む普段の作業環境に「sleep」の工程を加え、同じ失敗の再発、訂正回数、タスク成功率、総費用がどう変わるかを検証します。
 
-**現在：基盤実装はマージ済み、初期版全体は約30〜35%です。** 旧45%はsleep・比較評価・接続の不確実性を過小評価したため訂正しました。PR #15の監査付き論理忘却もマージ・重点CI合格済みですが、物理削除ではありません。Light/Deep・coordinator・A/B runner・実agent接続は未実装です。[現在の状態表](docs/implementation-status.ja.md)／[12指摘への対応](docs/review-followup.ja.md)。
+**現在：初期版全体は約35〜40%。** PR #16の基盤レビュー修正はマージ済み（8e2f871）。現在のfeature branchに[Gate 4A](docs/gate-4-light-deep.md)を実装し、偽providerのLight／Deep、run束縛、予算予約、再開と既存writer引渡しを追加しました。**重点CI5項目は合格済み、未マージ**です。実APIを呼ぶsleep engineではありません。
 
-直近の確認：PR #15のmergeは`dd79e234fc2888f99685fb2dcf3961b04645f399`、[CI42752368409](https://github.com/moruku36/agent-sleep-lab/actions/runs/42752368409)は3項目・1回・0.652秒で合格、wheel成功。同じGate3試行は**13項目・4回で承認枠を使い切り**。今回のレビュー修正は未実行・未マージで、次のPR CI10項目1回には明示増枠が必要です。外部Windows報告は当方の受入に合算しません。性能改善はまだ測っていません。
+新規5項目をPR CIで1回だけ実行し、全合格しました。ローカル二重実行なし。過去のGate3は23項目／5回で枠終了済みで、再実行しません。比較評価・1 agent接続は未実装、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
 
 **設計の前提：対象エージェントは忘れるものと置きます。** 内部メモリは根拠にせず、正本はこのハーネスの外部記憶に置きます（[設計判断 0002](docs/decisions/0002-assume-agent-forgets.md)、[dots との接続設計](docs/dots-integration.ja.md)）。
 
 ## 個人開発のテスト上限
 
-**1回の開発試行で合計10項目以下**、通常は関係する3〜5項目を1回だけ実行します。ローカル・CI・再実行も合算。今回の既定案は新規5＋既存5の回帰10項目で、明示増枠までPR／CIを作成しません。入口の上限は選択件数で、試行累計の自動管理ではありません。CIも関連するPR変更時だけ、Python 3.13・明示選択項目で実行し、pushとの二重実行やmatrix・全件回帰はしません。過去の174項目合格は当時の記録として残します。[運用方針](docs/testing-budget.ja.md)と`AGENTS.md`を参照してください。
+1試行で合計10項目以下、ローカル／CI／再実行を合算。今回の明示選択は新規5項目・PR CI1回のみ。過去の回帰を既定で再実行せず、push CI／matrix／全件回帰を追加しません。[運用方針](docs/testing-budget.ja.md)。
 
 ## なぜ作るか
 
@@ -83,8 +94,9 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 - **実装・検証・マージ済み（PR #13）**：[ゲート3取得ライブラリ](docs/gate-3.ja.md)。合成限定・現在の許可と除外・UTF-8 byte上限。
 - **マージ済み**：[安全なrollback](docs/gate-3.ja.md)。明示的な制御上の復旧で、新規採用・評価ではありません。
 - **マージ・重点CI合格済み**：[監査付き論理忘却](docs/gate-3-forgetting.ja.md)。物理削除ではありません。
-- **今回branch・未検証**：[レビュー修正](docs/review-followup.ja.md)。日英順位・方針再利用・読取りtransaction・移植性・rollback証明選別。
-- **未実装**：削除・物理purge・cache掃除、評価中の取得固定、渡したmemoryの記録、実環境の取込・取得adapter、各sleep段階、出典の認証、登録run照合・追加の障害受入、日記、スケジューラー。
+- **PR #16でマージ済み**：[レビュー修正](docs/review-followup.ja.md)（文書は当時の記録）。
+- **今回branch・重点CI合格・未マージ**：[Gate 4A](docs/gate-4-light-deep.md)の最小合成Light／Deep。
+- **未実装**：削除・物理purge・cache掃除、評価中の取得固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。
 - **未実施**：対象エージェントとの接続、sleep providerの試行、A/B性能実験。Claude Codeでの開発セッションとは区別します。
 
 [手動実験](docs/manual-pilot.ja.md)から開始し、実運用前に[不足している契約](schemas/README.md#dreaming設計で追加が必要な契約未実装)を実装します。文書・合成例の検査は、性能改善の証明ではありません。

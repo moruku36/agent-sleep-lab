@@ -1,16 +1,29 @@
 # agent-sleep-lab
 
+## Gate 4A acceptance — 2026-11-10
+
+[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) remains unmerged.
+Head `a5d64acb294186c840fee7222be5f000661940e2`;
+[CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
+passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Python 3.13.18.
+Local execution: zero. This trial totals 5 case executions / 1 invocation.
+Documentation-only follow-up does not trigger duplicate CI.
+The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
+slice justifies an overall initial-version estimate of **35–40%**.
+Production integration, comparison evaluation and broader fault acceptance remain incomplete.
+
+
 **English** | [日本語](README.ja.md)
 
 An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
-**Current status: foundation merged; initial version about 30–35% complete.** The former 45% underestimated the uncertainty of sleep, comparison evaluation and integration. PR #15 logical forgetting is merged with focused CI acceptance, not physical erasure. Light/Deep, coordinator, A/B runner and the live adapter are not implemented. [Current table](docs/implementation-status.md) / [review disposition](docs/review-followup.ja.md).
+**Current status: initial version about 35–40% complete.** Foundation review fixes are merged through PR #16 (8e2f871). The feature branch now implements [Gate 4A](docs/gate-4-light-deep.md): offline fake-provider Light/Deep, locally bound runs, conservative budget reservations, checkpoints and existing-writer handoff. **Five focused CI cases passed; this slice is unmerged.** It is not a live sleep engine.
 
-Latest evidence: PR #15 merge `dd79e234fc2888f99685fb2dcf3961b04645f399`; [CI42752368409](https://github.com/moruku36/agent-sleep-lab/actions/runs/42752368409) passed 3 cases once (0.652 s) and built the wheel. SAME Gate 3 trial: **13 executions / 4 invocations, approved budget exhausted**. Review fixes are untested/unmerged; the proposed 10-case PR CI invocation needs an explicit increase. External Windows results are not our acceptance. No performance improvement measured.
+Five new cases passed in one PR-only CI invocation, with no local duplicate. The historical Gate 3 trial remains exhausted at 23 case executions / 5 invocations and is not rerun. Comparison evaluation and one existing-agent integration remain unimplemented; no performance improvement measured. [Current table](docs/implementation-status.md).
 
 ## Personal-development test budget
 
-At most **10 selected test-case executions per development trial**, including local/CI retries; normally one concise invocation of 3–5 relevant cases. The current review-fix runner proposes 5 new + 5 existing regression cases; its one CI invocation needs an explicit +10 extension before PR creation. It caps each selection, not cumulative usage. CI runs only on relevant PR changes, once on Python 3.13 with the explicit bounded selection; no duplicate push/matrix/full-suite run. Historical 174-case acceptance remains a dated result, not the new default. See [the testing policy](docs/testing-budget.ja.md) and `AGENTS.md`.
+At most 10 selected case executions per trial, including local/CI retries. This branch selects five new cases once in PR CI. No local duplicate, push CI, matrix or historical full-suite run. See [the testing policy](docs/testing-budget.ja.md).
 
 ## Research basis
 
@@ -58,8 +71,9 @@ The detailed documents are initially in Japanese.
 - **Implemented, checked and merged (PR #13):** the [Gate 3 scoped-retrieval library](docs/gate-3.md) (read-only, synthetic-only, UTF-8 byte budget).
 - **Merged:** [safe rollback](docs/gate-3.md#safe-rollback), explicit control recovery, not fresh adoption/evaluation.
 - **Merged with focused CI acceptance:** [logical forgetting](docs/gate-3-forgetting.md), not erasure.
-- **Current branch, UNTESTED:** [review fixes](docs/review-followup.ja.md): bilingual ranking, policy reuse, read transactions, portability and scoped rollback proof selection.
-- **Not implemented:** deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-memory logging, real capture/retrieval adapters, sleep phases, authenticated provenance, registered-run integration and broader adoption fault acceptance, diary, and scheduling.
+- **Merged through PR #16:** [review fixes](docs/review-followup.ja.md) (dated review document).
+- **Feature branch, focused CI accepted:** [Gate 4A](docs/gate-4-light-deep.md) offline synthetic Light/Deep slice.
+- **Not implemented:** deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-memory logging, real capture/retrieval adapters, production sleep phases, authenticated provenance, authenticated run integration and broader adoption fault acceptance, diary, and scheduling.
 - **Not executed:** target-agent integration, sleep-provider trials, and A/B performance experiments. Claude Code development sessions are separate from harness experiments.
 
 Start with the [manual pilot](docs/manual-pilot.ja.md). The [contract gaps](schemas/README.md#dreaming設計で追加が必要な契約未実装) must be closed before runtime adoption. Document and fixture checks are not evidence of performance improvement.
