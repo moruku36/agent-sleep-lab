@@ -2,7 +2,7 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-## Current assessment — 2026-11-10
+## Current assessment — 2026-11-11
 
 **Provisional initial-version completion: 30–35%. The former 50% estimate is withdrawn.**
 100% means capture → adoption → retrieval → Light/Deep → comparison evaluation →
@@ -31,6 +31,11 @@ the dedicated merge tool stopped. Both checks in
 and the [main workflow](https://github.com/moruku36/agent-sleep-lab/actions/runs/42801229632)
 succeeded. This adds the synthetic collect-only bridge, not a deployed agent.
 
+[PR #25](https://github.com/moruku36/agent-sleep-lab/pull/25) is **MERGED** at
+`ccb06aa4bdb1defef8fc8564e818522b650fd59a`, source
+`9387f1fef1565f3edcf94740e22d97f7187ac41f`; GitHub reports the merge at
+2026-11-10T10:54:59Z. Its reference dispatch journal is part of this baseline.
+
 Merged foundation: synthetic evidence/provenance, policy and receipt libraries,
 transactional adoption, scoped retrieval, rollback/logical forgetting; body-bound
 v2 Light/Deep proposals and generated candidate claims; explicit runtime CLI;
@@ -41,14 +46,29 @@ This is not production authentication, physical purge or a deployed agent connec
 
 ## Current development branch
 
-`feat/reference-use-journal`, based on the PR #24 merge above.
+`feat/oss-offline-integration-check`, based on the PR #25 merge above.
+This is an **incomplete draft**, not an operational integration checker.
 
-- Added the [reference dispatch journal](reference-use.md): bounded frozen task
-  and reference bytes, target/consumer identities, pre-dispatch durable intent,
-  compare-and-swap, no retry of unknown outcomes, and pre/post context rechecks.
-- Valid returned output is retained with hashes, but every consumer receipt stays
-  unreviewed. `delivery_and_use_verified` is always false; no semantic-use or
-  performance conclusion follows.
+- Preserves the partial [offline worker](../src/agent_sleep_lab/oss_offline_worker.py)
+  left by an interrupted development attempt. It defines a source-hash allowlist,
+  built-in synthetic tasks, temporary-ledger execution, local guards and trace output.
+- The parent checker, target checkout/commit verification, bridge/journal wiring,
+  behavior tests and end-to-end run are NOT implemented or verified. The embedded
+  source pins have not been independently verified. Do not use this draft on real data.
+- Guard code is not a sandbox for hostile Python; it has not passed boundary tests.
+  Reference bytes are assigned to target notes, which triage with `llm=None` does
+  not use semantically. No memory benefit or deployed connection is demonstrated.
+- The requested Codex CLI model/effort was `gpt-6.1-sol` / `xhigh`. The invocation
+  timed out without a normal completion/model receipt; partial files do not verify
+  that model/effort. No replacement model or duplicate worker was started.
+
+Already merged in PR #25:
+
+- The [reference dispatch journal](reference-use.md) freezes bounded task/reference
+  bytes and identities, records durable intent before dispatch, uses CAS, refuses
+  retry of unknown outcomes and rechecks context before/after dispatch.
+- Returned output is hash-bound, but consumer receipts remain unreviewed;
+  `delivery_and_use_verified` is always false. Accounting is not semantic-use proof.
 
 Already merged in PR #24:
 
@@ -66,15 +86,16 @@ Already merged in PR #24:
 
 ## Current branch verification
 
-- **255 unique cases / one full invocation, all passed, 13.588 s**, using the
-  existing Python 3.13 wheel-verification environment with project dependency pins.
-  This includes eight new journal cases. No environment was created or modified,
-  and no test was repeated in this development trial.
-- PR #24's earlier local result was 247 cases / one full invocation, all passed,
-  12.183 s. It is historical baseline verification, not a new-branch test run.
-- New branch CI has not been run; merged-baseline CI above is not its verification.
-- Documentation: **360 relative file links / 76 Markdown files passed**;
-  anchors and remote URLs are not checked.
+- **255 unique existing regression cases / one full invocation, all passed,
+  13.415 s**, using the existing Python 3.13.18 wheel-verification environment.
+  No environment creation, installation or paid inference was performed.
+- The partial worker passed `py_compile` only. Existing regressions do not exercise
+  it: no worker behavior, target-source execution or end-to-end integration is verified.
+- Documentation: **362 relative file links / 76 Markdown files passed**;
+  anchors and remote URLs are not checked. Draft PR CI is pending.
+  Merged-baseline CI is not verification of this branch.
+- PR #25's earlier local result (255 cases, 13.588 s) and PR #24's result
+  (247 cases, 12.183 s) are historical, not executions in this trial.
 - Actual five-task A/B and live-model performance improvement remain unverified.
 
 ## Genuine remaining work

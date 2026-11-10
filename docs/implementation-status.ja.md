@@ -2,7 +2,7 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
-## 現在の評価 — 2026-11-10
+## 現在の評価 — 2026-11-11
 
 **初期版は暫定30〜35%。従来の50%見積りは撤回します。**
 100%は記録→採用→取得→Light／Deep→比較評価→既存agent一つの接続です。
@@ -29,6 +29,12 @@ merge commitは`2117e96fcad631f69422541b6a6dbad9c6c025ed`、
 [main workflow](https://github.com/moruku36/agent-sleep-lab/actions/runs/42801229632)は成功です。
 合成collect-only bridgeの追加であり、本番agent接続ではありません。
 
+[PR #25](https://github.com/moruku36/agent-sleep-lab/pull/25)も**マージ済み**です。
+merge commitは`ccb06aa4bdb1defef8fc8564e818522b650fd59a`、
+対象ソースは`9387f1fef1565f3edcf94740e22d97f7187ac41f`。
+GitHubの読取りで2026-11-10T10:54:59Zのマージを確認しました。
+参考記憶の受け渡しjournalはこの基点に含まれます。
+
 基盤は合成の証拠・出典・policy・受領、原子的な採用、取得、rollback／論理忘却、
 本文・hash付きv2 Light／Deep、生成candidate、明示CLI、MiMo adapter、
 永続checkpoint、同一A/B拒否、比較不可の診断モード、手動handoff、停止後の復旧です。
@@ -37,13 +43,27 @@ merge commitは`2117e96fcad631f69422541b6a6dbad9c6c025ed`、
 
 ## 今回の開発branch
 
-PR #24のmerge commitを基点とする`feat/reference-use-journal`です。
+PR #25のmerge commitを基点とする`feat/oss-offline-integration-check`です。
+**未完成のdraft**であり、動作する接続checkerではありません。
 
-- [参考記憶の受け渡しjournal](reference-use.ja.md)を追加。上限付きtask／参考byteと
-  対象・consumer識別を固定し、呼出し前の意図永続化、CAS、結果不明時の再実行防止、
-  呼出し前後の文脈照合を行います。
-- 有効な返答はhash付きで保持しますが、受領は未確認自己申告です。
-  `delivery_and_use_verified`は常にfalseで、意味的な利用や性能改善の結論ではありません。
+- 中断した開発の途中成果である[offline worker](../src/agent_sleep_lab/oss_offline_worker.py)を保全。
+  source hash許可リスト、組込み合成課題、一時ledger、ローカルguard、trace出力を定義します。
+- 親checker、対象checkout／commit検証、bridge／journal接続、動作テスト、
+  一気通貫の実行は未実装または未検証です。埋込みsource pinの独立検証も未実施です。
+  実データには使用しないでください。
+- guardは敵対的Pythonのsandboxではなく、境界テストも未実施です。
+  参考byteは対象notesへ代入しますが、`llm=None`のtriageは意味的に利用しません。
+  記憶の効果や本番接続を示すものではありません。
+- Codex CLIへの指定は`gpt-6.1-sol`／`xhigh`ですが、呼出しが正常完了・モデル受領なしで
+  timeoutしました。途中ファイルだけでは指定モデルの実行確認になりません。
+  別モデルへの切替やworkerの重複起動はしていません。
+
+以下はPR #25でマージ済みです。
+
+- [参考記憶の受け渡しjournal](reference-use.ja.md)は上限付きtask／参考byteと識別を固定し、
+  呼出し前の意図永続化、CAS、結果不明時の再実行防止、前後の文脈照合を行います。
+- 有効な返答はhash付きですが、受領は未確認自己申告です。
+  `delivery_and_use_verified`は常にfalseであり、実行記録は意味的利用の証明ではありません。
 
 以下はPR #24でマージ済みです。
 
@@ -59,12 +79,14 @@ PR #24のmerge commitを基点とする`feat/reference-use-journal`です。
 
 ## 今回branchの検証
 
-- 既存のPython 3.13 wheel検証環境で、**全255項目／1回、全合格、13.588秒**。
-  新規journalの8項目を含みます。環境の新規作成・変更、今回試行の再実行はありません。
-- PR #24の以前のローカル結果は247項目／全件1回、全合格、12.183秒でした。
-  過去の基点の証拠で、今回branchの新しい実行回数には含めません。
-- 新branchのCIは未実行です。上記マージ基点のCIと混同しません。
-- **相対ファイルリンク360件／Markdown 76ファイル合格**。anchorと外部URLは対象外です。
+- 既存のPython 3.13.18 wheel検証環境で、**既存の全255項目／1回、全合格、13.415秒**。
+  環境新規作成・install・有料推論はしていません。
+- 途中workerは`py_compile`の構文確認のみ合格。既存回帰はworkerを実行しないため、
+  workerの動作、対象ソース実行、一気通貫の接続は未検証です。
+- **相対ファイルリンク362件／Markdown 76ファイル合格**。anchorと外部URLは対象外です。
+  Draft PRのCIは保留で、マージ基点のCIを今回branchの検証とは呼びません。
+- PR #25の以前の255項目／13.588秒とPR #24の247項目／12.183秒は履歴であり、
+  今回試行の実行回数には含めません。
 - 5課題の実A/B、実モデルの性能改善は未確認です。
 
 ## 本当に残っていること
