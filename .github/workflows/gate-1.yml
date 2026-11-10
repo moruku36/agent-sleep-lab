@@ -23,13 +23,13 @@ jobs:
           python-version: "3.13"
       - name: Install runtime dependencies
         run: python -m pip install .
-      - name: Five offline Light-Deep coordinator cases (one PR-only invocation)
+      - name: Five offline paired comparison cases (one PR-only invocation)
         run: >-
           python tests/run_tests.py --limit 5
-          test_sleep_coordinator.SleepTests.test_synthetic_roundtrip_reconciles_lost_adoption_ack
-          test_sleep_coordinator.SleepTests.test_reopen_resumes_deep_without_repeating_light
-          test_sleep_coordinator.SleepTests.test_changed_run_binding_rejects_without_mutation
-          test_sleep_coordinator.SleepTests.test_budget_stops_before_deep_and_retains_consumed_usage
-          test_sleep_coordinator.SleepTests.test_provider_verification_claim_cannot_promote_memory
+          test_ab_comparison.ComparisonTests.test_paired_arms_are_isolated_ordered_and_reported_without_claims
+          test_ab_comparison.ComparisonTests.test_reopen_skips_completed_arms_and_rejects_changed_binding
+          test_ab_comparison.ComparisonTests.test_reused_final_taskset_is_recorded_as_development_contact
+          test_ab_comparison.ComparisonTests.test_timeout_stays_in_denominator_and_unknown_outcome_never_replays
+          test_ab_comparison.ComparisonTests.test_policy_change_invalidates_comparison_and_stops_dispatch
       - name: Build wheel (no extra test execution)
         run: python -m pip wheel --no-deps --wheel-dir dist .
