@@ -69,34 +69,68 @@ and captured five synthetic outcomes; it did not exercise the dispatch journal.
 `9a7e3b8f25268d81503aa8bba91f5feb29d5647c`. GitHub confirmed the merge at
 2026-11-10T17:54:44Z; PR CI passed on Python 3.11 and 3.13.
 
+[PR #30](https://github.com/moruku36/agent-sleep-lab/pull/30) is **MERGED** at
+`9f281875925dd66a90b09c07af1562e3cdae3beb`, source
+`9d0cbb69dae3943becdbf7d886b4df488cb600dd`. GitHub confirmed the merge at
+2026-11-10T18:11:11Z; both PR checks and
+[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42872601554)
+passed. It merged six selected guard acceptance cases and accurate limitation
+documentation, not guard behavior hardening.
+
 ## Current development branch
 
-`test/oss-offline-guard-boundaries`, based on PR #29.
+`feat/oss-reference-prompt-contract`, based on PR #30.
+Owner priority is implementing memory-use and comparable execution before
+measurement. **No paid or live measurement has been run.**
 
-- The requested Fable coding worker remains quota-blocked; its reported reset
-  was 05:30 JST. No retry or substitute coding worker/model was started.
-  This branch is coordinator verification/documentation work, not a new
-  successful Fable implementation run.
-- Added [six real guard acceptance cases](../tests/test_oss_offline_guards.py),
-  each using a disposable isolated child process rather than mocks:
-  socket creation; subprocess/environment/cwd restrictions; external
-  text/byte/raw/symlink write-open denial; permitted temporary scratch and ledger;
-  foreign SQLite denial; resource limits and absence of parent-process leakage.
-  No pinned target code or external network endpoint is used. Some process
-  variants use side-effect-free audit-event probes, not actual exec/fork calls.
-- The covered checks pass, but **full filesystem write isolation is NOT
-  established**. A separate side-effect-free audit-event coverage probe found
-  that `os.remove`, `os.rename`, `os.mkdir`, `os.link`, `os.symlink`,
-  `os.chmod` and `os.truncate` events are not intercepted. No corresponding
-  filesystem mutation was executed; the external synthetic sentinel was unchanged.
-- Corrected the worker guard docstring to describe selected write-open/SQLite
-  checks rather than all filesystem writes. Runtime guard behavior is unchanged.
-  Existing descriptors, native code and complete syscall isolation remain outside
-  this Python audit hook. It is not a sandbox for hostile Python.
-- Next implementation after the coding-worker dependency clears: review and
-  harden filesystem-mutation handling (including path/dir-fd semantics) and add
-  meaningful rejection cases. This known gap remains open, not marked fixed.
-  Nonempty adopted-memory semantic use and real-data authorization remain open.
+- Added a separate [prompt-capture parent](../src/agent_sleep_lab/oss_prompt_capture.py)
+  and [stdlib worker](../src/agent_sleep_lab/oss_prompt_capture_worker.py); old
+  worker/pipeline protocols stay unchanged. Existing preflight freezes the same
+  eleven reviewed blobs, then a fresh guarded process drives the real pinned
+  `OpenAITriager.judge → triage_prompt` path for the built-in borderline issue.
+- Both arms share the issue, actual default score/reasons, mock model and request
+  settings. Baseline has no project notes; reference arm inserts one explicit
+  untrusted-data frame containing the exact bounded reference bundle.
+  Parent recomputes request/prompt hashes and verifies that the two prompts differ
+  by only that contiguous insertion, with equal non-prompt request fields.
+- An injected local transport captures the requests and raises the pinned
+  `LLMTriageError`. It never sends a request, returns a response or fabricates
+  a verdict. Endpoint/model/credential are explicit inert fixture labels;
+  environment credentials are not consulted and header values are not exported.
+- `prepare_from_bridge()` obtains an existing explicit bridge's scoped reference
+  under current policy, with worker byte/record caps and pinned repository/commit.
+  Store origin stays caller-controlled/unauthenticated. Artifact preparation is not
+  dispatch authorization; a later executor must revalidate current context.
+- **Actual pinned-source acceptance passed once**: issue #3, actual score 0.5,
+  two calls each to the pinned judge/prompt function, two captured requests,
+  zero provider calls/responses/verdicts, zero adoptions/verifier/evaluator receipts.
+  Reference came from an empty temporary synthetic store (zero records).
+  Baseline prompt was 962 UTF-8 bytes and reference prompt 1,960 bytes.
+  This verifies reference-data placement in an actual request path, not semantic
+  use of an adopted memory. The full collection pipeline remains unchanged.
+- [Five new contract cases](../tests/test_oss_prompt_capture.py) use stand-ins
+  and cover exact framing, binding/label rejection, A/B equivalence, the no-response
+  transport and preflight/stand-in labels. They are not real-model evaluations.
+- Worker provenance: explicitly requested `claude-fable-5-2`, but the invocation
+  timed out at 300 seconds after saving two modules. No successful completion or
+  resolved-model receipt was returned; do not claim a successful Fable run.
+  Read-only process reconciliation found only an unrelated Claude process over a
+  day old. No worker retry/substitution was started. Coordinator reviewed the
+  saved modules, wrote/verified tests and actual acceptance, and updated status.
+- Remaining: nonempty independently eligible memory integration; bounded explicit
+  live-provider executor and real provider/model receipts; durable paired outcome/
+  cost accounting and frozen evaluator. The capture path currently accepts the
+  existing ASCII-canonical bundle subset, not general Unicode retrieval bundles.
+  Prompt framing is not proof of prompt-injection immunity or authenticated origin.
+
+## Merged guard-verification baseline
+
+The six guard cases cover selected socket/process/environment/cwd/write-open/
+SQLite/resource checks in fresh children. They do **not** establish a hostile-code
+sandbox. The separate side-effect-free event probe found `os.remove`, `os.rename`,
+`os.mkdir`, `os.link`, `os.symlink`, `os.chmod`, `os.truncate` unhandled.
+No corresponding external mutation was executed. These gaps and path/dir-fd
+hardening remain open; this branch does not change runtime guard behavior.
 
 ## Merged PR #29 pipeline
 
@@ -175,24 +209,26 @@ Already merged in PR #24:
 
 ## Current branch verification
 
-- **301 unique cases / one full local regression invocation passed in 15.011 s**
-  on the existing Python 3.13.18 environment, including six new guard cases.
-  Earlier focused run: six cases / one invocation passed in 0.127 s.
-  **307 case executions over two invocations** total in this trial.
-- Separate diagnostic: side-effect-free audit-event coverage probe for the seven
-  unhandled filesystem mutation events above. Not counted as a regression case;
-  no mutation, target execution, network/model call, adoption or receipt.
-- Documentation: **366 relative file links / 76 Markdown files passed**;
+- **306 unique regression cases / one full invocation passed in 15.327 s** on the
+  existing Python 3.13.18 environment. Includes five new prompt-capture cases.
+  Earlier focused five-case run: four passed / one fixture error; corrected the
+  stand-in source paths to match required trace names, then the affected one case
+  passed. **312 case executions / three invocations** total in this trial.
+- Separate actual acceptance: one fresh prompt-capture worker, two captured
+  requests through pinned judge/prompt code, no external calls or model verdicts,
+  and empty eligible-reference data. Not counted as regression cases.
+  Worker-output SHA-256:
+  `2d26697d97af0cf4277582b77155fefcf72febdb4d2e0a651d800bee734acc02`.
+- Documentation: **370 relative file links / 76 Markdown files passed**;
   anchors and remote URLs excluded. Whitespace diff check passed.
   Feature CI not run.
-- Historical PR #29 verification: 295 cases / one invocation in 14.343 s, plus an
-  earlier eight-case focused run (303 executions/two invocations); 364 relative
-  links / 76 Markdown files. Separate actual pinned-worker acceptance dispatched
-  once through the journal, recovered interrupted capture, and replayed five
-  synthetic observations without worker redispatch. These are historical, not
-  executions in this guard-verification trial.
-- The seven mutation-event gaps, broader sandbox/OS isolation, nonempty adopted
-  memory use, real-data operation and real five-task A/B improvement remain open.
+- Historical PR #30 verification: 301 cases / one invocation in 15.011 s and
+  earlier six focused cases (307 executions/two invocations), 366 relative
+  links / 76 Markdown files. Its seven-event diagnostic was not a regression case.
+  Historical PR #29 verification: 295 cases plus eight earlier focused cases,
+  and one real empty-reference pipeline recovery acceptance. None was rerun here.
+- Nonempty adopted-memory semantic use, live comparison/evaluation and the
+  known filesystem mutation guard gaps remain unverified/unfixed.
 
 ## Genuine remaining work
 
