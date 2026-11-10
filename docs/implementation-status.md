@@ -2,7 +2,7 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-2026-11-10: **about 40% of the initial version**. This is the pre-CI Gate 4D
+2026-11-10: **about 45% of the initial version**. This is the pre-CI Gate 4E
 snapshot; subsequent results are in its PR checks. 100% means capture → adoption →
 retrieval → Light/Deep → comparison evaluation → one existing-agent integration.
 REM, diary and wider rollout are excluded. Counts of files or tests are not progress.
@@ -16,8 +16,9 @@ REM, diary and wider rollout are excluded. Counts of files or tests are not prog
 | Light/Deep and run lifecycle | [Gate 4A](gate-4-light-deep.md), PR #17 merged | Offline fake-provider slice; broader faults pending |
 | Comparison infrastructure | [Gate 4B](gate-4b-comparison.md), PR #19 merged | Synthetic paired plans/contact tracking, not a performance experiment |
 | Retrieval-to-comparison wiring | [Gate 4C](gate-4c-retrieval-comparison.md), PR #20 merged; five new cases once, wheel success | Source-matched context only, not a complete raw baseline |
-| Independent raw baseline / input audit | [Gate 4D](gate-4d-raw-baseline.md) saved and reviewed on `feat/gate-4d-raw-baseline` | Pre-CI: untested, unexecuted, unmerged. Bounded ID order, not relevance ranking or live delivery |
-| Existing-agent integration | Not implemented | One real adapter remains pending |
+| Independent raw baseline / input audit | [Gate 4D](gate-4d-raw-baseline.md), PR #21 merged; five new cases once, wheel success | Bounded ID order, not relevance ranking or live delivery |
+| Manual research-notes handoff | [Gate 4E](gate-4e-research-handoff.md) saved and reviewed on `feat/gate-4e-research-handoff` | Pre-CI: untested, unexecuted, unmerged. Private draft journal, not live delivery |
+| Existing-agent integration | No live connection | Manual handoff preparation is not a connected target agent |
 
 ## Acceptance evidence and test budget
 
@@ -43,14 +44,31 @@ REM, diary and wider rollout are excluded. Counts of files or tests are not prog
   [CI42781526252](https://github.com/moruku36/agent-sleep-lab/actions/runs/42781526252)
   passed five new cases once, 1.308 s, wheel success; Ubuntu / Python3.13.18.
   Historical trial total **5 executions / 1 invocation**, local zero, not rerun.
-- **Gate 4D:** five NEW raw-baseline/audit methods in the bounded runner and PR-only
+- **Gate 4D:** [PR #21](https://github.com/moruku36/agent-sleep-lab/pull/21) merged at
+  `ea7fdf2fa8633cbdbecddf32ca345a025ec03e0a`. Source head `820467a9aed8f69ec9fb3562eb235a68fb8e68bf`;
+  [CI42784054544](https://github.com/moruku36/agent-sleep-lab/actions/runs/42784054544)
+  passed five new cases once, 0.953 s, wheel success, Python3.13.18.
+  Historical trial total **5 executions / 1 invocation**, local zero, not rerun.
+- **Gate 4E:** five NEW manual-handoff methods in the bounded runner and PR-only
   workflow. **At this pre-CI snapshot: 0 executions, no pass claimed.** Plan: one
   five-case invocation; no local duplicate, push CI, matrix or historical suite.
   Trial cap remains ten including corrections.
   PR path filters use the cumulative diff: do not push an acceptance-only update
   after CI. Subsequent results belong to PR checks and the external local receipt.
 
-## Gate 4D boundary
+## Gate 4E boundary
+
+A private manual journal binds one frozen arm to a pinned research-notes target,
+exact request hash and safe bilingual output paths. A per-arm unique slot prevents
+reclaim by a new ID; claim marks unknown before returning bytes. Strictly parsed
+results remain unreviewed drafts, never fake comparison scores or adoption receipts.
+Preparation, claim, import and stored-draft release recheck live eligibility. Later
+revocation withholds retained drafts, not physical erasure or recall. Only journal
+writes occur: no target edits, files generated for publication, network or actual
+agent call. Template checks are mechanical, not quality/authentication. Separate
+DBs and recheck-to-use/mixed-run races remain; status is historical. See the contract.
+
+## Historical Gate 4D boundary
 
 Raw selection scans the exact scope under current policy, expiry, provenance and
 lineage checks, independently of memory citations. The bounded scan fails on excess;

@@ -1,7 +1,7 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: five new offline Gate 4D raw-baseline/audit cases, one PR-only invocation.
-Historical Gate 3 / Gate 4B are exhausted; Gate 4C is historical, not rerun here.
+Default: five new offline Gate 4E manual-handoff cases, one PR-only invocation.
+Historical Gate 3 / Gate 4B are exhausted; Gates 4A–4D are not rerun here.
 A per-invocation cap is not a cumulative-budget ledger. No full-suite discovery.
 --list validates/selects without executing test bodies. Historical tests remain available, but
 this entry never starts a full discovery run. The 10-case cap is unchanged.
@@ -15,11 +15,11 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_raw_baseline.RawBaselineTests.test_uncited_raw_is_selected_independently_and_without_adopted_memory",
-    "test_raw_baseline.RawBaselineTests.test_exact_scope_partition_policy_and_integrity_fail_closed",
-    "test_raw_baseline.RawBaselineTests.test_frozen_reopen_binding_and_eligible_set_invalidation",
-    "test_raw_baseline.RawBaselineTests.test_equal_whole_record_budgets_have_exact_audit_membership",
-    "test_raw_baseline.RawBaselineTests.test_partial_and_unknown_outcomes_are_audited_without_replay",
+    "test_research_handoff.ResearchHandoffTests.test_envelope_binds_frozen_arm_target_and_paths_without_answers",
+    "test_research_handoff.ResearchHandoffTests.test_prepare_is_stable_across_reopen_and_rejects_changed_binding",
+    "test_research_handoff.ResearchHandoffTests.test_claim_is_one_shot_and_leaves_durable_unknown_outcome",
+    "test_research_handoff.ResearchHandoffTests.test_result_import_is_strict_bound_idempotent_and_unreviewed",
+    "test_research_handoff.ResearchHandoffTests.test_policy_or_evidence_change_invalidates_before_export_and_import",
 )
 
 
