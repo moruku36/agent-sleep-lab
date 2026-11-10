@@ -79,7 +79,45 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-`feat/oss-reference-prompt-contract`, based on PR #30.
+`feat/oss-adopted-reference-preparation`, based on merged PR #31.
+**Locally verified:** all 309 unique regression cases passed in one invocation
+(Python 3.13, 15.290 s). PR CI is reported separately. No paid/live evaluation inference.
+
+- Reference canonical validation now requires retrieval's own byte form
+  (sorted keys, compact, unescaped UTF-8) through one stdlib helper,
+  `canonical_reference()`, in the
+  [prompt-capture worker](../src/agent_sleep_lab/oss_prompt_capture_worker.py)
+  and the shared [parent payload builder](../src/agent_sleep_lab/oss_offline_parent.py).
+  ASCII-only bundles are byte-identical to before. Escaped, re-spaced, BOM,
+  duplicate-key, invalid UTF-8, lone-surrogate and oversized bytes are refused.
+  The prompt framing boundary additionally refuses data frame markers. Strict JSON, the 32,768-byte / 256-record caps and the
+  exact reference SHA-256 are unchanged; worker protocol OUTPUT stays canonical ASCII.
+- [Three new integration cases](../tests/test_oss_adopted_reference.py) use a
+  temporary adoption store whose verifier/evaluator receipts and adoptions are
+  **test-authored fixtures**, plus a labelled stand-in worker. They cover a
+  nonempty eligible Unicode reference framed byte-exact in the reference arm
+  only, A/B comparability, current-policy exclusion, mismatched scope, no store
+  mutation during preparation and fail-closed malformed/non-canonical bytes.
+- Not claimed: store-origin authentication, semantic memory use, a model
+  verdict or any performance result. `OfflinePipeline` still requires the
+  ASCII-canonical subset. Known filesystem guard gaps remain open.
+- Actual pinned-source acceptance passed with one Japanese synthetic memory from
+  a temporary adoption store (test-authored adoption and verifier/evaluator fixtures).
+  The exact claim appears only in the reference prompt: 3,079 UTF-8 bytes vs 962
+  baseline bytes. A second fresh worker after policy exclusion retrieved zero records
+  and omitted the claim. Each worker called the real pinned judge/prompt twice;
+  preparation performed zero store writes, provider calls, responses or verdicts.
+- Worker provenance: normal completion receipt confirms `claude-fable-5-2`
+  (`terminal_reason=completed`, `is_error=false`); no fallback. Coordinator reviewed
+  the saved changes, corrected one test boundary assumption and ran verification.
+- Remaining: bounded explicit live-provider executor and real provider/model receipts;
+  durable paired outcome/cost accounting and frozen evaluator.
+
+## Merged PR #31 prompt contract
+
+Historical development branch `feat/oss-reference-prompt-contract`, based on
+PR #30 and merged in PR #31 (merge `c8b6ccc`, source `c61cbb1`).
+GitHub confirmed MERGED and both Python 3.11 / 3.13 PR CI checks succeeded.
 Owner priority is implementing memory-use and comparable execution before
 measurement. **No paid or live measurement has been run.**
 
@@ -119,8 +157,8 @@ measurement. **No paid or live measurement has been run.**
   saved modules, wrote/verified tests and actual acceptance, and updated status.
 - Remaining: nonempty independently eligible memory integration; bounded explicit
   live-provider executor and real provider/model receipts; durable paired outcome/
-  cost accounting and frozen evaluator. The capture path currently accepts the
-  existing ASCII-canonical bundle subset, not general Unicode retrieval bundles.
+  cost accounting and frozen evaluator. At PR #31 the capture path accepted only
+  the ASCII-canonical bundle subset (addressed and locally verified on the current branch).
   Prompt framing is not proof of prompt-injection immunity or authenticated origin.
 
 ## Merged guard-verification baseline
@@ -209,6 +247,9 @@ Already merged in PR #24:
 
 ## Current branch verification
 
+- `feat/oss-adopted-reference-preparation`: **nothing executed yet.** The three
+  new cases, full regression, documentation check and pinned-source acceptance
+  are pending with the coordinator. Figures below are PR #31 history.
 - **306 unique regression cases / one full invocation passed in 15.327 s** on the
   existing Python 3.13.18 environment. Includes five new prompt-capture cases.
   Earlier focused five-case run: four passed / one fixture error; corrected the

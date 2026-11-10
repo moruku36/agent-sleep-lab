@@ -77,9 +77,11 @@ def reference_notes(reference):
     from an adoption store.
     """
     doc = base.validate_reference(reference)
-    if base.encoded(doc) != reference:
+    # Retrieval's own canonical form (UTF-8, unescaped); the exact bytes and
+    # their hash are framed unchanged. Escaped or re-spaced variants are refused.
+    if base.canonical_reference(doc) != reference:
         raise ValueError("canonical reference bundle bytes required")
-    text = reference.decode("ascii")
+    text = reference.decode("utf-8")
     if BEGIN in text or END in text:
         raise ValueError("reference bundle must not contain the data frame markers")
     return "\n".join([NOTES_HEADER % base.digest(reference), BEGIN, text, END])

@@ -36,6 +36,18 @@ def encoded(value):
                       ensure_ascii=True, allow_nan=False).encode("ascii")
 
 
+def canonical_reference(doc):
+    """Exact reference-bundle serialization emitted by agent_sleep_lab.retrieval.
+
+    Sorted keys, compact separators, raw UTF-8 (no ASCII escaping). This is the
+    single accepted byte form of a reference bundle; it equals ``encoded`` for
+    ASCII-only bundles. Worker OUTPUT stays ``encoded`` (canonical ASCII).
+    A lone surrogate cannot be encoded and raises ValueError (fail closed).
+    """
+    return json.dumps(doc, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False, allow_nan=False).encode("utf-8")
+
+
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
