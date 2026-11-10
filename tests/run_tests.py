@@ -1,8 +1,9 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: 3 focused versioned run-ID adoption cases. Pass explicit unittest names to select
-checks for another change. --list validates/selects without executing test bodies.
-Historical tests remain available, but this entry never starts a full discovery run.
+Default: 3 focused Gate 3 scoped-retrieval cases (the 4th, scope/partition filtering, is
+selectable by explicit name). Pass explicit unittest names to select checks for another change.
+--list validates/selects without executing test bodies. Historical tests remain available, but
+this entry never starts a full discovery run. The 10-case cap is unchanged.
 """
 
 import argparse
@@ -13,9 +14,9 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_adoption_run_id.RunIdTests.test_legacy_journal_replay_preserves_original_bytes_after_exclusion",
-    "test_adoption_run_id.RunIdTests.test_v2_run_label_is_bound_and_different_run_same_operation_conflicts",
-    "test_adoption_run_id.RunIdTests.test_new_v1_rejected_and_v2_audit_only_coexists_with_v1_history",
+    "test_retrieval.RetrievalTests.test_normal_bounded_retrieval_returns_whole_ranked_records",
+    "test_retrieval.RetrievalTests.test_revocation_and_ancestor_exclusion_apply_before_ranking",
+    "test_retrieval.RetrievalTests.test_corruption_fails_closed_and_legitimate_empty_is_normal",
 )
 
 
