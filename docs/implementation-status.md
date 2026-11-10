@@ -79,7 +79,41 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-`feat/oss-verdict-evaluation`, based on owner-merged
+`feat/oss-fixture-cohort`, based on owner-merged
+[PR #36](https://github.com/moruku36/agent-sleep-lab/pull/36) at
+`6e4018c8393103c6f3da362fa409814a61571a3a`. GitHub verified MERGED and
+[main CI success](https://github.com/moruku36/agent-sleep-lab/actions/runs/42916818253)
+at that exact commit.
+
+- Added a separate [frozen synthetic fixture cohort registry](oss-fixture-cohort.md).
+  Two to five unique task identities, exact plan/manifest pins and comparable
+  settings are committed before any member intent. A short journal reservation
+  excludes competing intent writers; membership cannot be rebound.
+- Read-only reports keep every registered task in the denominator. Unknown,
+  missing, withheld, corrupt or unsupported outcomes prevent overall means and
+  paired difference. Invalid completed verdicts score zero without retry.
+  Reports contain no reply bodies, rationale or answer labels.
+- All **352 unique regression cases / one invocation passed** locally on
+  Python 3.13.18 (24.123 s), including 13 new cohort cases. Feature CI is pending.
+  These use injected replies and stand-in captures; the actual pinned capture
+  worker still selects only issue #3. No real multi-task target acceptance.
+- Development worker: after automatic review refusal and explicit owner approval,
+  the unchanged Codex CLI request was submitted through native one-time approval.
+  Local execution metadata confirms provider `openai`, model `gpt-6.1-sol` and
+  effort `xhigh`. The outer tool timed out at 600 s; no final-message file or
+  normal-completion receipt was obtained and no matching worker process remained.
+  Draft changes were preserved, independently reviewed and tested by the
+  coordinator. No retry, substitute model or API worker call; development usage
+  and cost are unknown.
+- Unmerged work: no live inference, paid runtime measurement, independent
+  evaluation dataset, confidence interval, rationale-quality scoring, cost
+  schema, adoption, target changes or merge. This is descriptive synthetic
+  development-fixture accounting, not performance evidence.
+  Initial-version completion remains provisional **30–35%**.
+
+## Merged PR #36 strict fixture evaluation
+
+Historical branch `feat/oss-verdict-evaluation`, based on owner-merged
 [PR #35](https://github.com/moruku36/agent-sleep-lab/pull/35) at
 `7dc833f14034087b1559eb6ffcef71cf2675e582` (source
 `c9d7d5e18723ee7858972a9bb3d99013bcb31e27`). GitHub confirmed MERGED and

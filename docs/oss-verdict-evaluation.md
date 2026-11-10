@@ -68,6 +68,9 @@ frozen criterion. Direct use of the calculation helper does not prove pre-call
 freezing; the journal provides that lifecycle. Context/store writes are still
 not a cross-store atomic transaction, and withholding is not physical deletion.
 
+For immutable membership and descriptive aggregation across predeclared tasks,
+see the separate [synthetic fixture cohort contract](oss-fixture-cohort.md).
+
 ## Verification scope
 
 [Eight new cases](../tests/test_oss_verdict_evaluation.py) use injected process

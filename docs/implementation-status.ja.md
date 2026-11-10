@@ -75,7 +75,35 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-所有者がマージした[PR #35](https://github.com/moruku36/agent-sleep-lab/pull/35)を
+所有者がマージした[PR #36](https://github.com/moruku36/agent-sleep-lab/pull/36)の
+`6e4018c8393103c6f3da362fa409814a61571a3a`を基点とする
+`feat/oss-fixture-cohort`です。GitHubでMERGEDと同じcommitの
+[main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42916818253)を確認しました。
+
+- 別の[合成fixture cohort registry](oss-fixture-cohort.md)を追加。
+  重複なしの2〜5課題、plan／manifestの厳密な識別情報と比較設定を、
+  全memberのintent開始前に固定します。短いjournal予約で競合するintent書込を除外し、
+  登録済み集合の差し替えを拒否します。
+- 読取専用reportは全登録課題を分母に保持。結果不明・欠落・失効・破損・
+  未対応版では全体平均と対応差を出しません。不正な完了判定は再送せず0点。
+  返答本文・理由文・正解labelは集計reportへ複写しません。
+- **ローカル全352件／1起動が合格**（Python 3.13.18、24.123秒）。
+  cohortの新規13件を含みます。feature CIは未実施。
+  返答は模擬、複数課題のcaptureはstand-inです。実際の固定capture workerは
+  依然として課題#3だけを選ぶため、実targetの複数課題受入ではありません。
+- 開発worker：自動レビュー拒否後の所有者の明示承認を受け、
+  同一Codex CLIコマンドをnative一回承認へ提出。ローカル実行metadataで
+  provider `openai`、model `gpt-6.1-sol`、effort `xhigh`を確認しました。
+  外側toolは600秒でtimeoutし、最終ファイル・正常完了受領は未取得。
+  読取確認で該当processなし。残されたdraftをcoordinatorが独立レビュー・検証しました。
+  再送・代替model・API worker呼出しなし。開発の使用量・費用は不明です。
+- 未マージ。実推論、有料runtime計測、独立評価集合、信頼区間、理由の品質採点、
+  費用schema、採用、target変更、mergeは未実施。合成開発fixtureの記述集計であり、
+  性能改善の証拠ではありません。初期版は暫定**30〜35%**です。
+
+## PR #36でマージ済みの厳格fixture評価
+
+履歴：所有者がマージした[PR #35](https://github.com/moruku36/agent-sleep-lab/pull/35)を
 基点とする`feat/oss-verdict-evaluation`です。merge
 `7dc833f14034087b1559eb6ffcef71cf2675e582`、ソース
 `c9d7d5e18723ee7858972a9bb3d99013bcb31e27`。GitHubでMERGEDと
