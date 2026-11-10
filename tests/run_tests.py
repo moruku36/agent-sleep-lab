@@ -1,6 +1,6 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: five new offline Gate 4A cases, one PR-only invocation.
+Default: five new offline Gate 4B cases, one PR-only invocation.
 Historical Gate 3 is exhausted and is NOT rerun by this selection.
 A per-invocation cap is not a cumulative-budget ledger. No full-suite discovery.
 --list validates/selects without executing test bodies. Historical tests remain available, but
@@ -15,11 +15,11 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_sleep_coordinator.SleepTests.test_synthetic_roundtrip_reconciles_lost_adoption_ack",
-    "test_sleep_coordinator.SleepTests.test_reopen_resumes_deep_without_repeating_light",
-    "test_sleep_coordinator.SleepTests.test_changed_run_binding_rejects_without_mutation",
-    "test_sleep_coordinator.SleepTests.test_budget_stops_before_deep_and_retains_consumed_usage",
-    "test_sleep_coordinator.SleepTests.test_provider_verification_claim_cannot_promote_memory",
+    "test_ab_comparison.ComparisonTests.test_paired_arms_are_isolated_ordered_and_reported_without_claims",
+    "test_ab_comparison.ComparisonTests.test_reopen_skips_completed_arms_and_rejects_changed_binding",
+    "test_ab_comparison.ComparisonTests.test_reused_final_taskset_is_recorded_as_development_contact",
+    "test_ab_comparison.ComparisonTests.test_timeout_stays_in_denominator_and_unknown_outcome_never_replays",
+    "test_ab_comparison.ComparisonTests.test_policy_change_invalidates_comparison_and_stops_dispatch",
 )
 
 

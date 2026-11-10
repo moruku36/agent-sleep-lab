@@ -2,7 +2,7 @@
 
 ## Gate 4A acceptance — 2026-11-10
 
-[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) remains unmerged.
+[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) is merged.
 Head `a5d64acb294186c840fee7222be5f000661940e2`;
 [CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
 passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Python 3.13.18.
@@ -25,8 +25,8 @@ evaluation → one existing-agent integration. REM/diary/wider rollout are exclu
 |---|---|---|
 | Evidence, provenance, receipts, policy, adoption | Synthetic libraries merged | Not real authentication; broader fault acceptance incomplete |
 | Retrieval, rollback, logical forgetting | Merged, review fixes through PR #16 | No physical erasure, frozen retrieval or delivered-memory logging |
-| Light/Deep and run lifecycle | No merged runtime | Offline fake-provider slice implemented, focused CI accepted |
-| Comparison evaluation | Not implemented | Paper fixture, A/B runner and evaluation-contact logging pending |
+| Light/Deep and run lifecycle | Gate 4A merged (PR #17) | Offline fake-provider slice, focused CI accepted; broader faults pending |
+| Comparison evaluation | Not merged | [Gate 4B](gate-4b-comparison.md) offline synthetic paired A/B library and contact tracking saved as code on `feat/gate-4b-offline-comparison`: **untested, unexecuted, unmerged**. Paper fixture, frozen-retrieval wiring, statistics and live runs pending |
 | Existing-agent integration | Not implemented | One real adapter remains pending |
 
 ## Evidence and budget
@@ -35,9 +35,13 @@ PR #16 baseline: `8e2f871eb1ace6f29378ce44fad8821f36259e18`.
 Historical focused CI42755593975 passed ten cases once. Historical Gate 3 total:
 23 case executions / 5 invocations, exhausted, not rerun here.
 
-The [new Gate 4A slice](gate-4-light-deep.md) is implemented, unmerged and
+The [new Gate 4A slice](gate-4-light-deep.md) is implemented, merged and
 focused-CI-accepted. Five new explicit cases passed in one PR-only CI run;
 no local duplicate or historical suite. No runtime pass is claimed in advance.
+
+Gate 4B (2026-11-10): five new test methods exist as code only; zero executions so
+far. The 35–40% estimate is unchanged until they are run and reviewed. Fake scores
+produce no adoption receipt, performance claim or measured savings.
 
 ## Limits
 
