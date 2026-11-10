@@ -1,0 +1,19 @@
+{
+  "light": {
+    "event_ids": [
+      "e-1"
+    ]
+  },
+  "deep": {
+    "operations": [
+      {
+        "op": "add",
+        "memory_id": "m-1",
+        "event_ids": [
+          "e-1"
+        ],
+        "claim": "Check the stated sample size before copying a headline claim."
+      }
+    ]
+  }
+}

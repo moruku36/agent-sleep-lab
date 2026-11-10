@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent-sleep-lab"
 version = "0.1.0.dev0"
-description = "Read-only offline contract validator for Agent Sleep Lab schemas and synthetic fixtures (Gate 1)."
+description = "Evidence-grounded external memory, Light/Deep proposals and paired evaluation harness for synthetic agent experiments."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "UNLICENSED" }

@@ -87,7 +87,7 @@ class RetrievalTests(StoreCase):
         self.adopt(store, "m-3", "e-3", claim="beta alpha delta", parent=snap)
         full = retrieve_reference_bundle(store, scope=SCOPE, max_bytes=1_000_000, query="alpha delta")
         doc = full.document
-        self.assertEqual(self.ids(full), ["m-3", "m-1", "m-2"])  # score desc, then id
+        self.assertEqual(self.ids(full), ["m-3", "m-1"])  # exclude zero-score records
         self.assertEqual((doc["scope"], doc["policy"]["revision"], doc["exclusions"]["version"]),
                          (SCOPE, 1, 1))
         self.assertEqual(doc["snapshot_sha256"], sha256_hex(store.current_snapshot(SCOPE)))
@@ -106,12 +106,12 @@ class RetrievalTests(StoreCase):
         capped = retrieve_reference_bundle(store, scope=SCOPE, max_bytes=1_000_000,
                                            query="alpha delta", max_records=1)
         self.assertEqual(capped.document["counts"],
-                         {"active_members": 3, "eligible": 3, "returned": 1, "dropped": 2})
+                         {"active_members": 3, "eligible": 2, "returned": 1, "dropped": 1})
         one_size = len(capped.bundle_bytes)
         small = retrieve_reference_bundle(store, scope=SCOPE, max_bytes=one_size + 10, query="alpha delta")
         self.assertEqual(self.ids(small), ["m-3"])
         self.assertLessEqual(small.used_bytes, one_size + 10)
-        self.assertEqual((small.document["scope"], small.document["counts"]["dropped"]), (SCOPE, 2))
+        self.assertEqual((small.document["scope"], small.document["counts"]["dropped"]), (SCOPE, 1))
         self.assertEqual(small.document["records"][0], dict(first, rank=1))
         self.assertRaisesCode(ContractViolation, "retrieval.budget_too_small",
                               lambda: retrieve_reference_bundle(store, scope=SCOPE, max_bytes=50))

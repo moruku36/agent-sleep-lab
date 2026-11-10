@@ -182,6 +182,8 @@ def _eligible_records(store, scope, partition, snapshot, now, terms, policy):
             "evidence": [dict(e) for e in receipt["evidence"]],
             "memory": memory,
         }
+        if terms and record["score"] == 0:
+            continue
         found.append(((-record["score"], mid), record))
     found.sort(key=lambda item: item[0])
     return len(active), found

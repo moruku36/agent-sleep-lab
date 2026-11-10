@@ -128,7 +128,7 @@ class RetrievalComparison:
         return loads_strict_bytes(data)
 
     def plan(self, *, plan_id, tasks, config, model, evaluator_identity,
-             budget=ArmBudget(), declared_role="development"):
+             budget=ArmBudget(), declared_role="development", diagnostic_only=False):
         """Freeze the live context once; an identical reopen reuses the saved bytes."""
         data, created = self._saved(plan_id), False
         if data is None:
@@ -154,7 +154,7 @@ class RetrievalComparison:
                         "retrieval": self.params, "context_sha256": sha256_hex(data)},
                 model=model, scope=self.scope, snapshot_sha256=context["snapshot_sha256"],
                 policy_sha256=context["policy_sha256"], evaluator_identity=evaluator_identity,
-                declared_role=declared_role, budget=budget)
+                declared_role=declared_role, budget=budget, diagnostic_only=diagnostic_only)
         except BaseException:
             if created:
                 self.comparisons.db.execute(

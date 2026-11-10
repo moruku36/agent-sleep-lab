@@ -1,5 +1,7 @@
 # Gate 4B — offline synthetic paired comparison
 
+> Historical gate specification. [日本語要約](gate-4b-comparison.ja.md). Current capabilities, merge state and verification evidence live only in [implementation status](implementation-status.md); old test limits and pre-merge labels below are dated history, not current instructions.
+
 [Home](../README.md) | [Current status](implementation-status.md)
 
 Implemented on feature branch; **five focused CI cases passed, unmerged**.

@@ -1,5 +1,7 @@
 # Gate 4C — accepted-store retrieval to a frozen source-matched comparison
 
+> Historical gate specification. [日本語要約](gate-4c-retrieval-comparison.ja.md). Current capabilities, merge state and verification evidence live only in [implementation status](implementation-status.md); old test limits and pre-merge labels below are dated history, not current instructions.
+
 [Home](../README.md) | [Status](implementation-status.md) | [状況（日本語）](implementation-status.ja.md) | [Gate 4B](gate-4b-comparison.md)
 
 **Pre-CI snapshot (2026-11-10): saved and reviewed on `feat/gate-4c-paper-retrieval`;

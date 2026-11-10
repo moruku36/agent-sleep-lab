@@ -1,5 +1,7 @@
 # Gate 4D — independent raw-evidence baseline and per-arm request audit
 
+> Historical gate specification. [日本語要約](gate-4d-raw-baseline.ja.md). Current capabilities, merge state and verification evidence live only in [implementation status](implementation-status.md); old test limits and pre-merge labels below are dated history, not current instructions.
+
 [Home](../README.md) | [Status](implementation-status.md) | [Gate 4C](gate-4c-retrieval-comparison.md) | [Gate 4B](gate-4b-comparison.md)
 
 **Pre-CI snapshot (2026-11-10): saved and reviewed on `feat/gate-4d-raw-baseline`;

@@ -1,0 +1,44 @@
+{
+  "path": "private/adoption.sqlite",
+  "capture": {
+    "adapter_id": "synthetic-adapter",
+    "adapter_version": "1.0.0",
+    "allowed_origins": [
+      "tool_observation"
+    ],
+    "authorizations": {
+      "auth-1": 1
+    },
+    "allowed_scopes": [
+      [
+        "p",
+        "t"
+      ]
+    ]
+  },
+  "verifier": {
+    "boundary_id": "synthetic-verifier",
+    "boundary_version": "1.0.0",
+    "methods": [
+      [
+        "manual-check",
+        "1"
+      ]
+    ]
+  },
+  "evaluator": {
+    "boundary_id": "synthetic-evaluator",
+    "boundary_version": "1.0.0",
+    "protocols": [
+      [
+        "fixture-protocol",
+        "1"
+      ]
+    ]
+  },
+  "evaluation_protocol": [
+    "fixture-protocol",
+    "1",
+    "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  ]
+}

@@ -1,11 +1,9 @@
-"""Read-only command line interface (Gate 1).
+"""Validation and explicit runtime command line interface.
 
-    agent-sleep-lab validate {events,memory,promotion} PATH [--format text|json]
-    agent-sleep-lab schemas
-
-Exit codes: 0 valid (warnings allowed), 1 content invalid, 2 usage or input could
-not be read. The CLI only reads the named file; it writes nothing, resolves no
-references, and makes no network calls. Output is ASCII-only and bounded.
+validate/schemas are offline read-only operations. Runtime commands may write
+private journals and adoption state; only explicit --provider mimo calls a paid
+registered model. Exit codes: 0 completed/inspected, 1 invalid or incomplete run,
+2 usage/input/runtime error. JSON output is ASCII-escaped.
 """
 
 from __future__ import annotations
@@ -41,7 +39,7 @@ def _bounded_int(text: str) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="agent-sleep-lab",
-        description="Read-only offline contract validation for Agent Sleep Lab (Gate 1).",
+        description="Agent Sleep Lab contract validation and explicit runtime operations.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -58,6 +56,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     sub.add_parser("schemas", help="list the packaged local schemas")
+    for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
+        cmd = sub.add_parser(name, help="explicit runtime " + name)
+        if name != "sleep-status":
+            cmd.add_argument("--store-config", required=True, help="local boundary configuration JSON")
+            cmd.add_argument("--manifest", required=True, help="bounded operation JSON")
+        if name in ("sleep", "compare", "sleep-status"):
+            cmd.add_argument("--journal", required=True, help="separate private SQLite journal")
+        if name in ("sleep", "compare"):
+            cmd.add_argument("--provider", choices=("script", "mimo"), required=True)
+            cmd.add_argument("--agent", help="registered OpenClaw account for explicit paid MiMo inference")
+        if name == "sleep":
+            cmd.add_argument("--replies", help="script provider JSON (offline only)")
+        if name == "compare":
+            cmd.add_argument("--rubric", required=True, help="local evaluator key, never sent to provider")
+        if name == "sleep-status":
+            cmd.add_argument("--run-id", required=True)
     return parser
 
 
@@ -126,7 +140,22 @@ def main(
         return int(exc.code) if isinstance(exc.code, int) else EXIT_ERROR
     if args.command == "validate":
         return _cmd_validate(args, out, err)
-    return _cmd_schemas(out, err)
+    if args.command == "schemas":
+        return _cmd_schemas(out, err)
+    try:
+        if getattr(args, "provider", None) == "mimo" and not args.agent:
+            raise ValueError("--agent is required for MiMo")
+        if args.command == "sleep" and args.provider == "script" and not args.replies:
+            raise ValueError("--replies is required for script provider")
+        from agent_sleep_lab.runtime_cli import execute
+        result = execute(args)
+        print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+        if args.command in ("sleep", "compare") and result.get("status") in ("failed", "incomplete", "invalidated"):
+            return EXIT_INVALID
+        return EXIT_OK
+    except Exception as exc:
+        print("error[runtime]: " + ascii_safe(str(exc))[:512], file=err)
+        return EXIT_ERROR
 
 
 def console_main() -> None:

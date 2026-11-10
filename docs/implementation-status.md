@@ -2,107 +2,84 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-2026-11-10: **about 45% of the initial version**. This is the pre-CI Gate 4E
-snapshot; subsequent results are in its PR checks. 100% means capture → adoption →
-retrieval → Light/Deep → comparison evaluation → one existing-agent integration.
-REM, diary and wider rollout are excluded. Counts of files or tests are not progress.
+## Current assessment — 2026-11-10
 
-## Current capabilities
+**Provisional initial-version completion: 30–35%. The former 50% estimate is withdrawn.**
+100% means capture → adoption → retrieval → Light/Deep → comparison evaluation →
+one existing-agent integration. REM, diary and wider rollout are excluded.
+File/test counts and prepared interfaces do not increase this estimate.
+This page and its Japanese translation are the ONLY current status authority;
+other gate specifications and acceptance reports are dated history.
 
-| Stage | Verified baseline | Feature branch / remaining boundary |
+## Verified merged baseline
+
+[PR #22](https://github.com/moruku36/agent-sleep-lab/pull/22) (Gate 4E) IS MERGED
+at `68a6536a8017ac4f76b2cede3693cbbeb220dcee`, not untested/unmerged as the old
+landing page said. Source `ce723d0c36a5603acc41fae164e321396e046697`;
+[CI42789603739](https://github.com/moruku36/agent-sleep-lab/actions/runs/42789603739)
+passed five handoff cases once (1.702 s), wheel success. Earlier Gate 4A–4D are
+merged through PR #17/#19/#20/#21. These focused historical results do NOT establish
+a full regression result or live-model quality improvement.
+
+Merged foundation: synthetic evidence/provenance, policy and receipt libraries,
+transactional adoption, scoped retrieval, rollback/logical forgetting; fake
+Light/Deep checkpoints; paired comparison/contact tracking; source-matched and
+independent bounded raw contexts; manual draft handoff journal. This is not
+production authentication, physical purge, or a connected existing agent.
+
+## Review-fix branch (implemented, not yet merged)
+
+Branch: `fix/runtime-provider-and-comparison`, based on PR #22 merge above.
+Review claims were checked against source; the external reviewer's 253-case
+run is NOT reported as our own verification.
+
+| Finding | Implemented correction | Verification / remaining limit |
 |---|---|---|
-| Evidence, provenance, receipts, policy, adoption | Synthetic libraries merged | Not authentication; broader fault acceptance incomplete |
-| Retrieval, rollback, logical forgetting | Merged, review fixes through PR #16 | No physical erasure or delivered-memory logging |
-| Light/Deep and run lifecycle | [Gate 4A](gate-4-light-deep.md), PR #17 merged | Offline fake-provider slice; broader faults pending |
-| Comparison infrastructure | [Gate 4B](gate-4b-comparison.md), PR #19 merged | Synthetic paired plans/contact tracking, not a performance experiment |
-| Retrieval-to-comparison wiring | [Gate 4C](gate-4c-retrieval-comparison.md), PR #20 merged; five new cases once, wheel success | Source-matched context only, not a complete raw baseline |
-| Independent raw baseline / input audit | [Gate 4D](gate-4d-raw-baseline.md), PR #21 merged; five new cases once, wheel success | Bounded ID order, not relevance ranking or live delivery |
-| Manual research-notes handoff | [Gate 4E](gate-4e-research-handoff.md) saved and reviewed on `feat/gate-4e-research-handoff` | Pre-CI: untested, unexecuted, unmerged. Private draft journal, not live delivery |
-| Existing-agent integration | No live connection | Manual handoff preparation is not a connected target agent |
+| ID-only Light/Deep | Body/hash-bound v2, current eligible evidence from store, generated claim, unverified candidate materialization, preparation cannot substitute prose | Offline contract/CLI cases pass; actual API response unverified |
+| Fake-only transport | Explicit registered `xiaomi/mimo-v2.6-pro` adapter; no credential extraction, shell or retry, model/fallback receipt checks | First design call timed out without receipt; later implementation-review command denied by execution controls. No successful MiMo receipt in this trial |
+| Identical A/B inputs | Reject before registration/dispatch; explicit diagnostic mode never yields comparison statistics | Tight-budget/no-memory regressions assert rejection; audit prefixes retained |
+| Narrow CI | All unique regressions on PR and main, Python 3.11/3.13, all Markdown file links, wheel | Workflow configured; remote checks are not yet claimed passed |
+| Scattered stale docs | README language/overview first, single current-status authority, permanent-only AGENTS, roadmap/architecture corrected, Gate 4 Japanese summaries | File links checked; translated Gate summaries are summaries, not full word-for-word translations |
+| No runtime entry | Explicit sleep/status/adopt/retrieve/compare CLI, bounded file input and existing boundary configuration | Script sleep/reopen, independent prepared adoption→retrieval and foreign-journal rejection pass |
+| Interrupted preparation | Explicit stopped-worker recovery to incomplete/unknown, never callback replay | Offline crash/recovery case passes |
+| Query score-zero memories | Omit lexical score-zero records for effective query terms | Updated retrieval regression passes; no-query listing remains |
+| Hard-coded research target | Required caller repository and immutable 40-hex commit | Historical tests explicitly configure their fixture target |
 
-## Acceptance evidence and test budget
+## Current verification
 
-- **Historical Gate 3:** PR #16 baseline `8e2f871eb1ace6f29378ce44fad8821f36259e18`.
-  CI42755593975 passed ten selected cases once; trial total **23 executions / 5
-  invocations**, exhausted. Not rerun by this branch.
-- **Gate 4A:** PR #17 merged. Source head `a5d64acb294186c840fee7222be5f000661940e2`;
-  [CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
-  passed five new cases once, 0.197 s, plus wheel; Ubuntu / Python 3.13.18.
-  Trial **5 executions / 1 invocation**, local zero. Dated milestone estimate 35–40%.
-- **Gate 4B:** [PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19) merged at
-  `acc553050b4437333514d8d534ceebed08609c1a`. Source head
-  `7902b59bd21fcef83c82f5c6cf086222331428f5` passed five new cases in
-  [CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265),
-  0.149 s, wheel success. A status-only push unexpectedly repeated those cases in
-  [CI42778493776](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778493776),
-  head `568cccb4c1c27d7b36095ff6a23ef3ec6d86b401`, 0.168 s, wheel success.
-  Cancellation found it already complete, not cancelled. Actual trial **10
-  executions / 2 invocations**, local zero, exhausted. Earlier 5/1 observations
-  describe the first run only; [dated correction](../reports/gate-4b-acceptance-20261110.md).
-- **Gate 4C:** [PR #20](https://github.com/moruku36/agent-sleep-lab/pull/20) merged at
-  `bd4d0f6ce898d95c4b0e9afb1372a8f61b8cd81b`. Source head `bfbdcb9508a45149c635f67d25b352c410f013ab`;
-  [CI42781526252](https://github.com/moruku36/agent-sleep-lab/actions/runs/42781526252)
-  passed five new cases once, 1.308 s, wheel success; Ubuntu / Python3.13.18.
-  Historical trial total **5 executions / 1 invocation**, local zero, not rerun.
-- **Gate 4D:** [PR #21](https://github.com/moruku36/agent-sleep-lab/pull/21) merged at
-  `ea7fdf2fa8633cbdbecddf32ca345a025ec03e0a`. Source head `820467a9aed8f69ec9fb3562eb235a68fb8e68bf`;
-  [CI42784054544](https://github.com/moruku36/agent-sleep-lab/actions/runs/42784054544)
-  passed five new cases once, 0.953 s, wheel success, Python3.13.18.
-  Historical trial total **5 executions / 1 invocation**, local zero, not rerun.
-- **Gate 4E:** five NEW manual-handoff methods in the bounded runner and PR-only
-  workflow. **At this pre-CI snapshot: 0 executions, no pass claimed.** Plan: one
-  five-case invocation; no local duplicate, push CI, matrix or historical suite.
-  Trial cap remains ten including corrections.
-  PR path filters use the cumulative diff: do not push an acceptance-only update
-  after CI. Subsequent results belong to PR checks and the external local receipt.
+- Full regression: **240 unique cases in one invocation, 239 passed, one environment
+  failure**, 11.825 s. Installed jsonschema 4.26.0 differs from repository pin
+  4.23.0. The original environment was not changed; the pin assertion was not
+  skipped or weakened. A clean isolated environment creation was denied by host
+  execution controls. CI installs project pins on supported Python versions.
+- Newly added runtime/transport/CLI cases: **13 cases, one focused invocation,
+  all passed**, 0.532 s. Earlier affected sets: 23/1 and 28/1 passed after repairs.
+  These are recorded executions, not a ten-case budget reset. A test-module syntax
+  error was fixed before its test bodies ran.
+- Documentation: **339 relative file links / 72 Markdown files passed**; anchors
+  and remote URLs are not checked. Subsequent check receipts belong to PR checks
+  or private development logs; do not infer an unrun CI result from this page.
+- Original baseline full run: 227 unique cases (imported fixture aliases deduplicated),
+  two failures/four errors. Behavioral failures were corrected; dependency-pin
+  mismatch remains local. That snapshot selected 240. A subsequent receipt-reopen
+  regression brings the final selection to 241; the final affected 19-case run
+  passed once (0.557 s). Final full verification belongs to PR/main CI.
+- Paid API calls in CI: zero. Actual five-task A/B execution: NOT performed.
+  [Five fictional development tasks](../examples/paper-pilot/README.md) prepared;
+  not an independent holdout, measured result, or adopted memory.
 
-## Gate 4E boundary
+## Genuine remaining work
 
-A private manual journal binds one frozen arm to a pinned research-notes target,
-exact request hash and safe bilingual output paths. A per-arm unique slot prevents
-reclaim by a new ID; claim marks unknown before returning bytes. Strictly parsed
-results remain unreviewed drafts, never fake comparison scores or adoption receipts.
-Preparation, claim, import and stored-draft release recheck live eligibility. Later
-revocation withholds retained drafts, not physical erasure or recall. Only journal
-writes occur: no target edits, files generated for publication, network or actual
-agent call. Template checks are mechanical, not quality/authentication. Separate
-DBs and recheck-to-use/mixed-run races remain; status is historical. See the contract.
+1. Resolve the explicit MiMo execution approval/binding failure and obtain a real
+   provider/model receipt. Do not silently substitute another model or retry an
+   uncertain call. This trial's actual API cost/usage remains unknown.
+2. Run the prepared five-task real-response comparison with the caller's applicable
+   budget, independently accepted experience memories and a frozen evaluator.
+   Current exact-match rubric scoring alone is not scientific paper-quality proof.
+3. Connect ONE existing agent and verify actual capture/retrieval use; manual
+   handoff drafts are preparation only. Relevant raw ranking, delivered-memory
+   logging, physical purge and broader production fault acceptance remain open.
 
-## Historical Gate 4D boundary
-
-Raw selection scans the exact scope under current policy, expiry, provenance and
-lineage checks, independently of memory citations. The bounded scan fails on excess;
-selection cuts record counts/coverage explicitly. Both arms get the same whole raw
-prefix; B may add eligible memories. Null adopted head is supported. Frozen eligible
-set changes invalidate without revival. Read-only audit binds plan/context/config,
-request hash, arm identity and whole prefix to durable statuses, including unknown
-outcomes. It never proves delivery/read/use or resends. ID ordering is not relevance
-ranking, the fixture is synthetic, and no scientific fairness/performance is claimed.
-Separate scan/retrieval/audit reads and recheck-to-dispatch races remain.
-
-## Historical Gate 4C boundary
-
-The read-only adapter freezes exact event/source text and hashes behind currently
-eligible retrieved memories, plus whole consolidated records, scope, partition,
-retrieval parameters, snapshot and policy. A receives those raw sources; B gets
-the same raw prefix plus records within the same cap. It excludes raw evidence
-not cited by eligible returned memories, so is a **source-matched representation
-fixture, not a fair full raw-baseline evaluation**. All paper data are fictional;
-co-authored experience/tasks are not an independent holdout. Fake replies/scores
-are not measured quality, savings, performance or an adoption receipt.
-
-Every dispatch/evaluation/report rechecks the current store. Revocation, missing
-or mismatching evidence, or a changed context invalidates the plan without revival.
-Saved context/replies survive reopen without replay. Context persistence is not
-physical erasure. Separate reads and recheck-to-dispatch race remain documented;
-local construction/run registration is not authentication. No live provider,
-network, CLI, REM, diary, scheduler or extra spend is added to the harness.
-
-## Remaining work
-
-Relevance-ranked raw retrieval and real delivery/use logging; a real
-comparison protocol and honest total-cost measurement; broader crash/concurrency
-acceptance; physical purge, exclusion capacity and post-forget cleanup; unified
-capture/use policy; authenticated provenance/run integration; and one existing-agent
-adapter. No measured improvement yet. [Dated review disposition](review-followup.ja.md)
-/ [history](../reports/implementation-status-history-20261110.md).
+Runtime contracts and commands: [English](runtime-guide.md) / [日本語](runtime-guide.ja.md).
+The MiMo CLI lacks per-call max-token control: post-generation byte rejection
+is NOT a hard token or monetary limit; unknown outcomes may have incurred cost.
