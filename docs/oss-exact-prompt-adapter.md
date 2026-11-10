@@ -14,6 +14,10 @@ do not supply owner authorization or override host approval/spending controls.
 "reference", max_output_bytes=...)` returns `(UTF-8 reply bytes, receipt)`.
 It validates the whole canonical capture via the existing validator, including
 both arms, pinned source/task/reference hashes and their one-insertion relation.
+Explicit [v2 selected-issue probes](oss-selected-issue-probe.md) additionally
+require their exact selection and forced-judge provenance; receipts retain
+selection, actual score/band and that provenance. Default v1 artifacts retain
+their existing contract.
 Then it passes the selected captured user prompt **unchanged**, with no new
 instruction wrapper, to the explicit model through `openclaw infer model run`.
 It never uses the captured mock URL, header values or mock model for networking.

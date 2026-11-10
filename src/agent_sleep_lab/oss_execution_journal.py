@@ -14,6 +14,9 @@ import sqlite3
 
 from agent_sleep_lab import oss_paired_outcome as paired
 from agent_sleep_lab import oss_offline_worker as worker
+from agent_sleep_lab import oss_offline_parent as parent
+from agent_sleep_lab import oss_prompt_capture as capture
+from agent_sleep_lab import oss_prompt_capture_worker as child
 from agent_sleep_lab import oss_verdict_evaluation as evaluation
 from agent_sleep_lab.oss_mimo_adapter import OSSMimoAdapter, TRANSPORT_CLI, MODEL
 
@@ -50,7 +53,7 @@ def adapter_spec(adapter, live_transport):
 def receipt_for(binding, arm, reply):
     """Allowlisted expected receipt values; no raw process/transport metadata."""
     selected = binding["arms"][arm]
-    return dict(status="returned", arm=arm, provider="xiaomi", model="mimo-v2.6-pro",
+    receipt = dict(status="returned", arm=arm, provider="xiaomi", model="mimo-v2.6-pro",
                 model_requested=MODEL, transport=binding["adapter"]["transport"],
                 capture_document_sha256=binding["capture"]["document_sha256"],
                 request_sha256=selected["request_sha256"],
@@ -61,6 +64,49 @@ def receipt_for(binding, arm, reply):
                 reference_sha256=binding["reference"]["sha256"],
                 output_sha256=worker.digest(reply), output_bytes=len(reply),
                 usage="unavailable", cost="unavailable")
+    if binding["capture"]["protocol"] == child.PROBE_OUTPUT_PROTOCOL:
+        receipt.update({key: binding["capture"][key] for key in (
+            "selected_issue_probe", "probe_provenance", "score", "band")})
+    return receipt
+
+
+def validate_capture_version(binding):
+    """New probe bindings cannot replay as ordinary v1 execution. No migration."""
+    meta, doc = binding["capture"], binding["capture_doc"]
+    fields = {"selected_issue_probe", "probe_provenance", "score", "band"}
+    if meta["protocol"] == child.OUTPUT_PROTOCOL:
+        if (fields.intersection(meta) or doc.get("protocol") != child.OUTPUT_PROTOCOL
+                or set(doc) != child.OUTPUT_KEYS
+                or binding["execution_kind"] != "exact_prompt_cli_not_original_http"):
+            raise JournalError("v1 execution must not carry probe metadata")
+        return  # Preserve saved v1 artifacts and their existing validation path.
+    if meta["protocol"] != child.PROBE_OUTPUT_PROTOCOL:
+        raise JournalError("unsupported capture version")
+    try:
+        validated = capture.validate_output(worker.encoded(doc), task=parent.builtin_task(),
+            reference=bytes.fromhex(binding["reference"]["hex"]),
+            selected_issue_probe=meta["selected_issue_probe"])
+        probe = child.probe_metadata(validated)
+        expected_meta = {key: validated[key] for key in (
+            "protocol", "artifact_kind", "dispatch_authorization", "model_receipt", "verdict",
+            "semantic_memory_use", "performance_improvement", "comparability", "model", "model_identity")}
+        expected_meta.update(probe, document_sha256=worker.digest(worker.encoded(doc)))
+        if (worker.encoded(meta) != worker.encoded(expected_meta)
+                or binding["source"]["issue_number"] != probe["selected_issue_probe"]["issue_number"]
+                or binding["source"]["task_sha256"] != probe["selected_issue_probe"]["task_sha256"]
+                or binding["execution_kind"] !=
+                    "selected_issue_probe_exact_prompt_not_automatic_triage_or_original_http"):
+            raise ValueError("probe binding mismatch")
+        for arm in ARMS:
+            captured = validated["arms"][arm]
+            request = worker.encoded({key: captured[key] for key in ("url", "header_names", "payload")})
+            expected_arm = dict(request_hex=request.hex(), request_sha256=captured["request_sha256"],
+                request_bytes=len(request), prompt_sha256=captured["prompt_sha256"],
+                prompt_bytes=captured["prompt_bytes"])
+            if worker.encoded(binding["arms"][arm]) != worker.encoded(expected_arm):
+                raise ValueError("probe frozen request mismatch")
+    except (ValueError, KeyError, TypeError):
+        raise JournalError("invalid selected-probe execution binding") from None
 
 
 class ExecutionJournal:
@@ -130,6 +176,7 @@ class ExecutionJournal:
         if (binding["protocol"] != PROTOCOL
                 or binding["bridge"] != paired._bridge_identity(bridge)):
             raise PlanConflict("plan protocol or bridge mismatch")
+        validate_capture_version(binding)
         return binding, row["binding_sha256"], row["stopped"]
 
     def _rows(self, binding):
@@ -169,7 +216,10 @@ class ExecutionJournal:
         binding["synthetic_task_only"] = binding.pop("synthetic_only")
         binding["capture_doc"] = worker.strict_json(worker.encoded(options["capture_doc"]))
         binding["adapter"] = adapter_spec(adapter, live_transport)
-        binding["execution_kind"] = "exact_prompt_cli_not_original_http"
+        binding["execution_kind"] = (
+            "selected_issue_probe_exact_prompt_not_automatic_triage_or_original_http"
+            if binding["capture"]["protocol"] == child.PROBE_OUTPUT_PROTOCOL
+            else "exact_prompt_cli_not_original_http")
         if evaluation_manifest is not None:
             binding["evaluation_manifest"] = evaluation.validate_manifest(
                 evaluation_manifest, binding["source"]["task_sha256"],
@@ -290,10 +340,15 @@ class ExecutionJournal:
             manifest, task_sha256=binding["source"]["task_sha256"],
             issue_number=binding["source"]["issue_number"], arms=arms,
             context_current=current, plan_status=status)
-        return dict(protocol=PROTOCOL, plan_id=plan_id, binding_sha256=digest,
+        report = dict(protocol=PROTOCOL, plan_id=plan_id, binding_sha256=digest,
                     plan_status=status, stop_reason=stopped, context_current=current,
                     arms=arms, adapter=binding["adapter"], source=binding["source"],
                     worker=binding["worker"], usage="unavailable", cost="unavailable",
                     verdict=None, evaluator="not_run" if manifest is None else "frozen_fixture_report",
                     verdict_evaluation=verdict_evaluation, semantic_memory_use="not_evaluated",
                     performance_improvement="not_evaluated", adoption="none")
+        if binding["capture"]["protocol"] == child.PROBE_OUTPUT_PROTOCOL:
+            report.update(execution_kind=binding["execution_kind"],
+                          **{key: binding["capture"][key] for key in (
+                              "selected_issue_probe", "probe_provenance", "score", "band")})
+        return report

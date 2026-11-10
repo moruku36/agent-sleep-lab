@@ -85,7 +85,9 @@ class OSSMimoAdapter:
             raise ValueError("explicit baseline or reference arm required")
         _bound(max_output_bytes, MAX_OUTPUT_BYTES, "max_output_bytes")
         raw = worker.encoded(capture_doc)
-        doc = capture.validate_output(raw, task=parent.builtin_task(), reference=reference)
+        doc = capture.validate_output(raw, task=parent.builtin_task(), reference=reference,
+            selected_issue_probe=(capture_doc.get("selected_issue_probe")
+                                  if type(capture_doc) is dict else None))
         selected = doc["arms"][arm]
         request = worker.encoded(dict(url=selected["url"],
                                      header_names=selected["header_names"],
@@ -110,6 +112,7 @@ class OSSMimoAdapter:
             timeout_seconds=self.timeout, http_wire_equivalent=False,
             verdict=None, semantic_memory_use="not_evaluated",
             performance_improvement="not_evaluated")
+        receipt.update(child.probe_metadata(doc))
         self.calls += 1  # reserve BEFORE dispatch, including failures
         self.receipts.append(receipt)
         self.stopped = True  # remains true on any exception/interruption after this point

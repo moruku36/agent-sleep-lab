@@ -44,9 +44,15 @@ under an existing ID returns the same contract, including after execution;
 creating a new cohort after execution is refused. Changed pins, membership or
 comparison settings under an existing ID conflict. Registry documents have an
 8,192-byte cap, exact JSON fields/types, canonical encoding and an integrity hash.
-The frozen document contains only protocol, cohort ID, fixed
+The v1 frozen document contains only protocol, cohort ID, fixed
 `synthetic_development_fixture` partition, registered-task count, member pins and
 comparison-settings hash. It contains no prompts, reference text or answer labels.
+
+[Explicit selected-issue probes](oss-selected-issue-probe.md) use cohort `/2`,
+adding exact selection-contract and forced-probe provenance fields. Their
+comparison rules normalize only the validated pinned notes insertion; full
+member bindings still pin selection and both requests. v1 documents and hashes
+retain their original rules, and versions/routes cannot mix.
 
 ## Comparability and reporting
 
@@ -94,16 +100,16 @@ tampering is outside this timing guarantee. A policy change after a context read
 can race reporting, as with the underlying journal. Distinct cohorts must not be
 pooled as independent samples of these same fixtures.
 
-The actual pinned capture worker still selects the one borderline issue (#3).
-The [cohort regression source](../tests/test_oss_fixture_cohort.py) uses explicitly
-labelled stand-in captures for other built-in issues; it does not broaden that
-worker or establish real five-task execution. Parser/evaluator implementation
-bytes, execution protocol, provider limits and no-retry behavior are unchanged.
+The default v1 capture selects the one borderline issue (#3). The original
+[cohort regression source](../tests/test_oss_fixture_cohort.py) retains its
+explicitly labelled stand-in captures. Separate
+[selected-probe regression sources](../tests/test_oss_selected_probe.py) specify
+actual pinned-worker captures for all five built-in issues with injected replies
+only. Parser/evaluator implementation bytes, execution protocol, provider limits
+and no-retry behavior are unchanged.
 There is no confidence interval, rationale-quality scoring, independent dataset,
 live-model verification or total-cost measurement here.
 
-The coordinator reviewed the preserved worker draft and ran all 352 unique
-regression cases in one invocation on Python 3.13.18: passed in 24.123 s,
-including 13 new cohort cases. These are mock/stand-in behavior checks, not live
-model or actual multi-task target acceptance. Current publication and CI status
-remain in the implementation-status pages.
+Execution, acceptance, publication and CI evidence belongs in the
+implementation-status pages, including the distinction between the original
+stand-in cohort checks and selected-probe acceptance.

@@ -79,6 +79,56 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
+### Selected-issue offline probe increment — locally verified, unmerged
+
+`feat/oss-selected-issue-capture` starts from owner-merged
+[PR #37](https://github.com/moruku36/agent-sleep-lab/pull/37) at
+`63ca34df000ad95cd279d7652f4c7669d19f0c34`; GitHub verified MERGED and
+[main CI success](https://github.com/moruku36/agent-sleep-lab/actions/runs/42921165592)
+at that exact commit.
+
+- Added an explicit [selected-issue probe contract](oss-selected-issue-probe.md):
+  v2 capture input/output/summary with a versioned selection, strict built-in
+  issue number/type, exact issue/suite hashes and prelaunch rejection. Default
+  v1 remains borderline-only; saved v1 captures/plans/cohorts need no migration.
+- The worker retains the pinned source/default rules, actual scoring/band and
+  real judge/prompt path. Every selected route is labelled a forced-judge probe,
+  including #3. The target prompt's original borderline wording is unchanged;
+  nonborderline probes are not normal automatic triage or target task execution.
+- Adapter receipts, frozen journal bindings and cohort `/2` documents/reports
+  retain strict selection/provenance. Comparable selected-probe cohorts normalize
+  the identical validated notes block while retaining complete per-task hashes.
+  Existing no-retry, current-policy, invalid-output and full-denominator rules remain.
+- Added [regression sources](../tests/test_oss_selected_probe.py) for actual
+  pinned five-issue captures and injected-reply journal/cohort flow. The eleven
+  public source blobs are copied unchanged from local pinned Git objects into a
+  license-bearing fixture, checked against production hashes by the test helper.
+  Git acquisition is injected in these cases; capture/scoring/judge/prompt are not.
+- Coordinator reviewed the preserved draft. **All 363 unique regression cases /
+  one invocation passed** on Python 3.13.18 (26.045 s), including 11 new
+  selected-probe cases. Feature CI is pending.
+- Separate offline acceptance read all eleven source blobs from actual local
+  pinned Git objects (no source-acquisition mock), launched five fresh guarded
+  workers, and captured all five selected issues. Actual scores/bands were
+  #1/#4/#5: 0.65/accept, #2: 0.0/skip, #3: 0.5/borderline. All used the real
+  pinned judge/prompt code and inert capture transport. Journal restart,
+  five-member aggregation, invalid-output accounting, zero-call replay and
+  score withholding after policy revocation passed with ten injected replies.
+  The fixture difference was zero, not a measured model result.
+- Worker provenance: after explicit owner approval, the unchanged Codex command
+  was submitted with native one-time approval. Local metadata confirms provider
+  `openai`, model `gpt-6.1-sol`, effort `xhigh`. The outer tool timed out at
+  600 s; no final-message file or normal-completion receipt, no matching process
+  on reconciliation. No retry, substitute worker/model or API development call.
+  Development usage/cost are unknown.
+- No live inference, paid runtime measurement, independent holdout, semantic
+  memory-use evidence, adoption, target mutation, default/auth/schedule change
+  or merge. #1/#4/#5 repeat issue text and are not independent problems.
+  Parser/evaluator and target implementation bytes are unchanged.
+  Initial completion remains provisional **30–35%**.
+
+### Merged PR #37 cohort baseline evidence (historical checks)
+
 `feat/oss-fixture-cohort`, based on owner-merged
 [PR #36](https://github.com/moruku36/agent-sleep-lab/pull/36) at
 `6e4018c8393103c6f3da362fa409814a61571a3a`. GitHub verified MERGED and
@@ -95,8 +145,8 @@ at that exact commit.
   Reports contain no reply bodies, rationale or answer labels.
 - All **352 unique regression cases / one invocation passed** locally on
   Python 3.13.18 (24.123 s), including 13 new cohort cases. Feature CI is pending.
-  These use injected replies and stand-in captures; the actual pinned capture
-  worker still selects only issue #3. No real multi-task target acceptance.
+  These used injected replies and stand-in captures; default v1 selects only
+  issue #3. They do not verify the new opt-in multi-task selected-probe path.
 - Development worker: after automatic review refusal and explicit owner approval,
   the unchanged Codex CLI request was submitted through native one-time approval.
   Local execution metadata confirms provider `openai`, model `gpt-6.1-sol` and

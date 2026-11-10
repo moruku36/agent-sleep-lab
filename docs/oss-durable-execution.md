@@ -20,6 +20,10 @@ the capture/summary/reference/bridge validation and bounds of
 `oss_paired_outcome.build_binding`. It freezes the full validated capture plus
 adapter version, registered agent, requested model, actual transport provenance,
 live selection and limits. Reusing an ID with a different binding is refused.
+[Selected-issue probes](oss-selected-issue-probe.md) freeze a distinct execution
+kind and exact selection/provenance/score/band metadata. v2 saved requests and
+receipts are checked against the full capture; they cannot replay as ordinary
+automatic triage. Existing v1 plans keep their original fields and need no migration.
 Synthetic **task/source fixtures** and injected **execution transport** labels
 are kept separate; injected tests are never reported as a live model run.
 
