@@ -1,5 +1,9 @@
 # agent-sleep-lab
 
+**English** | [日本語](README.ja.md)
+
+An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
+
 ## Gate 4A acceptance — 2026-11-10
 
 [PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) remains unmerged.
@@ -11,11 +15,6 @@ Documentation-only follow-up does not trigger duplicate CI.
 The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
 slice justifies an overall initial-version estimate of **35–40%**.
 Production integration, comparison evaluation and broader fault acceptance remain incomplete.
-
-
-**English** | [日本語](README.ja.md)
-
-An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
 **Current status: initial version about 35–40% complete.** Foundation review fixes are merged through PR #16 (8e2f871). The feature branch now implements [Gate 4A](docs/gate-4-light-deep.md): offline fake-provider Light/Deep, locally bound runs, conservative budget reservations, checkpoints and existing-writer handoff. **Five focused CI cases passed; this slice is unmerged.** It is not a live sleep engine.
 
