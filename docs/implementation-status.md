@@ -56,50 +56,66 @@ owner at `93ddb1a070c6ffdee65cd0809eea5c8ae68203c5`, source
 2026-11-10T15:50:40Z and PR CI success on Python 3.11 and 3.13. It merged worker input validation and loader
 contract tests, not a working integration checker.
 
+[PR #28](https://github.com/moruku36/agent-sleep-lab/pull/28) is **MERGED** at
+`709e7642be3de65f83abd76e5337357829450aa5`, source
+`6a3bba2c53158053583ff86dab56da87c4a60027`. GitHub confirmed the merge at
+2026-11-10T16:07:42Z and PR CI success on Python 3.11 and 3.13.
+It merged the bounded parent checker and ten stand-in contract cases. A separate
+local acceptance ran the pinned target code once with an empty synthetic reference
+and captured five synthetic outcomes; it did not exercise the dispatch journal.
+
 ## Current development branch
 
-`feat/oss-offline-parent-checker`, based on the PR #27 merge above.
+`feat/oss-offline-journal-pipeline`, based on the PR #28 merge above.
 
-- Added the stdlib [parent checker/consumer](../src/agent_sleep_lab/oss_offline_parent.py).
-  Read-only, bounded git calls check the explicit repository root, local origin
-  claim, pinned commit and all eleven source hashes. Source bytes come from Git
-  objects, never mutable worktree files; the target checkout is not written.
-- Only the built-in synthetic task and bounded canonical synthetic experience
-  reference bytes are accepted. A fresh `python -I -B` worker runs once with
-  temporary cwd, minimal environment, no shell, timeout and bounded I/O.
-  The parent checks output protocol and source/task/reference/notes bindings.
-- The journal-compatible consumer returns an unreviewed receipt; injected worker
-  commands are explicitly labelled stand-ins. No output establishes verified
-  delivery, semantic memory use, adoption or improvement.
-- **Actual pinned-source offline execution has now passed once**, after coordinator
-  review. The local repository contained commit
-  `e40b39c6258ac5a4446c38246bdfd7f5dc5dbf7b`; all eleven Git blobs matched
-  the embedded SHA-256 pins. The real collection/digest/temporary-ledger path
-  produced five expected outcomes: candidate, low-score skip, pending LLM,
-  duplicate skip and infrastructure error, with one decision still pending.
-- The reference came from actual retrieval from an empty synthetic adoption store:
-  zero records and no active snapshot. The five returned decisions were then
-  captured through `CollectOnlyBridge` in that temporary synthetic store.
-  No memory, adoption or verifier/evaluator receipt was created.
-- This confirms pinned target code can run on synthetic inputs and its decisions
-  can cross the capture contract; it does **not** demonstrate adopted-memory use.
-  Reference bytes reach `Target.notes`, unused semantically with `llm=None`.
-  The acceptance script/artifact are local coordinator evidence, not a portable
-  regression or production deployment.
-- Remaining: bridge/journal/consumer end-to-end orchestration, reconciling the
-  journal's larger reference cap with the worker's 32,768-byte cap, bundle
-  key-set drift coverage and store-origin binding in the general consumer,
-  independent guard-boundary tests, nonempty eligible-memory use and real-data
-  authorization. Guard code is not a sandbox for hostile Python. Local origin
-  is mutable, not authenticated identity; hostile Git configuration is not tested.
-- Claude Code completed this revision successfully: coordinator terminal receipt
-  reports `is_error=false`, `terminal_reason=completed`, canonical model
-  `claude-fable-5-2`, provider `firstParty`, no permission denials or subagents.
-  No fallback model was used. The coordinator read both READMEs and the architecture/
-  evaluation design before implementation; the coding worker did not read all four.
-- PR #27's strict input/loader contracts remain part of the merged baseline,
-  with 21 stand-in unit cases. They are distinct from this branch's real offline
-  acceptance and ten new parent contract cases.
+- Added [OfflinePipeline](../src/agent_sleep_lab/oss_offline_pipeline.py):
+  bridge retrieval → durable reference journal → parent checker → saved decisions
+  → capture. Bridge repository/commit must match the built-in pinned task.
+  Reference budget is at most the worker's 32,768 bytes and 256 records.
+- A canonical contract binds retrieval, target path, launch configuration and
+  capture timestamps/session/authorization into the journal consumer version
+  before dispatch. Changed configuration under the same use ID conflicts.
+  The bounded consumer output persists the contract, checker summary and
+  hash-bound returned decisions before any capture.
+- Capture resumes only from saved output. Deterministic event IDs and the existing
+  store's byte-identical replay allow recovery after partial capture without
+  executing the worker again. Unknown, invalid receipt and invalidated outcomes
+  are never re-dispatched or captured as success. Current context is rechecked
+  before/between/after capture, and the capture boundary checks authorization
+  even on replay. Already captured observations are not rolled back when policy
+  changes; remaining capture stops and reports partial observations.
+- Added read-only `ReferenceUseJournal.context_unchanged()`; no journal schema
+  change, migration, new database or automatic retry mechanism.
+- **Separate actual pinned-worker pipeline acceptance passed**: an empty reference
+  from a temporary synthetic store, one real worker invocation, interruption
+  before capture #3, journal reopen, then two replayed and three newly captured
+  observations. A further call replayed all five with total worker invocations
+  still one. Outcomes were candidate, low-score skip, pending LLM, duplicate skip
+  and infrastructure error. No adopted memory or verifier/evaluator receipt exists.
+- [Nine integrated regression cases](../tests/test_oss_offline_pipeline.py) use
+  real temporary synthetic stores/journals and a mocked checker, not target code.
+  They cover replay, partial recovery, contract conflicts, unknown result,
+  changed context, current capture authorization, caps, mid-capture policy change
+  and oversized output. Mocked results stay explicitly labelled stand-ins.
+- Development provenance: Claude Code's terminal metadata identifies
+  `claude-fable-5-2` / `firstParty`, but the run **did not complete normally**:
+  `is_error=true`, `terminal_reason=api_error`, HTTP 429
+  `usage_limit_reached`. It saved pipeline code and the journal accessor only.
+  The coordinator reviewed the partial code, added the nine acceptance tests and
+  per-capture context checks, and completed verification/status updates.
+  No alternative coding worker/model was started.
+- This is synthetic offline orchestration, not production integration or
+  authenticated delivery/use. The receipt remains unreviewed self-report and
+  `delivery_and_use_verified` stays false. Empty reference bytes reach
+  `Target.notes`; triage with `llm=None` does not use them semantically.
+- Remaining: nonempty eligible-memory use, independent guard-boundary tests,
+  bundle-key drift/store-origin binding, real-data authorization and real comparison
+  evaluation. Capture/journal/store are not one cross-database transaction.
+  The explicitly supplied store remains caller-controlled, not authenticated;
+  capture recovery requires the same surviving evidence store. Local origin URL
+  is mutable and guard code is not a sandbox for hostile Python.
+  Actual acceptance script/artifact remain local coordinator evidence, not a
+  portable checked-in real-target regression.
 
 Already merged in PR #25:
 
@@ -125,24 +141,24 @@ Already merged in PR #24:
 
 ## Current branch verification
 
-- **286 unique regression cases / one full local invocation passed in 14.081 s**
-  on Python 3.13.18, including ten new parent-checker cases and the prior 21
-  worker cases. New regressions use stand-in sources/git responses/processes;
-  they do not require the target checkout or make network/model calls.
-- Separate local acceptance: one real pinned-worker invocation, five synthetic
-  decisions captured, zero adopted memories and zero verifier/evaluator receipts.
-  Worker output SHA-256:
-  `fb0503a72112677b5610a5471f378578539d1dc43c4906704c94ca51ef8266af`.
-  This was not counted as a regression case or repeated during regression.
-- Documentation: **362 relative file links / 76 Markdown files passed**;
-  anchors and remote URLs are not checked. Whitespace diff check passed.
+- **295 unique cases / one full local regression invocation passed in 14.343 s**
+  on the existing Python 3.13.18 environment. Includes nine new pipeline cases.
+  An earlier focused run passed eight cases before the mid-capture policy case
+  and review fix were added: **303 case executions over two invocations** total.
+- Separate actual acceptance: one real pinned-worker invocation, capture
+  interruption/reopen/resume/replay, five synthetic decisions captured, no adopted
+  memories or verifier/evaluator receipts. Not counted as a regression case.
+  Saved pipeline-output SHA-256:
+  `c023ff7231f34e1a87f1aa8e7ffb0b3a1b328eff53561d58e50f198b82357e31`.
+- Documentation: **364 relative file links / 76 Markdown files passed**;
+  anchors and remote URLs not checked. Whitespace diff check passed.
   Feature CI not run.
-- Historical PR #27 local verification: 276 cases / one invocation in 13.446 s,
-  364 relative links / 76 Markdown files. PR #26: 255 cases / one invocation
-  in 13.415 s, 362 relative links / 76 Markdown files. These are historical,
-  not executions in this trial.
-- Guard boundary denial behavior, journal end-to-end dispatch, real-data use,
-  five-task real A/B and live-model performance improvement remain unverified.
+- Historical PR #28 local baseline: 286 cases / one invocation in 14.081 s,
+  362 relative links / 76 Markdown files and a separate pinned-worker smoke.
+  PR #27: 276 cases / one invocation in 13.446 s. These are historical, not
+  executions in this trial.
+- Independent guard denial tests, nonempty adopted-memory semantic use,
+  real-data operation and five-task real A/B improvement remain unverified.
 
 ## Genuine remaining work
 

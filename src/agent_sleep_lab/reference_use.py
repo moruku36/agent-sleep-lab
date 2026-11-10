@@ -89,6 +89,25 @@ class ReferenceUseJournal:
                     consumer=dict(binding["config"]["consumer"]),
                     delivery_and_use_verified=False)
 
+    def context_unchanged(self, use_id, bridge):
+        """Read-only recheck of the frozen reference context under current policy.
+
+        Writes nothing and changes no state. A different bridge identity raises;
+        an unavailable or changed context returns False (fail closed).
+        """
+        binding, _ = self._row(use_id)
+        config = binding["config"]
+        if self._bridge_identity(bridge) != {k: config[k] for k in
+                                             ("scope", "repository", "agent_commit")}:
+            raise ValueError("bridge identity differs from frozen binding")
+        try:
+            bundle = bridge.reference_context(
+                query=config["query"], max_bytes=config["max_bytes"],
+                max_records=config["max_records"])
+            return _context_hash(bundle) == binding["context_sha256"]
+        except Exception:
+            return False
+
     def _cas(self, use_id, before, after):
         changed = self.db.execute(
             "UPDATE reference_uses SET state=? WHERE use_id=? AND state=?",
