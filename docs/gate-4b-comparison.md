@@ -2,7 +2,10 @@
 
 [Home](../README.md) | [Current status](implementation-status.md)
 
-Implemented on feature branch; **runtime acceptance pending, unmerged**.
+Implemented on feature branch; **five focused CI cases passed, unmerged**.
+PR #19, code head7902b59bd21fcef83c82f5c6cf086222331428f5,
+CI42778158265:5cases/1invocation/0.149s/OK, wheel success, Python3.13.18 on Ubuntu.
+Local0; no retry or duplicate CI. See reports/gate-4b-acceptance-20261110.md.
 No real model comparison, adoption receipt, measured savings or performance claim.
 The harness supports only FakeTaskProvider plus a separate SyntheticEvaluator.
 
@@ -78,4 +81,4 @@ policy・採点器ID／版／protocolを固定し、完了済み群は再送し�
 同一課題本文の改名・並べ替えでも最終集合の再利用履歴は残り、開発扱いになります。
 欠落・timeout・結果不明は固定分母と明示状態に残します。全費用項目は合成ゼロ／
 計測不能を区別し、実費節約・性能改善・採用合格とは表示しません。
-**受入待ち・未マージ。** 実際の取得固定、論文課題セット、実agent接続、統計評価は未完です。
+**重点CI5項目合格・未マージ。** 実際の取得固定、論文課題セット、実agent接続、統計評価は未完です。

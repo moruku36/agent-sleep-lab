@@ -12,9 +12,9 @@ AIエージェントが作業経験を振り返り、根拠付きの記憶へ整
 **新規5項目／1回・0.197秒・全合格**、wheel成功。Ubuntu／Python 3.13.18。
 ローカル実行0項目。試行累計5項目／1回。文書更新で二重CIは起動しません。
 合成の記録→Light→Deep→独立受領→採用→取得と中断境界の重点受入により、
-初期版全体見積りは**約35〜40%**。本番接続・比較評価・広い障害受入は未完。
+Gate 4A受入時点の初期版見積りは**約35〜40%**。本番接続・比較評価・広い障害受入は未完。
 
-**現在：初期版全体は約35〜40%。** PR #16の基盤レビュー修正はマージ済み（8e2f871）。現在のfeature branchに[Gate 4A](docs/gate-4-light-deep.md)を実装し、偽providerのLight／Deep、run束縛、予算予約、再開と既存writer引渡しを追加しました。**重点CI5項目は合格済み、Gate 4Aはマージ済み**です。実APIを呼ぶsleep engineではありません。
+**現在：初期版全体は約約40%。** PR #16の基盤レビュー修正はマージ済み（8e2f871）。[Gate 4A](docs/gate-4-light-deep.md)はマージ済み。現在のfeature branchは[Gate 4B](docs/gate-4b-comparison.md)の合成A/B比較・計画固定・評価接触履歴を追加し、重点CI5項目に合格しました。PR #19は未マージです。実APIを呼ぶsleep engineやモデル性能実験ではありません。
 
 新規5項目をPR CIで1回だけ実行し、全合格しました。ローカル二重実行なし。過去のGate3は23項目／5回で枠終了済みで、再実行しません。比較評価・1 agent接続は未実装、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
 
@@ -95,7 +95,7 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 - **マージ・重点CI合格済み**：[監査付き論理忘却](docs/gate-3-forgetting.ja.md)。物理削除ではありません。
 - **PR #16でマージ済み**：[レビュー修正](docs/review-followup.ja.md)（文書は当時の記録）。
 - **マージ済み・重点CI合格**：[Gate 4A](docs/gate-4-light-deep.md)の最小合成Light／Deep。
-- **feature branch・コードのみ（未テスト・未実行・未マージ）**：[Gate 4B](docs/gate-4b-comparison.md)のオフライン合成対応A/B比較ライブラリと評価接触記録。偽providerのみ、性能主張なし。
+- **feature branch・重点CI5項目合格・未マージ**：[Gate 4B](docs/gate-4b-comparison.md)のオフライン合成対応A/B比較ライブラリと評価接触記録。偽providerのみ、性能主張なし。
 - **未実装**：削除・物理purge・cache掃除、評価中の取得固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。
 - **未実施**：対象エージェントとの接続、sleep providerの試行、A/B性能実験。Claude Codeでの開発セッションとは区別します。
 
@@ -118,3 +118,12 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 実装前に[実装契約と受入ケース](docs/contracts-and-acceptance.ja.md)を読む。この更新は状態の正本、不変の証拠、再送・復旧、評価境界を具体化し、設計schemaと合成例だけを追加する。後続のゲート1変更で読み取り専用の契約検証を実装した。その後、合成限定の永続採用境界（マージ済み）と、マージ済みのゲート3取得ライブラリを追加した。rollbackも検証を経てマージ済みで、論理忘却もマージ・重点CI合格済みです。sleepエンジンとゲート2B全体の受入は未完了。性能結果や実接続は主張しない。
 
 三つのrepoはそれぞれ単独で使える設計を維持。任意接続は[参照型の受け渡し契約](https://github.com/moruku36/ai-agent-scientist/blob/main/docs/11-harness-boundaries.ja.md)に従い、権限の共有や新agent runtimeを作らない。
+
+## Gate 4B 重点受入 — 2026-11-10
+
+[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19)は未マージ。
+[CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265)：
+対象コード `7902b59bd21fcef83c82f5c6cf086222331428f5`、Ubuntu／Python 3.13.18。
+**新規5項目・1回・0.149秒で全合格**、wheel成功。ローカルテスト0、再実行なし。
+文書だけの結果追記で追加CIは起動しません。比較の計画固定・接触履歴・再開・欠測処理を
+重点受入したため全体約40%。実際の論文課題評価・取得接続・既存agent接続は未完。

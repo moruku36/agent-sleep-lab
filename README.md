@@ -13,10 +13,10 @@ passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Pytho
 Local execution: zero. This trial totals 5 case executions / 1 invocation.
 Documentation-only follow-up does not trigger duplicate CI.
 The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
-slice justifies an overall initial-version estimate of **35–40%**.
+slice supported an initial-version estimate of **35–40% at the Gate 4A milestone**.
 Production integration, comparison evaluation and broader fault acceptance remain incomplete.
 
-**Current status: initial version about 35–40% complete.** Foundation review fixes are merged through PR #16 (8e2f871). The feature branch now implements [Gate 4A](docs/gate-4-light-deep.md): offline fake-provider Light/Deep, locally bound runs, conservative budget reservations, checkpoints and existing-writer handoff. **Five focused CI cases passed; Gate 4A is merged.** It is not a live sleep engine.
+**Current status: initial version about 40% complete.** Foundation review fixes are merged through PR #16 (8e2f871). [Gate 4A](docs/gate-4-light-deep.md) is merged. The feature branch adds [Gate 4B](docs/gate-4b-comparison.md) frozen synthetic paired comparison and contact tracking; five focused CI cases passed, PR #19 remains unmerged. It is not a live sleep engine or model-performance experiment.
 
 Five new cases passed in one PR-only CI invocation, with no local duplicate. The historical Gate 3 trial remains exhausted at 23 case executions / 5 invocations and is not rerun. Comparison evaluation and one existing-agent integration remain unimplemented; no performance improvement measured. [Current table](docs/implementation-status.md).
 
@@ -72,7 +72,7 @@ The detailed documents are initially in Japanese.
 - **Merged with focused CI acceptance:** [logical forgetting](docs/gate-3-forgetting.md), not erasure.
 - **Merged through PR #16:** [review fixes](docs/review-followup.ja.md) (dated review document).
 - **Merged, focused CI accepted:** [Gate 4A](docs/gate-4-light-deep.md) offline synthetic Light/Deep slice.
-- **Feature branch, code only — untested, unexecuted, unmerged:** [Gate 4B](docs/gate-4b-comparison.md) offline synthetic paired A/B comparison library with evaluation-contact tracking. Fake provider only; no performance claim.
+- **Feature branch, five focused CI cases passed, unmerged:** [Gate 4B](docs/gate-4b-comparison.md) offline synthetic paired A/B comparison library with evaluation-contact tracking. Fake provider only; no performance claim.
 - **Not implemented:** deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-memory logging, real capture/retrieval adapters, production sleep phases, authenticated provenance, authenticated run integration and broader adoption fault acceptance, diary, and scheduling.
 - **Not executed:** target-agent integration, sleep-provider trials, and A/B performance experiments. Claude Code development sessions are separate from harness experiments.
 
@@ -91,3 +91,13 @@ Created November 8, 2026 JST. Dreaming design updated November 9, 2026 JST. Expe
 Read the [implementation contract and acceptance cases](docs/contracts-and-acceptance.md) before implementing. This update specifies state ownership, immutable evidence, retry/recovery behavior and evaluation boundaries; it adds design schemas and synthetic examples only. Later implementation adds contract validation, synthetic storage/receipt helpers, candidate planning and the locally checked v3 adoption core. The sleep engine and full adoption acceptance remain pending. No performance result or live integration is claimed.
 
 The three repositories remain independently usable. Optional integration follows the [reference-only handoff contract](https://github.com/moruku36/ai-agent-scientist/blob/main/docs/11-harness-boundaries.md); it does not create shared authority or a new agent runtime.
+
+## Gate 4B focused acceptance — 2026-11-10
+
+[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19) remains unmerged.
+[CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265):
+code head `7902b59bd21fcef83c82f5c6cf086222331428f5`, Ubuntu / Python 3.13.18.
+**Five new cases / one invocation, 0.149 s, all passed**, wheel succeeded.
+Local tests zero, no rerun. Documentation-only evidence update triggers no extra CI.
+Overall estimate about40% after focused comparison-infrastructure acceptance, not
+performance evaluation. Paper fixture, real retrieval wiring and one agent integration remain pending.
