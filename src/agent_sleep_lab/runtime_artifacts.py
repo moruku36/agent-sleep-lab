@@ -12,7 +12,7 @@ registered receipt by ID and exact hash (see ``runtime_store``).
 
 Also includes pure operation/source/candidate/request/receipt-format contracts for the
 candidate-planning slice (docs/gate-2b-candidates.md). Formatting a receipt does not commit
-anything. The transactional adoption writer and active pointer remain unimplemented.
+anything. The separate synthetic adoption writer implements transactional journal/head updates.
 """
 
 from __future__ import annotations
@@ -54,6 +54,18 @@ ARTIFACT_KINDS: dict[str, tuple[str, str]] = {
         "agent-sleep-committed-operation-receipt/1",
         "committed-operation-receipt.schema.json",
     ),
+}
+
+# Fixed allowlist: artifact identifiers never become caller-selected paths or URLs.
+_VERSIONED_ADOPTION = {
+    "adoption_request": {
+        "agent-sleep-adoption-request/1": "adoption-request.schema.json",
+        "agent-sleep-adoption-request/2": "adoption-request-v2.schema.json",
+    },
+    "committed_receipt": {
+        "agent-sleep-committed-operation-receipt/1": "committed-operation-receipt.schema.json",
+        "agent-sleep-committed-operation-receipt/2": "committed-operation-receipt-v2.schema.json",
+    },
 }
 
 # operation -> which of (memory_id, memory_sha256, target_id, receipt) must be present
@@ -149,16 +161,21 @@ _BOUNDARY_TOKEN_KEYS = frozenset({"boundary_id", "boundary_version"})
 
 
 @lru_cache(maxsize=None)
-def _validator(kind: str) -> Any:
+def _validator(kind: str, version: str | None = None) -> Any:
     if kind not in ARTIFACT_KINDS:
         raise ContractViolation("artifact.unknown_kind", "unknown artifact kind")
+    expected_version, filename = ARTIFACT_KINDS[kind]
+    if kind in _VERSIONED_ADOPTION and version is not None:
+        if version not in _VERSIONED_ADOPTION[kind]:
+            raise ContractViolation("artifact.unsupported_version", "unsupported adoption artifact version")
+        expected_version, filename = version, _VERSIONED_ADOPTION[kind][version]
     try:
-        schema = loads_strict_bytes(schema_bytes(ARTIFACT_KINDS[kind][1]))
+        schema = loads_strict_bytes(schema_bytes(filename))
     except StrictJSONError as exc:
         raise SchemaLoadError("packaged artifact schema is malformed") from exc
     if not isinstance(schema, dict):
         raise SchemaLoadError("packaged artifact schema is not an object")
-    if schema["properties"]["schema_version"]["const"] != ARTIFACT_KINDS[kind][0]:
+    if schema["properties"]["schema_version"]["const"] != expected_version:
         raise SchemaLoadError("packaged artifact schema version disagrees with code")
     return build_validator(schema, Draft202012Validator)
 
@@ -203,9 +220,16 @@ def _format_walk(value: Any, path: str, problems: list[Problem], key: str = "") 
 
 def validate_artifact(kind: str, doc: object) -> list[Problem]:
     """Schema plus cross-field checks for one full artifact. Pure; no I/O."""
-    validator = _validator(kind)
+    if kind not in ARTIFACT_KINDS:
+        raise ContractViolation("artifact.unknown_kind", "unknown artifact kind")
     if not isinstance(doc, dict):
         return [Problem("contract.not_object", "artifact must be a JSON object")]
+    version = None
+    if kind in _VERSIONED_ADOPTION:
+        version = doc.get("schema_version")
+        if type(version) is not str or version not in _VERSIONED_ADOPTION[kind]:
+            return [Problem("artifact.unsupported_version", "unsupported adoption artifact version")]
+    validator = _validator(kind, version)
     problems: list[Problem] = []
     for error in sorted(validator.iter_errors(doc), key=lambda e: list(map(str, e.path)))[:10]:
         where = "/" + "/".join(str(p) for p in error.absolute_path)

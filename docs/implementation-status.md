@@ -1,8 +1,15 @@
 # Implementation status
 
+## Test-count correction — 2026-11-10 merge preparation
+
+The earlier 13-case/three-invocation total omitted [PR #10 CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42712205113). Its log proves three cases passed once (0.235 s) on the older writer commit. Actual cumulative execution is **16 cases in four invocations**: 7 local core + 3 prior PR CI + 3 local process + 3 local run-ID. The owner-approved cap was 13; this is a reporting/budget overrun, not retroactive permission. No new tests ran while discovering it. Earlier totals below are superseded by this reconciliation. A new run-ID PR would execute exactly three selected cases once, requiring explicit permission for **three more executions, reaching 19 total**, before PR creation. No bypass, CI suppression or test-budget reset.
+
+PR #10 writer core is already MERGED (`629560858b5aef5423d75d90a71df99b6eec65d3`); only the later run-ID/process continuation remains unmerged. Local merge-tree against current main reported no conflicts. Overall completion remains about35%.
+
+
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-Last updated: 2026-11-10 JST. **Gate 1, Gate 2A and Gate 2B receipt/policy helpers are merged. Pure candidate planning is in open PR #9. The synthetic durable-adoption core is implemented on a dependent feature branch: seven selected local cases passed once; not merged, no new CI.**
+Last updated: 2026-11-10 JST. **Gate 1, Gate 2A and Gate 2B receipt/policy helpers are merged. Pure candidate planning is merged via PR #9 (verified merge commit `122fed26305a5d039de3d14b5c42633811b8affc`). The synthetic durable-adoption core is implemented on a dependent feature branch: three current run-ID cases passed once, with earlier seven writer and three process cases retained as history (thirteen executions in three invocations, explicitly expanded cap); not merged, no new CI.**
 
 Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.md), executed gate acceptance, and performance experiments are separate claims.
 
@@ -12,7 +19,7 @@ Future trials execute at most 10 selected cases total, counting local/CI/retries
 
 ## Overall progress estimate
 
-Approximately **30% (a rough 25–35% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts, candidate planning and the synthetic adoption core exist. Full writer acceptance (run-ID audit/crash fixtures), retrieval, coordinator, evaluation runner and integration remain. This estimate advances only for the locally verified writer milestone.
+Approximately **35% (a rough 30–40% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts, candidate planning and the synthetic adoption core exist. Versioned audit labels and selected process boundaries are locally checked; registered-run integration, broader writer faults, retrieval, coordinator, evaluation runner and integration remain. This estimate advances only for the locally verified writer milestone.
 
 ## Capability overview
 
@@ -23,8 +30,8 @@ Approximately **30% (a rough 25–35% range)** of the initial end-to-end version
 | Replay, conflicting IDs and root deduplication | Implemented, checked, merged | Byte-identical replay, conflict rejection, generated artifacts cannot become independent roots |
 | Stored evidence integrity checks | Implemented, checked, merged | Hashes, source presence and expiry; descendant capture also checks ancestors against configured current authorization revisions and evaluation partition |
 | Verification/evaluation receipts and current control policy | Implemented, checked, merged | [First Gate 2B slice](gate-2b.md); 42 new tests, 152 combined, fresh installed-wheel checks passed |
-| Candidate snapshot from parent + operations | Implemented and locally accepted | [Pure planning](gate-2b-candidates.md); 22 new tests, 174 combined; no database write/adoption |
-| Memory adoption and active-version updates | Synthetic core implemented, seven local cases passed; not merged | [v3 writer](gate-2b-adoption.md); atomic journal/head, current receipts/policy and exact replay; full run-ID/crash acceptance pending |
+| Candidate snapshot from parent + operations | Implemented, locally accepted, merged via PR #9 | [Pure planning](gate-2b-candidates.md); 22 new tests, 174 combined; no database write/adoption |
+| Memory adoption and active-version updates | Synthetic core implemented, seven local cases passed; not merged | [v3 writer](gate-2b-adoption.md); atomic journal/head, current receipts/policy and exact replay; versioned audit labels checked; registered-run integration/broader faults pending |
 | Retrieval, revocation and rollback | Not implemented: planned Gate 3 | Scoped bounded bundles and non-resurrection under current exclusions |
 | Light/Deep candidate generation | Not implemented: planned Gate 4 | Manual coordinator with fake providers and recovery checks first |
 | Paper-curation A/B evaluation | Not implemented or executed: planned Gate 5 | Runner must retain all trials, failures and costs; no measured improvement |
@@ -68,11 +75,13 @@ Acceptance reports preserve observations made at each gate. This page also summa
 
 ## Latest milestone: synthetic durable-adoption core
 
-[Scope, APIs and exact acceptance](gate-2b-adoption.md). Branch `feat/gate-2b-durable-adoption`, based on PR #9 head `31353d17035394840856283ad932c8005d120133`. Seven selected tests, one invocation, seven executions, all passed. No CI/wheel-runtime/full-suite rerun. Three executions remain in this trial for future focused CI; no new PR or merge. Muse Wonder supplied design advice; the implementation and local checks were separately reviewed/executed. This does not establish model coding-performance equivalence.
+Latest read-only publication observation: PR #9 is MERGED, mergedAt `2026-11-09T22:19:24Z`, merge commit `122fed26305a5d039de3d14b5c42633811b8affc`. No merge was performed in this continuation. The later writer/run-ID feature branch remains unmerged.
+
+[Scope, APIs and exact acceptance](gate-2b-adoption.md). Branch `feat/gate-2b-durable-adoption`, based on PR #9 head `31353d17035394840856283ad932c8005d120133`. Seven selected tests, one invocation, seven executions, all passed. No CI/wheel-runtime/full-suite rerun. A continuation passed three process cases once (SIGKILL before COMMIT, SIGKILL after COMMIT/before ACK, two spawned contenders); this trial now totals ten executions in two invocations and has no remaining test budget. The later [run-ID binding slice](gate-2b-run-id.md) passed three cases once (0.239 s), after explicit owner increase to 13 total. Cumulative trial: thirteen executions in three invocations, budget exhausted. Earlier ten cases were not rerun on this code. No new PR, merge or CI; feature-branch publication evidence is recorded separately. Muse Wonder supplied design advice; the implementation and local checks were separately reviewed/executed. This does not establish model coding-performance equivalence.
 
 ## Remaining Gate 2B acceptance targets
 
-The first receipt/policy runtime slice and three schemas are locally accepted: 152 tests (110 prior + 42 new) and fresh installed-wheel checks passed. Review fixes cover exact schema recognition, malformed boundary inputs and receipt replay integrity. See [the acceptance record](../reports/gate-2b-progress.md) and [live PRs](https://github.com/moruku36/agent-sleep-lab/pulls) for publication/merge/CI evidence. Items 1–4 below are now implemented in the synthetic v3 core with focused acceptance; full Gate 2B is not complete. Remaining work includes versioned run-ID audit association and broader source/receipt/root and real process-crash/ACK fixtures.
+The first receipt/policy runtime slice and three schemas are locally accepted: 152 tests (110 prior + 42 new) and fresh installed-wheel checks passed. Review fixes cover exact schema recognition, malformed boundary inputs and receipt replay integrity. See [the acceptance record](../reports/gate-2b-progress.md) and [live PRs](https://github.com/moruku36/agent-sleep-lab/pulls) for publication/merge/CI evidence. Items 1–4 below are now implemented in the synthetic v3 core with focused acceptance; full Gate 2B is not complete. Versioned run-ID audit labels now have focused acceptance; trusted run registration and broader source/receipt/root and process-crash/ACK fixtures remain.
 
 1. Resolve verification/evaluation receipts through separately configured simulated boundaries, not candidate-asserted identity. Bind receipts to exact memory/snapshot bytes, evidence, scope, method and protocol hashes.
 2. Integrate the accepted pure candidate builder with the writer's trusted current parent and full ID history; reject unrelated omissions, unknown targets, ID collisions, cycles and scope changes.
@@ -87,7 +96,7 @@ The [implementation contract and SLP-01–12 cases](contracts-and-acceptance.md)
 - Capture is a locally configured boundary simulation, not authenticated users/adapters. Hashes do not prove truth or consent.
 - `get()` is raw lookup; `verify()` checks stored integrity/expiry, not current revocation or adoption eligibility.
 - Synthetic adoption is a library capability, not present-time retrieval or live-agent integration. No sleep provider integration, production adapters or performance experiments. Real transcripts, credentials and private memory stay outside this public repository.
-- Process-crash, power-loss and network-filesystem durability acceptance has not been executed.
+- Three local process-crash/concurrency cases passed; broader crash points, power-loss and network-filesystem durability remain unverified.
 
 ## Keeping this current
 
