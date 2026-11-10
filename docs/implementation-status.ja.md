@@ -75,7 +75,38 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-所有者がマージした[PR #32](https://github.com/moruku36/agent-sleep-lab/pull/32)を
+所有者がマージした[PR #33](https://github.com/moruku36/agent-sleep-lab/pull/33)を
+基点とする`feat/oss-registered-mimo-adapter`です。merge
+`19c7e39440f4b938ba95250e212a5fce01d0f8c3`、ソース
+`76e5b026762c5cd646fe2c92630405e09e6d4a1a`。GitHubでMERGEDと
+PR CIのPython 3.11／3.13両check合格を確認しました。
+
+- 明示した登録MiMoへ渡す専用の[prompt本文adapter](../src/agent_sleep_lab/oss_mimo_adapter.py)を追加。
+  呼出し予約前にcapture全体、固定source／task／reference／request／promptのhashと
+  A/B関係を照合。選択したuser本文に新たな指示を加えず、そのまま転送します。
+  元HTTP要求の再現ではなく、元URL／header／model／設定の同一性は主張しません。
+- paid／生成上限なしの厳格な明示選択、1〜2回、最大120秒、要求／envelope／
+  生成後byte上限、CLIのmodel／provider／fallbackなし／text出力の照合と、
+  hash付きの限定受領を実装。使用量／費用の対応schemaは未対応で、未取得のまま。
+  token／金額上限ではなく、選択flagは所有者承認やhost制御を代替しません。
+- [模擬専用6件](../tests/test_oss_mimo_adapter.py)でUnicode本文の一致、
+  明示選択／予算、capture不正、model不一致／fallback／上限超過、
+  timeout／割込み後の停止、私的metadataを出さない未取得表示を確認。
+  **ローカル全323件が1回の実行で合格**（Python 3.13、17.043秒）。
+  先行した標準Python 3.9の起動は依存不足のimportで停止し、ケース実行は0件でした。
+- worker受領：provider `meta`、model `muse-wonder-1.0`、
+  `ok=true`、fallback試行なしの正常完了を確認。coordinatorが未信頼の案をレビューし、
+  実際と異なる返答形式、明示選択／予算、capture束縛、失敗処理を修正。
+  workerの追加呼出しはありません。
+- [契約と制限](oss-exact-prompt-adapter.md)：停止／予算は**instance内のメモリのみ**。
+  永続live journal、現在policyの実行driver、実OSSの今回受入、実評価は未実施です。
+  adapterの実行はすべて模擬transport。従来journalはschema／型制限を変えず模擬専用。
+  次は現在文脈を照合する永続実行、target判定の解析、固定評価器と対応比較の
+  使用量／費用／効果計測です。初期版は引き続き暫定30〜35%です。
+
+## PR #33でマージ済みのoffline対応結果journal
+
+履歴：所有者がマージした[PR #32](https://github.com/moruku36/agent-sleep-lab/pull/32)を
 基点とする`feat/oss-paired-outcome-journal`です。merge
 `46a1e585e580275aef003c72bc74f08c9be09b52`、ソース
 `96ba94bb25d71089a5f6abdd8cd14926e42ddb97`。GitHubでMERGEDと
