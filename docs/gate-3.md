@@ -2,7 +2,7 @@
 
 **English** | [日本語](gate-3.ja.md) | [Status](implementation-status.md)
 
-Status: scoped retrieval (PR #13) and safe rollback (PR #14) are merged. Rollback merge: `ab25b0036ca3a04de92a0df665a8731ee59f22a7`; [CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078) passed 3 cases once (0.452 s) and built the wheel at head `901ef2d`. Overall progress: about 45%. [Audited logical forgetting](gate-3-forgetting.md) is a later, untested branch slice. Full Gate 3 is incomplete.
+Status: scoped retrieval (PR #13) and safe rollback (PR #14) are merged. Rollback merge: `ab25b0036ca3a04de92a0df665a8731ee59f22a7`; [CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078) passed 3 cases once (0.452 s) and built the wheel at head `901ef2d`. Overall progress corrected to about 30–35%. [Logical forgetting](gate-3-forgetting.md) is also merged via PR #15 with focused CI acceptance. The current [review fixes](review-followup.ja.md) are untested. Full Gate 3 is incomplete.
 
 Contract basis: [contracts section 5–6](contracts-and-acceptance.ja.md). The retrieval slice is a read-only library over the existing `AdoptionStore` (`src/agent_sleep_lab/retrieval.py`). It changes no writer or adoption semantics.
 
@@ -33,7 +33,7 @@ bundle.bundle_sha256, bundle.used_bytes
    - receipt and memory name the same evidence; all ancestors are in the requested partition; the kind/origin rule holds (e.g. preference needs user-correction roots).
    "Verified" means a confirmed registered receipt, not the memory's own `status` text. Unadopted candidates and `stale`/`superseded` snapshot members are never returned. Immutable source bytes may retain `status: candidate`; the bundle record’s `eligibility: verified` is backed by the registered receipt, never by that historical self-report.
 3. **Fail closed:** missing or corrupt policy, schema, head, snapshot, journal or active memory raises `StorageError`; no partial bundle is returned. An ineligible or expired member is omitted (counted, not named). **Zero eligible records is a normal result** (including a never-initialized scope).
-4. Ranking: number of distinct query words found in claim/tags (lowercased whitespace split), then `memory_id`. No query → `memory_id` order. No model, embedding or network call.
+4. Ranking: lexical overlap in claim/tags (review branch: NFKC/casefold, punctuation-separated words and Japanese character unigrams/bigrams; quality unmeasured), then `memory_id`. No query → `memory_id` order. No model, embedding or network call.
 5. Budget: no tokenizer has been accepted, so the unit is **UTF-8 bytes of the canonical serialized bundle** (`budget.unit`, `budget.tokenizer: null`). Nothing is called a token. Whole lower-ranked records are dropped as a strict suffix; a lower record is never kept while a higher one is dropped. Scope, evidence references and hashes of a returned record are never truncated. If the header alone exceeds `max_bytes` the call raises `retrieval.budget_too_small`.
 
 ## Bundle fields
@@ -87,6 +87,6 @@ Deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-me
 
 Historical (dated 2026-11-10, retrieval slice): `.venv/bin/python tests/run_tests.py --limit 4 test_retrieval.RetrievalTests` passed all four cases once in 0.782 s on macOS arm64 / Python 3.13.18, then 3 PR CI cases passed at head `90b3d9e`; PR #13 is merged. The [acceptance record](../reports/gate-3-retrieval-progress.md) details remaining boundaries. The earlier writer trial (**19 executions / 5 invocations**) is historical and exhausted.
 
-Current accounting (the SAME Gate 3 trial): **10/10 executions / 3 invocations**, exhausted (retrieval local 4 + CI 3 + rollback CI 3). Forgetting has 0 executions; +3 once in PR CI (13 total / 4 invocations) requires explicit approval before PR creation.
+Current SAME Gate 3 accounting: **13 executions / 4 invocations**, approved budget exhausted (retrieval local4 + CI3 + rollback CI3 + forgetting CI3). Review fixes have 0 executions; proposed +10 once in PR CI needs explicit approval before PR creation.
 
-`tests/test_retrieval.py` has four methods and `tests/test_rollback.py` three, retained without rerunning. The runner now proposes exactly three forgetting methods, unexecuted pending the increase. See the [testing budget](testing-budget.ja.md).
+`tests/test_retrieval.py` has four methods and `tests/test_rollback.py` three, retained without rerunning. The current review runner proposes 5 new + 5 existing regression methods, unexecuted pending an explicit +10 increase. See the [testing budget](testing-budget.ja.md).

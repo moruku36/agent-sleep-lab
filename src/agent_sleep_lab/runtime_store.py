@@ -474,8 +474,22 @@ class RuntimeStore(EvidenceStore):
         """
         if not isinstance(verifier, VerifierBoundary):
             raise TypeError("verifier must be a VerifierBoundary")
-        current = self._now(now)
-        policy = self.current_policy().document
+        return self._eligibility_failures_with_policy(
+            memory_id=memory_id, memory_sha256=memory_sha256, scope=scope,
+            receipt_id=receipt_id, receipt_sha256=receipt_sha256, verifier=verifier,
+            now=self._now(now), policy=self.current_policy().document,
+        )
+
+    def _eligibility_failures_with_policy(
+        self, *, memory_id, memory_sha256, scope, receipt_id, receipt_sha256,
+        verifier, now, policy,
+    ) -> tuple[str, ...]:
+        """Internal batch path: policy must be freshly validated in the owning transaction.
+
+        Never expose caller-selected policy through the public eligibility API; no global cache.
+        Retrieval and writer batches reuse their single consistent SQLite view only.
+        """
+        current = now
         failures: set[str] = set()
         try:
             receipt = self.resolve_receipt("verification", receipt_id, receipt_sha256)

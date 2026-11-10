@@ -2,7 +2,7 @@
 
 [English](gate-3.md) | **日本語** | [実装状況](implementation-status.ja.md)
 
-状態：scope付き取得（PR #13）と安全なrollback（PR #14）はマージ済み。rollbackのmergeは`ab25b0036ca3a04de92a0df665a8731ee59f22a7`、[CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078)はhead `901ef2d`で3項目・1回・0.452秒の合格とwheel成功を確認済み。全体進捗は約45%。[監査付き論理忘却](gate-3-forgetting.ja.md)は後続branchの未検証実装。ゲート3全体は未完了です。
+状態：scope付き取得（PR #13）と安全なrollback（PR #14）はマージ済み。rollbackのmergeは`ab25b0036ca3a04de92a0df665a8731ee59f22a7`、[CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078)はhead `901ef2d`で3項目・1回・0.452秒の合格とwheel成功を確認済み。全体進捗は約30〜35%へ訂正。[監査付き論理忘却](gate-3-forgetting.ja.md)もPR #15でマージ・重点CI合格済み。今回の[レビュー修正](review-followup.ja.md)は未検証です。ゲート3全体は未完了です。
 
 契約の根拠：[契約書 5〜6節](contracts-and-acceptance.ja.md)。取得の単位は既存の`AdoptionStore`に対する読み取り専用ライブラリ（`src/agent_sleep_lab/retrieval.py`）です。writer／採用の意味は変えません。
 
@@ -33,7 +33,7 @@ bundle.bundle_sha256, bundle.used_bytes
    - 受領とmemoryの証拠集合が一致、全祖先が指定partition、種別／起源の規則（例：preferenceは利用者訂正のroot）を満たす
    「verified」は登録済みconfirmed受領のことで、memory自身の`status`文字列ではありません。未採用candidateとsnapshot内の`stale`・`superseded`は返しません。不変の元本文に`status: candidate`が残る場合も、recordの`eligibility: verified`は現在の登録受領に基づく判定で、本文の自己申告とは区別します。
 3. **安全側に停止**：policy・schema・head・snapshot・journal・active memoryの欠落や破損は`StorageError`で、部分的なbundleは返しません。不適格や期限切れは除外（件数のみ、IDは出さない）。**適格0件は正常結果**です（未初期化scopeも同様）。
-4. 順位：claim／tagsに含まれる異なる検索語の数（小文字化・空白分割）、次に`memory_id`。queryなしは`memory_id`順。モデル・embedding・通信は使いません。
+4. 順位：claim／tagsに含まれる検索語の重なり数（今回branch：NFKC・casefold、句読点分離、和文の文字unigram／bigram。品質未測定）、次に`memory_id`。queryなしは`memory_id`順。モデル・embedding・通信は使いません。
 5. 予算：受入済みtokenizerがないため、単位は**正規直列化bundleのUTF-8 byte数**（`budget.unit`、`budget.tokenizer: null`）です。tokenとは呼びません。低順位のrecordは丸ごと、末尾からまとめて落とします（上位を落として下位を残すことはない）。残したrecordのscope・根拠参照・hashは切りません。headerだけで`max_bytes`を超えると`retrieval.budget_too_small`で失敗します。
 
 ## bundleの項目
@@ -77,7 +77,7 @@ store.resolve_operation("rb-1")  # 応答消失時の照会。過去の受領byt
 
 ## 限界
 
-- 合成限定。削除／cache掃除・run登録・adapter・呼出し側の認証・本番利用・live agent接続ではありません（rollbackは重点CIで検証済み、後続忘却は未検証）。
+- 合成限定。削除／cache掃除・run登録・adapter・呼出し側の認証・本番利用・live agent接続ではありません（rollbackは重点CIで検証済み、論理忘却も重点CIで検証済み）。
 - 順位は簡易で決定的な規則で、品質を主張しません。性能改善は主張しません。
 - 除外はmemoryとその証拠の祖先に適用し、query文字列には適用しません。
 - 評価中のsnapshot固定（撤回は適用し続ける）と、渡したmemoryの記録は未実装です。
@@ -87,6 +87,6 @@ store.resolve_operation("rb-1")  # 応答消失時の照会。過去の受領byt
 
 履歴（2026-11-10、取得の単位）：`.venv/bin/python tests/run_tests.py --limit 4 test_retrieval.RetrievalTests`をmacOS arm64／Python 3.13.18で1回実行、4項目が0.782秒で全合格。その後PR CIの3項目がhead `90b3d9e`で合格し、PR #13はマージ済みです。[受入記録](../reports/gate-3-retrieval-progress.md)に残る境界を記載します。旧writer試行（**19項目・5回**）は履歴で、枠は使い切り済みです。
 
-現在の集計（同じゲート3試行）：取得ローカル4＋CI3＋rollback CI3で**10/10項目・3回実行、枠を使い切り**。忘却は実行0項目。追加3項目をPR CI1回（累計13項目・4回）だけ実行する明示承認が必要で、それまでPRを作成しません。
+同じGate3試行は取得ローカル4＋CI3＋rollback CI3＋忘却CI3で**13項目・4回、承認枠を使い切り**。今回修正は実行0項目。次はPR CIの新規5＋既存5を1回（追加10・累計23項目／5回）とする明示承認が必要です。
 
-`tests/test_retrieval.py`は4メソッド、`tests/test_rollback.py`は3メソッドを保持し、再実行していません。入口は現在、未実行の忘却3項目を選択します。[テスト運用](testing-budget.ja.md)。
+`tests/test_retrieval.py`は4メソッド、`tests/test_rollback.py`は3メソッドを保持し、再実行していません。入口は現在、新規5＋既存5の回帰10項目を提案します（増枠待ち）。[テスト運用](testing-budget.ja.md)。

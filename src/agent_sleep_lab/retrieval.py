@@ -25,8 +25,9 @@ Contract decisions
   as a strict prefix cut (never a lower record kept while a higher one is dropped), and a memory's
   scope and evidence references are never truncated. If even the header exceeds the budget the call
   raises instead of returning a stripped bundle.
-* Ranking is deterministic and simple: count of distinct query words found in claim/tags
-  (lowercased whitespace split), then ``memory_id``. No query => ``memory_id`` order.
+* Ranking is deterministic lexical overlap: NFKC/casefold words without punctuation, plus
+  Japanese character unigrams/bigrams, then ``memory_id``. No query => ``memory_id`` order.
+  This is not morphological analysis or a measured retrieval-quality claim.
 
 Not claimed: retrieval quality, authentication of the caller, deletion/cache cleanup (rollback is
 a separate writer-side operation, ``AdoptionStore.commit_rollback``; this module never performs it),
@@ -35,7 +36,9 @@ production data or live agent integration. The result is reference data, not ins
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
+import unicodedata
 from dataclasses import dataclass
 from datetime import timezone
 from typing import Any
@@ -76,12 +79,34 @@ def _check_scope(scope: object) -> dict[str, str]:
     return {"project": scope["project"], "task_family": scope["task_family"]}
 
 
+_JAPANESE_RUN = re.compile(r"([\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff々ー]+)")
+
+
+def _terms(text: str) -> frozenset[str]:
+    """Dependency-free bilingual baseline; punctuation never becomes part of a word.
+
+    Japanese character unigrams support single-character queries; overlapping bigrams
+    add local context without assuming spaces. Common characters can overmatch; no semantic claim.
+    """
+    terms = set()
+    for word in re.findall(r"[^\W_]+", unicodedata.normalize("NFKC", text).casefold()):
+        for part in _JAPANESE_RUN.split(word):
+            if not part:
+                continue
+            if _JAPANESE_RUN.fullmatch(part):
+                terms.update(part)
+                terms.update(part[i:i + 2] for i in range(len(part) - 1))
+            else:
+                terms.add(part)
+    return frozenset(terms)
+
+
 def _score(memory: dict[str, Any], terms: frozenset[str]) -> int:
     if not terms:
         return 0
-    words = set(str(memory["claim"]).lower().split())
+    words = set(_terms(memory["claim"]))
     for tag in memory["tags"]:
-        words.update(str(tag).lower().split())
+        words.update(_terms(tag))
     return len(terms & words)
 
 
@@ -117,7 +142,7 @@ def _memory_bytes(store: AdoptionStore, member: dict[str, Any]) -> bytes:
     return data
 
 
-def _eligible_records(store, scope, partition, snapshot, now, terms):
+def _eligible_records(store, scope, partition, snapshot, now, terms, policy):
     """Return (active_count, [(sort_key, record)]) for members that pass every recheck."""
     scope_pair = (scope["project"], scope["task_family"])
     active = [m for m in snapshot["members"] if m["state"] == "active"]
@@ -134,10 +159,10 @@ def _eligible_records(store, scope, partition, snapshot, now, terms):
         if memory["kind"] != member["kind"]:
             raise StorageError("retrieval.memory_corrupt", "snapshot kind differs from memory")
         ref = member["verification_receipt"]
-        if store.eligibility_failures(
+        if store._eligibility_failures_with_policy(
             memory_id=mid, memory_sha256=digest, scope=scope_pair,
             receipt_id=ref["receipt_id"], receipt_sha256=ref["receipt_sha256"],
-            verifier=store._verifier, now=now,
+            verifier=store._verifier, now=now, policy=policy.document,
         ):
             continue
         receipt = store.resolve_receipt("verification", ref["receipt_id"], ref["receipt_sha256"])
@@ -179,7 +204,7 @@ def retrieve_reference_bundle(
         raise ContractViolation("retrieval.partition_not_served", "partition is not served")
     if query is not None and (type(query) is not str or len(query) > MAX_QUERY_CHARS):
         raise ValueError("query must be a short string or None")
-    terms = frozenset(query.lower().split()) if query else frozenset()
+    terms = _terms(query) if query else frozenset()
 
     db = store._db()
     if db.in_transaction:
@@ -198,7 +223,7 @@ def retrieve_reference_bundle(
         active_count, found = 0, []
         if digest is not None:
             snapshot = parse_canonical("candidate_snapshot", store._snapshot(digest, scope))
-            active_count, found = _eligible_records(store, scope, partition, snapshot, now, terms)
+            active_count, found = _eligible_records(store, scope, partition, snapshot, now, terms, policy)
         total = len(found)  # before either the record cap or byte budget
         found = found[:max_records]
 

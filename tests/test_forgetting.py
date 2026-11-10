@@ -2,7 +2,7 @@
 
 Fixtures only: no model, network, real memory or live adapter. Forgetting here is an exclusion
 addition plus an immutable receipt, NOT physical deletion/purge. Not an acceptance report; these
-cases have not been executed (reserved for one PR CI invocation after explicit owner approval).
+cases passed once in PR #15 CI (3 cases, 0.652 s), not full-suite acceptance of later changes.
 """
 from __future__ import annotations
 

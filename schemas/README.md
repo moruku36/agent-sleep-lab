@@ -1,6 +1,6 @@
 # データ契約 v0.1
 
-状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。ゲート2Bの最初の受領・現在方針を実装し、全152テストと別環境wheel受入が合格。後続の合成限定採用writerとrun ID監査ラベルは重点受入済み。後続のscope付き取得とrollbackはマージ済み。監査付き論理忘却はbranch上の未検証実装で、物理削除ではありません。
+状態：schemaは設計契約。JSON Schemaと合成例を収録する。読み取り専用の[ゲート1検証CLI](../docs/gate-1.ja.md)はmacOS arm64／Python 3.13.18で87件のテストとwheel・CLIのローカル受入に合格。ゲート2Aは合成データだけを対象とする出典付き証拠の永続化を実装（全110テスト合格）。ゲート2Bの最初の受領・現在方針を実装し、全152テストと別環境wheel受入が合格。後続の合成限定採用writerとrun ID監査ラベルは重点受入済み。後続のscope付き取得とrollbackはマージ済み。監査付き論理忘却もPR #15でマージ・重点CI合格済みですが、物理削除ではありません。
 
 CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・自己supersede、verifiedの確認情報、verified hypothesisの拒否まで。保存先全体の一意性、参照実在、出典・issuer認証、現在の許可・除外、採用条件は確認しない。
 
@@ -18,7 +18,7 @@ CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・
 
 ゲート3のrollback（[契約](../docs/gate-3.ja.md)、PR #14でマージ・重点CI合格）では、[rollback request/1](rollback-request.schema.json)と[rollback receipt/1](rollback-receipt.schema.json)を別種のartifactとして追加しました。採用v1/v2のschemaは変更せず、評価受領は持たない制御上の復旧であり、新規採用や性能の主張ではありません。
 
-[監査付き論理忘却](../docs/gate-3-forgetting.ja.md)では[forget request/1](forget-request.schema.json)と[forget receipt/1](forget-receipt.schema.json)を追加しました。追加除外と受領の原子的保存を実装していますが、未検証・未マージです。本文や履歴の物理消去ではありません。
+[監査付き論理忘却](../docs/gate-3-forgetting.ja.md)では[forget request/1](forget-request.schema.json)と[forget receipt/1](forget-receipt.schema.json)を追加しました。追加除外と受領の原子的保存はPR #15でマージ・重点CI合格済みです。本文や履歴の物理消去ではありません。
 
 schema単独では認証・事実性・採用の原子性を保証しない。ゲート1のCLI種別は増やしておらず、これらはライブラリAPIで検査する。
 

@@ -23,7 +23,7 @@ jobs:
           python-version: "3.13"
       - name: Install runtime dependencies
         run: python -m pip install .
-      - name: Three selected cases (counts toward the 10-case trial budget)
-        run: python tests/run_tests.py --limit 3
+      - name: Ten explicit review-regression cases (requires approved cumulative budget)
+        run: python tests/run_tests.py --limit 10
       - name: Build wheel (no extra test execution)
         run: python -m pip wheel --no-deps --wheel-dir dist .

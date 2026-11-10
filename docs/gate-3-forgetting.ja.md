@@ -2,7 +2,7 @@
 
 [English](gate-3-forgetting.md) | **日本語** | [実装状況](implementation-status.ja.md)
 
-`feat/gate-3-audited-forgetting`に実装済みですが、**未検証・未マージ**です。合成データ用のローカルライブラリで、実agent接続や物理削除ではありません。取得（PR #13）とrollback（PR #14）はマージ済み。[レビューと予算記録](../reports/gate-3-forgetting-progress.md)。
+**PR #15でマージ済み・重点CI合格**（merge `dd79e234fc2888f99685fb2dcf3961b04645f399`）。CI42752368409は3項目・1回・0.652秒とwheel成功。合成ライブラリの論理除外で、物理削除ではありません。[現在の状態](implementation-status.ja.md)と[レビュー課題](review-followup.ja.md)。
 
 ## API（説明用・未実行）
 
@@ -42,6 +42,6 @@ receipt = store.resolve_operation("forget-1")  # 応答消失を照会で解決
 
 **論理除外のみ**です。原証拠・本文・SQLiteページ・保持履歴・backup・呼出し側の取得済みbundle・外部cache／index／日記・出力は消しません。渡し済みbundleは回収不能。無関係な新ID・系譜に同内容を再登録することを内容hashで抑止しません。物理掃除・安全消去・内容単位の再取込抑止・run認証／登録・実利用者の認証・評価中の取得固定・渡したmemory記録は未実装。境界は模擬設定で認証情報ではなく、ゲート3全体の完了や性能改善も主張しません。
 
-## 検証待ち
+## 検証範囲
 
-`tests/test_forgetting.py`は重点3メソッド：scope付き影響とpolicy／journal原子性、取得・採用・rollbackでの派生先非復活、policy CAS・ID競合・応答消失後の再open／完全再送。**本体は0項目実行**で、選択一覧は受入ではありません。同じゲート3試行は10項目・3回で枠を使い切り。次は追加3項目をPR CI1回（累計13項目・4回）だけ実行する承認が必要です。ローカル再実行・過去全件回帰はしません。PR作成自体がCIを起動するので、増枠までPRも作成しません。
+PR #15 CIの重点3項目が合格済みで、全件回帰・物理削除・実接続の検証ではありません。同じGate3試行は13項目・4回で承認枠を使い切り。今回のレビュー修正は未実行で、新規5＋既存5の10項目1回に明示増枠が必要です。除外台帳1,024上限と、headに除外activeが残る場合の採用拒否は未解決です。[対応表](review-followup.ja.md)。

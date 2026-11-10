@@ -408,6 +408,10 @@ def read_input(path: str, max_bytes: int = MAX_FILE_BYTES) -> bytes:
     """Read a regular file read-only, bounded; never blocks on FIFOs/devices."""
     flags = os.O_RDONLY | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_CLOEXEC", 0)
     try:
+        # Windows may deny os.open(directory) before fstat can classify it.
+        # Keep the post-open check too: this preliminary check is not a TOCTOU guarantee.
+        if not stat.S_ISREG(os.stat(path).st_mode):
+            raise InputError("io.not_regular_file", "input is not a regular file")
         fd = os.open(path, flags)
     except FileNotFoundError:
         raise InputError("io.not_found", "input file not found") from None
