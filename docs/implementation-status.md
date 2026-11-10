@@ -50,40 +50,56 @@ This is not production authentication, physical purge or a deployed agent connec
 2026-11-10T15:34:08Z; its CI result is not recorded here. It merged the partial offline worker as a
 preserved draft, not a working integration checker.
 
+[PR #27](https://github.com/moruku36/agent-sleep-lab/pull/27) is **MERGED** by the
+owner at `93ddb1a070c6ffdee65cd0809eea5c8ae68203c5`, source
+`442b7ea1b4f67c878d67599a42bde6864604810b`. GitHub confirmed the merge at
+2026-11-10T15:50:40Z and PR CI success on Python 3.11 and 3.13. It merged worker input validation and loader
+contract tests, not a working integration checker.
+
 ## Current development branch
 
-`feat/oss-offline-worker-contract`, based on the PR #26 merge above.
-The worker is still an **incomplete draft**, not an operational integration checker.
+`feat/oss-offline-parent-checker`, based on the PR #27 merge above.
 
-- Hardened input validation in the partial
-  [offline worker](../src/agent_sleep_lab/oss_offline_worker.py): exact payload keys,
-  bounded lowercase hex, per-field byte caps, strict JSON (duplicate keys, non-finite
-  numbers, BOM and invalid UTF-8 rejected), the exact synthetic experience
-  reference-bundle key set with record-count and snapshot checks, and built-in
-  synthetic task bytes only.
-- Loading rechecks source hashes immediately before compiling, uses the reviewed
-  order instead of mapping order, compiles every source before executing any,
-  refuses a process where those module names already exist, and no longer leaks the
-  worker's `__future__` flags into pinned code.
-- Added **21 passing [contract tests](../tests/test_oss_offline_worker.py)** for
-  validation and loader unit behavior using test-authored stand-in sources;
-  they never run target code.
-- Three levels remain distinct: **syntax/import and unit behavior** pass the
-  regression below; **actual target integration** (`run()`, guards, pinned target
-  sources) remains unexecuted and unverified.
-- The parent checker, target checkout/commit verification, bridge/journal wiring
-  and end-to-end run are NOT implemented. The embedded source pins have not been
-  independently verified. The bundle key set is a local copy of the retrieval
-  contract with no drift test; canonical bundle bytes and store origin are not
-  checked. Do not use this draft on real data.
-- Guard code is not a sandbox for hostile Python; it has not passed boundary tests.
-  Reference bytes are assigned to target notes, which triage with `llm=None` does
-  not use semantically. No memory benefit or deployed connection is demonstrated.
-- This revision was written in Claude Code. The coordinator received a successful
-  terminal result (`is_error=false`, `terminal_reason=completed`) naming canonical
-  model `claude-fable-5-2` (Fable 5.2), provider `firstParty`, with no permission
-  denials or subagents. No fallback model was used. The earlier PR #26 attempt
-  requested Codex CLI `gpt-6.1-sol` / `xhigh` and timed out without a model receipt.
+- Added the stdlib [parent checker/consumer](../src/agent_sleep_lab/oss_offline_parent.py).
+  Read-only, bounded git calls check the explicit repository root, local origin
+  claim, pinned commit and all eleven source hashes. Source bytes come from Git
+  objects, never mutable worktree files; the target checkout is not written.
+- Only the built-in synthetic task and bounded canonical synthetic experience
+  reference bytes are accepted. A fresh `python -I -B` worker runs once with
+  temporary cwd, minimal environment, no shell, timeout and bounded I/O.
+  The parent checks output protocol and source/task/reference/notes bindings.
+- The journal-compatible consumer returns an unreviewed receipt; injected worker
+  commands are explicitly labelled stand-ins. No output establishes verified
+  delivery, semantic memory use, adoption or improvement.
+- **Actual pinned-source offline execution has now passed once**, after coordinator
+  review. The local repository contained commit
+  `e40b39c6258ac5a4446c38246bdfd7f5dc5dbf7b`; all eleven Git blobs matched
+  the embedded SHA-256 pins. The real collection/digest/temporary-ledger path
+  produced five expected outcomes: candidate, low-score skip, pending LLM,
+  duplicate skip and infrastructure error, with one decision still pending.
+- The reference came from actual retrieval from an empty synthetic adoption store:
+  zero records and no active snapshot. The five returned decisions were then
+  captured through `CollectOnlyBridge` in that temporary synthetic store.
+  No memory, adoption or verifier/evaluator receipt was created.
+- This confirms pinned target code can run on synthetic inputs and its decisions
+  can cross the capture contract; it does **not** demonstrate adopted-memory use.
+  Reference bytes reach `Target.notes`, unused semantically with `llm=None`.
+  The acceptance script/artifact are local coordinator evidence, not a portable
+  regression or production deployment.
+- Remaining: bridge/journal/consumer end-to-end orchestration, reconciling the
+  journal's larger reference cap with the worker's 32,768-byte cap, bundle
+  key-set drift coverage and store-origin binding in the general consumer,
+  independent guard-boundary tests, nonempty eligible-memory use and real-data
+  authorization. Guard code is not a sandbox for hostile Python. Local origin
+  is mutable, not authenticated identity; hostile Git configuration is not tested.
+- Claude Code completed this revision successfully: coordinator terminal receipt
+  reports `is_error=false`, `terminal_reason=completed`, canonical model
+  `claude-fable-5-2`, provider `firstParty`, no permission denials or subagents.
+  No fallback model was used. The coordinator read both READMEs and the architecture/
+  evaluation design before implementation; the coding worker did not read all four.
+- PR #27's strict input/loader contracts remain part of the merged baseline,
+  with 21 stand-in unit cases. They are distinct from this branch's real offline
+  acceptance and ten new parent contract cases.
 
 Already merged in PR #25:
 
@@ -109,21 +125,24 @@ Already merged in PR #24:
 
 ## Current branch verification
 
-- **276 unique cases / one full local invocation, all passed in 13.446 s**,
-  with the existing Python 3.13.18 verification environment. This includes
-  21 new worker unit/contract cases. No installs or paid harness inference.
-- Documentation: **364 relative file links / 76 Markdown files passed**;
-  anchors and remote URLs are not checked. Feature CI is not run.
-- Historical, from the PR #26 branch before these edits: 255 unique existing
-  regression cases / one invocation passed in 13.415 s on Python 3.13.18, and
-  362 relative file links / 76 Markdown files passed. Those runs did not exercise
-  the worker and are not verification of this branch.
-- Worker input validation and stand-in loader behavior are verified only at the
-  unit level. Actual `run()`, guards, target-source execution and end-to-end
-  integration remain unverified.
-- PR #25's earlier local result (255 cases, 13.588 s) and PR #24's result
-  (247 cases, 12.183 s) are historical, not executions in this trial.
-- Actual five-task A/B and live-model performance improvement remain unverified.
+- **286 unique regression cases / one full local invocation passed in 14.081 s**
+  on Python 3.13.18, including ten new parent-checker cases and the prior 21
+  worker cases. New regressions use stand-in sources/git responses/processes;
+  they do not require the target checkout or make network/model calls.
+- Separate local acceptance: one real pinned-worker invocation, five synthetic
+  decisions captured, zero adopted memories and zero verifier/evaluator receipts.
+  Worker output SHA-256:
+  `fb0503a72112677b5610a5471f378578539d1dc43c4906704c94ca51ef8266af`.
+  This was not counted as a regression case or repeated during regression.
+- Documentation: **362 relative file links / 76 Markdown files passed**;
+  anchors and remote URLs are not checked. Whitespace diff check passed.
+  Feature CI not run.
+- Historical PR #27 local verification: 276 cases / one invocation in 13.446 s,
+  364 relative links / 76 Markdown files. PR #26: 255 cases / one invocation
+  in 13.415 s, 362 relative links / 76 Markdown files. These are historical,
+  not executions in this trial.
+- Guard boundary denial behavior, journal end-to-end dispatch, real-data use,
+  five-task real A/B and live-model performance improvement remain unverified.
 
 ## Genuine remaining work
 
