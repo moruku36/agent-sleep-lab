@@ -1,7 +1,7 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: 3 focused Gate 3 scoped-retrieval cases (the 4th, scope/partition filtering, is
-selectable by explicit name). Pass explicit unittest names to select checks for another change.
+Default: 3 focused Gate 3 rollback cases (UNEXECUTED until the single PR CI run). The 4 scoped-
+retrieval cases remain selectable by explicit name. Pass explicit unittest names to select checks for another change.
 --list validates/selects without executing test bodies. Historical tests remain available, but
 this entry never starts a full discovery run. The 10-case cap is unchanged.
 """
@@ -14,9 +14,9 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_retrieval.RetrievalTests.test_normal_bounded_retrieval_returns_whole_ranked_records",
-    "test_retrieval.RetrievalTests.test_revocation_and_ancestor_exclusion_apply_before_ranking",
-    "test_retrieval.RetrievalTests.test_corruption_fails_closed_and_legitimate_empty_is_normal",
+    "test_rollback.RollbackTests.test_scope_bound_rollback_then_normal_adoption",
+    "test_rollback.RollbackTests.test_current_revocation_refuses_whole_rollback_and_leaves_history",
+    "test_rollback.RollbackTests.test_stale_head_conflict_and_exact_replay_survive_reopen",
 )
 
 

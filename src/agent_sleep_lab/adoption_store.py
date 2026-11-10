@@ -3,6 +3,11 @@
 All commit-time decisions, payload writes, journal and scope head share ONE
 BEGIN IMMEDIATE transaction. Replay returns historical receipt bytes, not present
 permission to use a memory. v2 files require an explicit, atomic upgrade.
+
+``commit_rollback`` (Gate 3, UNEXECUTED until CI) adds explicit control recovery to a retained
+snapshot using the SAME v3 tables: no schema change, no migration. A rollback journal row stores
+the rollback request/receipt bytes with EMPTY manifest/source columns. Adoption request/receipt
+v1/v2 bytes and their replay are untouched.
 """
 from __future__ import annotations
 
@@ -14,9 +19,10 @@ from functools import lru_cache
 from typing import Callable, Mapping
 
 from agent_sleep_lab.adoption_candidates import (
-    _memory_document, build_candidate, build_committed_receipt,
+    _memory_document, build_candidate, build_committed_receipt, build_rollback_receipt,
     evidence_origin_failures, parse_canonical,
 )
+from agent_sleep_lab.strictjson import StrictJSONError, loads_strict_bytes
 from agent_sleep_lab.evidence_store import (
     APPLICATION_ID, _DDL, _Reader, _as_bytes, _connect, _header, _rollback,
 )
@@ -185,6 +191,11 @@ class AdoptionStore(RuntimeStore):
         req_data, rec_data = _as_bytes(req_blob), _as_bytes(rec_blob)
         if sha256_hex(req_data) != req_sha or sha256_hex(rec_data) != rec_sha:
             raise StorageError("adoption.journal_corrupt", "journal hash mismatch")
+        if self._is_rollback(req_data):
+            return self._resolve_rollback(
+                operation_id, req_sha, req_data, rec_sha, rec_data,
+                _as_bytes(manifest_blob), _as_bytes(source_blob),
+            )
         req = parse_canonical("adoption_request", req_data)
         rec = parse_canonical("committed_receipt", rec_data)
         manifest_data, source_data = _as_bytes(manifest_blob), _as_bytes(source_blob)
@@ -212,7 +223,33 @@ class AdoptionStore(RuntimeStore):
             expected_rec["run_id"] = req["run_id"]
         if req["operation_id"] != operation_id or any(rec.get(k) != v for k, v in expected_rec.items()):
             raise StorageError("adoption.journal_corrupt", "journal receipt binding mismatch")
-        return req_sha, req_data, AdoptionResult("replayed", rec_data, rec_sha)
+        return req_sha, req_data, AdoptionResult("replayed", rec_data, rec_sha), rec
+
+    @staticmethod
+    def _is_rollback(req_data):
+        try:
+            doc = loads_strict_bytes(req_data)
+        except StrictJSONError:
+            return False  # the adoption parser then reports it as corrupt
+        return isinstance(doc, dict) and doc.get("schema_version") == "agent-sleep-rollback-request/1"
+
+    def _resolve_rollback(self, operation_id, req_sha, req_data, rec_sha, rec_data, manifest, source):
+        """Rollback rows reuse the v3 journal columns; manifest/source columns must be empty."""
+        if manifest != b"" or source != b"":
+            raise StorageError("adoption.journal_corrupt", "rollback journal carries adoption payloads")
+        req = parse_canonical("rollback_request", req_data)
+        rec = parse_canonical("rollback_receipt", rec_data)
+        expected = {
+            "operation_id": operation_id, "run_id": req["run_id"], "request_sha256": req_sha,
+            "scope": req["scope"],
+            "parent_snapshot_sha256": req["expected_head_snapshot_sha256"],
+            "snapshot_sha256": req["target_snapshot_sha256"],
+            "policy_revision": req["expected_policy_revision"],
+            "outcome": "rolled_back",
+        }
+        if req["operation_id"] != operation_id or any(rec.get(k) != v for k, v in expected.items()):
+            raise StorageError("adoption.journal_corrupt", "rollback receipt binding mismatch")
+        return req_sha, req_data, AdoptionResult("replayed", rec_data, rec_sha), rec
 
     def resolve_operation(self, operation_id: str) -> AdoptionResult | None:
         """Read-only ACK-loss reconciliation. Never re-applies or grants present eligibility."""
@@ -233,8 +270,9 @@ class AdoptionStore(RuntimeStore):
         journal = self._resolve_operation(operation_id)
         if journal is None:
             raise StorageError("adoption.head_corrupt", "head has no journal entry")
-        receipt = parse_canonical("committed_receipt", journal[2].receipt_bytes)
-        if receipt["outcome"] != "adopted" or receipt["scope"] != scope or receipt["snapshot_sha256"] != digest:
+        receipt = journal[3]  # already parsed and bound by _resolve_operation (adoption or rollback)
+        if (receipt["outcome"] not in ("adopted", "rolled_back")
+                or receipt["scope"] != scope or receipt["snapshot_sha256"] != digest):
             raise StorageError("adoption.head_corrupt", "head journal binding mismatch")
         self._snapshot(digest, scope)
         return digest
@@ -269,7 +307,12 @@ class AdoptionStore(RuntimeStore):
 
     def _check_active(self, plan, source, memory_bytes, now):
         entries = {entry["memory_id"]: entry for entry in source["entries"]}
-        for member in plan.snapshot_doc["members"]:
+        self._check_members(plan.scope, plan.snapshot_doc["members"], entries, memory_bytes, now)
+
+    def _check_members(self, scope, members, entries, memory_bytes, now):
+        """Revalidate every ACTIVE member under the CURRENT policy, expiry and exclusions.
+        Shared by adoption and rollback so one rule decides eligibility; any failure raises."""
+        for member in members:
             if member["state"] != "active":
                 continue
             mid, digest = member["memory_id"], member["memory_sha256"]
@@ -282,13 +325,13 @@ class AdoptionStore(RuntimeStore):
                 if not rows or rows[0][0] != digest:
                     raise StorageError("adoption.memory_missing", "carried memory is missing or inconsistent")
                 data = _as_bytes(rows[0][1])
-            memory = _memory_document(mid, digest, data, plan.scope, now)
+            memory = _memory_document(mid, digest, data, scope, now)
             if memory["kind"] != member["kind"]:
                 raise StorageError("adoption.memory_corrupt", "snapshot kind differs from memory")
             ref = member["verification_receipt"]
             failures = self.eligibility_failures(
                 memory_id=mid, memory_sha256=digest,
-                scope=(plan.scope["project"], plan.scope["task_family"]),
+                scope=(scope["project"], scope["task_family"]),
                 receipt_id=ref["receipt_id"], receipt_sha256=ref["receipt_sha256"],
                 verifier=self._verifier, now=now,
             )
@@ -399,3 +442,77 @@ class AdoptionStore(RuntimeStore):
             return result  # returned only after COMMIT
         except sqlite3.Error as exc:
             raise StorageError("storage.write_failed", f"adoption rolled back ({exc})") from None
+
+    def commit_rollback(self, *, request_bytes: object) -> AdoptionResult:
+        """Explicitly restore a retained, previously adopted snapshot of the SAME scope.
+
+        Control recovery, not a fresh adoption and not an evaluation claim. In one BEGIN IMMEDIATE
+        transaction: replay lookup by operation ID; current policy revision and scope head
+        compare-and-swap; every ACTIVE member of the target is revalidated under the CURRENT
+        authorization, expiry and exclusions. If any member fails the whole rollback is refused:
+        nothing is filtered or rewritten and head and history are unchanged. On success the journal
+        row (request digest + receipt) and the head move together. Original snapshots, memories
+        and receipts are never modified, and old authorization is never regained.
+        """
+        req = parse_canonical("rollback_request", request_bytes)
+        req_data = bytes(request_bytes)
+        req_sha = sha256_hex(req_data)
+        scope = req["scope"]
+        target = req["target_snapshot_sha256"]
+        try:
+            with self._immediate():
+                _check_v3(self._db())
+                prior = self._resolve_operation(req["operation_id"])
+                if prior:
+                    if prior[0] != req_sha or prior[1] != req_data:
+                        raise ConflictError("adoption.operation_conflict", "operation ID already has different content")
+                    return prior[2]  # historical receipt; no head write or present-time assertion
+                now = self._now()
+                policy = self.current_policy()
+                if policy.revision != req["expected_policy_revision"]:
+                    raise ConflictError("adoption.policy_conflict", "current policy revision differs")
+                if self._head(scope) != req["expected_head_snapshot_sha256"]:
+                    raise ConflictError("rollback.head_conflict", "current scope head differs")
+                rows = self._rows(
+                    "SELECT snapshot_bytes FROM adoption_snapshots WHERE snapshot_sha256 = ?", (target,)
+                )
+                if not rows:
+                    raise ContractViolation("rollback.target_unavailable", "target snapshot is not retained")
+                data = _as_bytes(rows[0][0])
+                if sha256_hex(data) != target:
+                    raise StorageError("adoption.snapshot_corrupt", "snapshot hash mismatch")
+                snapshot = parse_canonical("candidate_snapshot", data)
+                if snapshot["scope"] != scope:
+                    raise ContractViolation("rollback.scope_mismatch", "target snapshot belongs to another scope")
+                # A retained blob alone is not proof of a committed adoption. Resolve
+                # the original, hash-bound adoption receipt in this same transaction.
+                adopted = False
+                for (operation_id,) in self._rows("SELECT operation_id FROM adoption_journal"):
+                    history = self._resolve_operation(operation_id)
+                    receipt = history[3]
+                    if (receipt["outcome"] == "adopted" and receipt["scope"] == scope
+                            and receipt["snapshot_sha256"] == target):
+                        adopted = True
+                        break
+                if not adopted:
+                    raise ContractViolation("rollback.target_not_adopted",
+                                            "target has no committed adoption receipt")
+                # Whole-or-nothing: any ineligible/expired/missing active member raises here.
+                self._check_members(scope, snapshot["members"], {}, {}, now)
+                rec_bytes, rec_sha = build_rollback_receipt(
+                    req_data, policy_revision=policy.revision, now=now,
+                )
+                self._db().execute(
+                    "INSERT INTO adoption_journal VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (req["operation_id"], req_sha, req_data, b"", b"", rec_sha, rec_bytes),
+                )
+                self._db().execute(
+                    "INSERT INTO adoption_heads VALUES (?, ?, ?, ?) "
+                    "ON CONFLICT(project, task_family) DO UPDATE SET "
+                    "snapshot_sha256=excluded.snapshot_sha256, operation_id=excluded.operation_id",
+                    (scope["project"], scope["task_family"], target, req["operation_id"]),
+                )
+                result = AdoptionResult("created", rec_bytes, rec_sha)
+            return result  # returned only after COMMIT
+        except sqlite3.Error as exc:
+            raise StorageError("storage.write_failed", f"rollback rolled back ({exc})") from None

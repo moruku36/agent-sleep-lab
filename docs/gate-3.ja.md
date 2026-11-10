@@ -2,9 +2,9 @@
 
 [English](gate-3.md) | **日本語** | [実装状況](implementation-status.ja.md)
 
-状態：**`feat/gate-3-scoped-retrieval`で実装・ローカル重点検証済み、未マージ。** 合成4項目を1回実行し、0.782秒で全合格。CIは未実施で、同じ試行の上限10項目内に3項目を予約。初期版全体は約40%。ゲート3全体・rollback／削除・採用の追加受入・live接続は未完了です。
+状態：**scope付き取得は[PR #13](https://github.com/moruku36/agent-sleep-lab/pull/13)でMERGED**（merge commit `9e3d1107f96034b61a812ab2a5abb1c95ef5eaba`、マージ確認済み）。マージ前にローカル重点4項目を1回実行して0.782秒で全合格、PR CI 3項目がhead `90b3d9e`で合格（当時の記録であり、後続commitの保証ではありません）。**下記のrollbackは別の単位で、`feat/gate-3-safe-rollback`上の実装済み・未実行です。未マージで、PRで3項目のCIを1回実行するまで未検証です。** それまで初期版全体は約40%のまま。ゲート3全体は未完了です（[未実装](#未実装)参照）。
 
-契約の根拠：[契約書 5〜6節](contracts-and-acceptance.ja.md)。既存の`AdoptionStore`に対する読み取り専用ライブラリ（`src/agent_sleep_lab/retrieval.py`）です。writer／採用の意味は変えません。
+契約の根拠：[契約書 5〜6節](contracts-and-acceptance.ja.md)。取得の単位は既存の`AdoptionStore`に対する読み取り専用ライブラリ（`src/agent_sleep_lab/retrieval.py`）です。writer／採用の意味は変えません。
 
 ## API
 
@@ -40,9 +40,44 @@ bundle.bundle_sha256, bundle.used_bytes
 
 `schema_version`、`reference_data_only`、`synthetic_only`、`scope`、`partition`、`as_of`、`snapshot_sha256`（headなしはnull）、`policy {revision, sha256}`、`exclusions {version, policy_sha256}`（除外版＝policy版）、`budget`、`counts {active_members, eligible, returned, dropped}`（適格総数は上限適用前、省略数は件数・byte両上限を含む）、`records`。各record：`eligibility: verified`、`rank`、`score`、`memory_id`、`memory_sha256`、`kind`、`verification_receipt`、`evidence`（event／source／provenanceのhash）、memory全体。
 
+## 安全なrollback（CIまで未実行）
+
+明示的な**制御上の復旧**です。同一scopeで保持済み・過去に採用済みのsnapshotを復元します。新しいモデル候補の採用ではなく、評価受領は不要で、**性能や評価の主張ではありません**。
+
+```python
+from agent_sleep_lab.adoption_candidates import build_rollback_request
+
+request_bytes, request_sha256 = build_rollback_request(
+    operation_id="rb-1",            # 新規ID。採用・rollbackを含め再利用しない
+    run_id="my-audit-label",        # 呼出し側の監査ラベル。認証済みrunではない
+    scope={"project": "p", "task_family": "t"},
+    expected_head_snapshot_sha256=head_hash,    # 現在headのcompare-and-swap
+    target_snapshot_sha256=target_hash,         # 同一scopeで保持済みのsnapshot
+    expected_policy_revision=policy_revision,   # 現在policy版のcompare-and-swap
+)
+result = store.commit_rollback(request_bytes=request_bytes)   # AdoptionResult
+store.resolve_operation("rb-1")  # 応答消失時の照会。過去の受領bytesを返す
+```
+
+契約上の判断：
+
+1. **版付きの追加artifact。** `agent-sleep-rollback-request/1`と`agent-sleep-rollback-receipt/1`（`outcome: rolled_back`）を専用schemaで追加。採用request／receipt v1/v2のschemaとbytesは不変で、既存journalは変わらず再生できます。保存の移行は不要：v3のtableを使い、rollbackのjournal行はrollbackのrequest／receiptを保存し、manifest／source列は**空**にします（空以外は`adoption.journal_corrupt`）。旧コードはrollback行を読めません（前方のみ、ダウングレードは主張しません）。
+2. **1つのwriter transaction（`BEGIN IMMEDIATE`）。** operation照会 → 現在policy版のCAS（`adoption.policy_conflict`）→ scope headのCAS（`rollback.head_conflict`）→ 対象の存在・scope確認（`rollback.target_unavailable`、`rollback.scope_mismatch`）→ **対象のactive memberすべて**の再確認 → journal行（request digest＋受領）とheadを一括更新。headがnullのscopeは不可（未初期化への復元は非対応）。対象は期待headと異なる必要があります（契約検査）。
+3. **全件か無か。** 対象の各active memberを採用writerと同じ規則で再確認：本文／hash／契約、期限、登録済みconfirmed検証受領、証拠と**全祖先・root**、現在の許可版、許可された目的／partition、除外、種別／起源の規則。1件でも失敗すればrollback全体を拒否します（`adoption.ineligible`、`candidate.memory_expired`、`adoption.memory_missing`など）。黙って絞り込み・書換え・部分復元はせず、headと履歴は不変。`stale`／`superseded`のmemberは記録どおりに引き継ぎます。
+4. **過去の許可は復活しない。** headを戻しても古い許可は戻りません。取得も次の採用も現在policyで再確認し、除外されたmemoryは除外されたままです。元のsnapshot・memory・受領・証拠・過去のjournal行は変更しません（append-onlyのtriggerは維持）。
+5. **冪等性。** 同じbytesの完全再送は、head書込みも現在状態の再判定もせず過去の受領を返します（`status: replayed`）。後からの撤回や再openの後でも同じです。同じoperation IDで内容が違えば`adoption.operation_conflict`。拒否されたrollbackはoperation IDを消費しません。
+6. **rollback後の採用。** 新しいheadは復元したsnapshotで、次の採用はそれを期待親版に指定して従来どおり動きます。取得も同じ経路でheadを読みます。
+7. 「過去に採用済み」には、保持snapshotと、hash・同一scopeが結び付く元の`adopted` journal受領の両方を同じtransactionで要求します。孤立blobだけでは拒否（`rollback.target_not_adopted`）し、新しい評価の合格とは扱いません。合成限定の実装ではローカルjournalを走査して元受領を探します。
+
+未実装：物理削除／purge／cache掃除、評価中のsnapshot固定、渡したmemoryの記録、run認証・登録。`tests/test_rollback.py`の3項目（scope内の成功と後続採用／現在の撤回による拒否とhead・履歴不変／古いhead・ID競合・完全再送を再open越しに確認）は**未実行**で、PR CIの1回に予約しています（3項目）。
+
+## 未実装
+
+削除・物理purge・cache掃除、評価中の取得固定、渡したmemoryの記録、ゲート2B全体の受入、Light/Deep生成、比較評価、adapter接続はいずれも未完了です。ここにゲート3全体や性能の主張はありません。
+
 ## 限界
 
-- 合成限定。rollback・削除／cache掃除・run登録・adapter・呼出し側の認証・本番利用・live agent接続ではありません。
+- 合成限定。削除／cache掃除・run登録・adapter・呼出し側の認証・本番利用・live agent接続ではありません（rollbackは上記のとおり未実行）。
 - 順位は簡易で決定的な規則で、品質を主張しません。性能改善は主張しません。
 - 除外はmemoryとその証拠の祖先に適用し、query文字列には適用しません。
 - 評価中のsnapshot固定（撤回は適用し続ける）と、渡したmemoryの記録は未実装です。
@@ -50,6 +85,8 @@ bundle.bundle_sha256, bundle.used_bytes
 
 ## ローカル重点受入
 
-`.venv/bin/python tests/run_tests.py --limit 4 test_retrieval.RetrievalTests`をmacOS arm64／Python 3.13.18で1回実行、4項目が0.782秒で全合格。同じ試行は4項目・1回実行で、CIは未実施。全件回帰・既存writerテストの再実行なし。[受入記録](../reports/gate-3-retrieval-progress.md)に残る境界を記載します。
+履歴（2026-11-10、取得の単位）：`.venv/bin/python tests/run_tests.py --limit 4 test_retrieval.RetrievalTests`をmacOS arm64／Python 3.13.18で1回実行、4項目が0.782秒で全合格。その後PR CIの3項目がhead `90b3d9e`で合格し、PR #13はマージ済みです。[受入記録](../reports/gate-3-retrieval-progress.md)に残る境界を記載します。旧writer試行（**19項目・5回**）は履歴で、枠は使い切り済みです。
 
-`tests/test_retrieval.py`は4メソッドのみ：通常の上限付き取得、scope／partition絞込み、撤回・祖先除外、破損時の安全停止と正常な0件。`tests/run_tests.py`の既定は3項目（絞込みは名前指定）。試行の上限はCI込みで合計10回です。[テスト運用](testing-budget.ja.md)を参照。
+現在の試行の集計（同じゲート3の試行）：**10項目中、7項目・2回実行を使用済み**（取得のローカル4＋CI3）。rollbackの単位は**実行0項目**で、残り3項目はPR CIの1回に予約しています。そこで失敗すると余裕はなく、追加実行には所有者の明示的な増枠が必要です。
+
+`tests/test_retrieval.py`は4メソッド（変更なし）。`tests/test_rollback.py`はちょうど3メソッド。`tests/run_tests.py`の既定はrollbackの3項目に変更（上限10は不変、取得の項目は名前指定で選択可）。[テスト運用](testing-budget.ja.md)を参照。

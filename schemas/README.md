@@ -16,6 +16,8 @@ CLIの入力内整合性検査は、同一IDの再掲／競合、自己訂正・
 
 後続の[候補構築](../docs/gate-2b-candidates.ja.md)で、[operation manifest](operation-manifest.schema.json)、[source manifest](source-manifest.schema.json)、[candidate snapshot](candidate-snapshot.schema.json)、[adoption request](adoption-request.schema.json)、[committed receiptの形式](committed-operation-receipt.schema.json)も追加。後続の[採用writer](../docs/gate-2b-adoption.ja.md)で永続採用を実装し、[run ID結合](../docs/gate-2b-run-id.ja.md)では[request/2](adoption-request-v2.schema.json)・[receipt/2](committed-operation-receipt-v2.schema.json)を追加しました。v1は履歴読取り用に不変。形式の生成だけではcommit済みの証拠にならず、run_idも認証済みrunではありません。
 
+ゲート3のrollback（[契約](../docs/gate-3.ja.md)、実装済み・未実行）では、[rollback request/1](rollback-request.schema.json)と[rollback receipt/1](rollback-receipt.schema.json)を別種のartifactとして追加しました。採用v1/v2のschemaは変更せず、評価受領は持たない制御上の復旧であり、新規採用や性能の主張ではありません。
+
 schema単独では認証・事実性・採用の原子性を保証しない。ゲート1のCLI種別は増やしておらず、これらはライブラリAPIで検査する。
 
 日時はUTCのRFC 3339形式で保存し、表示時にJSTへ変換する。projectとtask_familyの組が取得範囲。別projectへの移植は自動で行わない。

@@ -345,3 +345,53 @@ def build_committed_receipt(
         doc["run_id"] = request["run_id"]
     data = encode_artifact("committed_receipt", doc)
     return data, sha256_hex(data)
+
+
+def build_rollback_request(
+    *,
+    operation_id: str,
+    run_id: str,
+    scope: dict[str, str],
+    expected_head_snapshot_sha256: str,
+    target_snapshot_sha256: str,
+    expected_policy_revision: int,
+) -> tuple[bytes, str]:
+    """Canonical rollback request bytes and digest. Explicit control recovery to a retained,
+    previously adopted snapshot; it is NOT a fresh candidate and carries no evaluation claim.
+    run_id is a caller-supplied audit label, not a registered/authenticated run."""
+    doc = {
+        "schema_version": "agent-sleep-rollback-request/1",
+        "operation_id": operation_id,
+        "run_id": run_id,
+        "scope": dict(scope),
+        "expected_head_snapshot_sha256": expected_head_snapshot_sha256,
+        "target_snapshot_sha256": target_snapshot_sha256,
+        "expected_policy_revision": expected_policy_revision,
+    }
+    data = encode_artifact("rollback_request", doc)
+    return data, sha256_hex(data)
+
+
+def build_rollback_receipt(
+    request_bytes: object, *, policy_revision: int, now: datetime
+) -> tuple[bytes, str]:
+    """Pure builder for the receipt persisted in the same transaction as the restored head."""
+    request = parse_canonical("rollback_request", request_bytes)
+    if type(policy_revision) is not int or policy_revision != request["expected_policy_revision"]:
+        raise _fail("candidate.policy_revision_mismatch", "receipt policy revision differs from the request")
+    if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("now must be a timezone-aware datetime")
+    doc = {
+        "schema_version": "agent-sleep-rollback-receipt/1",
+        "operation_id": request["operation_id"],
+        "run_id": request["run_id"],
+        "request_sha256": sha256_hex(bytes(request_bytes)),  # type: ignore[arg-type]
+        "scope": request["scope"],
+        "parent_snapshot_sha256": request["expected_head_snapshot_sha256"],
+        "snapshot_sha256": request["target_snapshot_sha256"],
+        "policy_revision": policy_revision,
+        "outcome": "rolled_back",
+        "committed_at": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    data = encode_artifact("rollback_receipt", doc)
+    return data, sha256_hex(data)
