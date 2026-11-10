@@ -79,7 +79,42 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-`feat/oss-paired-outcome-journal`, based on owner-merged
+`feat/oss-registered-mimo-adapter`, based on owner-merged
+[PR #33](https://github.com/moruku36/agent-sleep-lab/pull/33) at
+`19c7e39440f4b938ba95250e212a5fce01d0f8c3` (source
+`76e5b026762c5cd646fe2c92630405e09e6d4a1a`). GitHub confirmed MERGED and
+successful Python 3.11 / 3.13 PR checks.
+
+- Added a separate [exact-prompt adapter](../src/agent_sleep_lab/oss_mimo_adapter.py)
+  for explicit registered MiMo calls. It validates the entire captured artifact,
+  pins/source/task/reference/request/prompt hashes and A/B relation before reserving
+  a call. The exact selected user text is forwarded with no instruction wrapper.
+  This is not HTTP wire replay; original URL/headers/model/settings are not forwarded.
+- Literal paid/uncapped-generation opt-ins, 1–2 calls, timeout at most 120 seconds,
+  captured request/envelope/post-generation byte bounds, strict CLI model/provider/
+  no-fallback/text-output checks and sanitized hash-bound receipts.
+  Usage/cost remain unavailable; no supported usage/cost schema or financial cap.
+- [Six mock-only cases](../tests/test_oss_mimo_adapter.py) cover exact Unicode
+  forwarding, opt-ins/budgets, capture rejection, invalid/fallback/oversized replies,
+  timeout/interruption stops and sanitized missing usage/cost. Full local regression:
+  **323 unique cases / one executed invocation passed**, Python 3.13, 17.043 s.
+  An earlier system-Python 3.9 launch stopped at imports (missing dependencies);
+  no test cases executed in that launch.
+- Worker receipt: normal completion confirms provider `meta`, model
+  `muse-wonder-1.0`, `ok=true`, no fallback attempts. Coordinator reviewed the
+  untrusted proposal and corrected its fictional envelope, opt-in/budget validation,
+  capture binding and failure handling. No further worker invocation.
+- [Contract and limitations](oss-exact-prompt-adapter.md): stop/budget are
+  **in-memory per instance**, not a durable live journal. No current-policy executor,
+  live paired-journal integration, actual OSS acceptance or live evaluation has
+  been run for this change. All runtime adapter calls were injected mocks.
+  The prior paired journal remains fake-only with unchanged schema/type restrictions.
+  Next: durable context-aware live execution, target verdict parsing, frozen
+  evaluator and paired usage/cost/effect measurement. Initial progress stays 30–35%.
+
+## Merged PR #33 offline paired-outcome journal
+
+Historical branch `feat/oss-paired-outcome-journal`, based on owner-merged
 [PR #32](https://github.com/moruku36/agent-sleep-lab/pull/32) at
 `46a1e585e580275aef003c72bc74f08c9be09b52` (source
 `96ba94bb25d71089a5f6abdd8cd14926e42ddb97`). GitHub confirmed MERGED and
