@@ -205,7 +205,7 @@ def prepare_payload(sources, reference_bytes):
     try:
         worker.check_sources(sources)
         doc = worker.validate_reference(reference_bytes)
-        if worker.encoded(doc) != reference_bytes:
+        if worker.canonical_reference(doc) != reference_bytes:
             raise ValueError("canonical reference bundle bytes required")
         payload = worker.encoded(dict(
             sources={name: sources[name].hex() for name in worker.SOURCE_HASHES},

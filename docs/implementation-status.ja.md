@@ -75,7 +75,42 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-PR #30を基点とする`feat/oss-reference-prompt-contract`です。
+マージ済みPR #31を基点とする`feat/oss-adopted-reference-preparation`です。
+**ローカル検証済み：**全309件の重複なし回帰テストが1回の実行で合格しました
+（Python 3.13、15.290秒）。PR CIは別途報告します。有料／実モデルの評価推論は未実行です。
+
+- 参考bundleの正規形検査を、取得側と同じbyte形式（key整列・compact・
+  escapeなしUTF-8）へ統一。stdlibの`canonical_reference()`一つを
+  [prompt捕捉worker](../src/agent_sleep_lab/oss_prompt_capture_worker.py)と
+  共有の[parent payload作成](../src/agent_sleep_lab/oss_offline_parent.py)で使います。
+  ASCIIのみのbundleは従来とbyte同一。escape済み、空白変更、BOM、重複key、
+  不正UTF-8、単独surrogate、上限超過は拒否します。
+  promptのframe境界では追加でframe marker入りを拒否します。
+  厳格JSON、32,768 byte／256 record上限、参考の正確なSHA-256は変更なし。
+  worker protocolの出力は正規ASCIIのままです。
+- [新規統合3件](../tests/test_oss_adopted_reference.py)は一時採用storeを使い、
+  検証／評価受領と採用は**テスト作成のfixture**、workerは明示した代替です。
+  空でない利用可能なUnicode参考がreference群だけにbyte一致で入ること、
+  A/B同条件、現在policyの除外、scope不一致、準備中にstoreを変更しないこと、
+  不正／非正規byteの拒否を確認する内容です。
+- 主張しないこと：store由来の認証、記憶の意味的利用、model判定、性能結果。
+  `OfflinePipeline`は引き続きASCII正規形のみ。既知のfilesystem guardの穴は未完です。
+- 固定ソースの実受入も合格。一時採用storeにテスト作成の採用・検証／評価fixtureを置き、
+  日本語の合成記憶1件がreference promptだけに入ると確認しました。
+  baseline 962 UTF-8 byte、reference 3,079 byte。現在policyで除外後、別の新規workerでは
+  取得0件となり本文も消えました。各workerで実際の固定judge／promptが各2回動き、
+  準備によるstore書込み・provider通信・返答・判定はすべて0件です。
+- worker来歴：正常完了受領で`claude-fable-5-2`を確認
+  （`terminal_reason=completed`、`is_error=false`）。切替なし。
+  coordinatorが保存済み変更をレビューし、テストの境界の誤認1か所を修正して検証しました。
+- 残り：明示上限付きlive provider executorと実model受領、
+  永続的な対応比較の結果／費用記録、固定評価器。
+
+## PR #31でマージ済みのprompt契約
+
+履歴：PR #30を基点とし、PR #31でマージした`feat/oss-reference-prompt-contract`です
+（merge `c8b6ccc`、ソース `c61cbb1`）。GitHubでMERGEDと
+PR CIのPython 3.11／3.13両check合格を確認しました。
 所有者の優先は、計測前に記憶利用と比較実行を実装することです。
 **有料／実モデルの計測は行っていません。**
 
@@ -111,7 +146,7 @@ PR #30を基点とする`feat/oss-reference-prompt-contract`です。
   テスト・実受入・実装状況更新を行いました。
 - 残り：空でない独立に利用可能な採用記憶の接続、明示上限付きlive provider executorと
   実model受領、永続的な対応比較の結果／費用記録、固定評価器。
-  現捕捉経路は既存のASCII正規化bundle部分集合であり、一般のUnicode取得bundleは未対応。
+  PR #31時点の捕捉経路はASCII正規形bundleのみ対応でした（今回branchで対応し、ローカル検証済み）。
   frameはprompt injection耐性や認証済み由来の証明ではありません。
 
 ## マージ済みguard検証の基点
@@ -187,6 +222,8 @@ PR #30を基点とする`feat/oss-reference-prompt-contract`です。
 
 ## 今回branchの検証
 
+- `feat/oss-adopted-reference-preparation`：**未実行です。** 新規3件、全回帰、
+  文書検査、固定ソース受入はcoordinatorの作業待ち。以下の数値はPR #31の履歴です。
 - 既存Python 3.13.18環境で**全306項目／全件1回、15.327秒で合格**。
   新規prompt捕捉5件を含みます。先行の限定5件は4合格／fixture誤り1件。
   代替source pathを必須trace名に合わせて修正し、影響する1件だけ再実行して合格。
