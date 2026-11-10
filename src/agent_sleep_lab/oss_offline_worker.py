@@ -173,7 +173,14 @@ def validate_payload(payload):
 
 
 def install_guards(directory):
-    """Deny network/process actions and writes outside this worker's temp cwd."""
+    """Guard selected audited operations for reviewed code, not hostile Python.
+
+    Denies network/process events, write-open paths outside the temporary cwd
+    and SQLite destinations other than the temporary ledger. This is NOT full
+    filesystem write isolation: remove/rename/mkdir/link/symlink/chmod/truncate
+    events are not currently intercepted. Existing descriptors, native code and
+    complete syscall coverage are not controlled by this Python audit hook.
+    """
     import resource
 
     resource.setrlimit(resource.RLIMIT_CPU, (5, 5))

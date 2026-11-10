@@ -64,9 +64,43 @@ It merged the bounded parent checker and ten stand-in contract cases. A separate
 local acceptance ran the pinned target code once with an empty synthetic reference
 and captured five synthetic outcomes; it did not exercise the dispatch journal.
 
+[PR #29](https://github.com/moruku36/agent-sleep-lab/pull/29) is **MERGED** at
+`85300ee064b6a9621119c5748f6c8267e240d030`, source
+`9a7e3b8f25268d81503aa8bba91f5feb29d5647c`. GitHub confirmed the merge at
+2026-11-10T17:54:44Z; PR CI passed on Python 3.11 and 3.13.
+
 ## Current development branch
 
-`feat/oss-offline-journal-pipeline`, based on the PR #28 merge above.
+`test/oss-offline-guard-boundaries`, based on PR #29.
+
+- The requested Fable coding worker remains quota-blocked; its reported reset
+  was 05:30 JST. No retry or substitute coding worker/model was started.
+  This branch is coordinator verification/documentation work, not a new
+  successful Fable implementation run.
+- Added [six real guard acceptance cases](../tests/test_oss_offline_guards.py),
+  each using a disposable isolated child process rather than mocks:
+  socket creation; subprocess/environment/cwd restrictions; external
+  text/byte/raw/symlink write-open denial; permitted temporary scratch and ledger;
+  foreign SQLite denial; resource limits and absence of parent-process leakage.
+  No pinned target code or external network endpoint is used. Some process
+  variants use side-effect-free audit-event probes, not actual exec/fork calls.
+- The covered checks pass, but **full filesystem write isolation is NOT
+  established**. A separate side-effect-free audit-event coverage probe found
+  that `os.remove`, `os.rename`, `os.mkdir`, `os.link`, `os.symlink`,
+  `os.chmod` and `os.truncate` events are not intercepted. No corresponding
+  filesystem mutation was executed; the external synthetic sentinel was unchanged.
+- Corrected the worker guard docstring to describe selected write-open/SQLite
+  checks rather than all filesystem writes. Runtime guard behavior is unchanged.
+  Existing descriptors, native code and complete syscall isolation remain outside
+  this Python audit hook. It is not a sandbox for hostile Python.
+- Next implementation after the coding-worker dependency clears: review and
+  harden filesystem-mutation handling (including path/dir-fd semantics) and add
+  meaningful rejection cases. This known gap remains open, not marked fixed.
+  Nonempty adopted-memory semantic use and real-data authorization remain open.
+
+## Merged PR #29 pipeline
+
+Historical development branch `feat/oss-offline-journal-pipeline`, merged in PR #29.
 
 - Added [OfflinePipeline](../src/agent_sleep_lab/oss_offline_pipeline.py):
   bridge retrieval → durable reference journal → parent checker → saved decisions
@@ -108,7 +142,7 @@ and captured five synthetic outcomes; it did not exercise the dispatch journal.
   authenticated delivery/use. The receipt remains unreviewed self-report and
   `delivery_and_use_verified` stays false. Empty reference bytes reach
   `Target.notes`; triage with `llm=None` does not use them semantically.
-- Remaining: nonempty eligible-memory use, independent guard-boundary tests,
+- Remaining: nonempty eligible-memory use, broader guard-boundary coverage/hardening,
   bundle-key drift/store-origin binding, real-data authorization and real comparison
   evaluation. Capture/journal/store are not one cross-database transaction.
   The explicitly supplied store remains caller-controlled, not authenticated;
@@ -141,24 +175,24 @@ Already merged in PR #24:
 
 ## Current branch verification
 
-- **295 unique cases / one full local regression invocation passed in 14.343 s**
-  on the existing Python 3.13.18 environment. Includes nine new pipeline cases.
-  An earlier focused run passed eight cases before the mid-capture policy case
-  and review fix were added: **303 case executions over two invocations** total.
-- Separate actual acceptance: one real pinned-worker invocation, capture
-  interruption/reopen/resume/replay, five synthetic decisions captured, no adopted
-  memories or verifier/evaluator receipts. Not counted as a regression case.
-  Saved pipeline-output SHA-256:
-  `c023ff7231f34e1a87f1aa8e7ffb0b3a1b328eff53561d58e50f198b82357e31`.
-- Documentation: **364 relative file links / 76 Markdown files passed**;
-  anchors and remote URLs not checked. Whitespace diff check passed.
+- **301 unique cases / one full local regression invocation passed in 15.011 s**
+  on the existing Python 3.13.18 environment, including six new guard cases.
+  Earlier focused run: six cases / one invocation passed in 0.127 s.
+  **307 case executions over two invocations** total in this trial.
+- Separate diagnostic: side-effect-free audit-event coverage probe for the seven
+  unhandled filesystem mutation events above. Not counted as a regression case;
+  no mutation, target execution, network/model call, adoption or receipt.
+- Documentation: **366 relative file links / 76 Markdown files passed**;
+  anchors and remote URLs excluded. Whitespace diff check passed.
   Feature CI not run.
-- Historical PR #28 local baseline: 286 cases / one invocation in 14.081 s,
-  362 relative links / 76 Markdown files and a separate pinned-worker smoke.
-  PR #27: 276 cases / one invocation in 13.446 s. These are historical, not
-  executions in this trial.
-- Independent guard denial tests, nonempty adopted-memory semantic use,
-  real-data operation and five-task real A/B improvement remain unverified.
+- Historical PR #29 verification: 295 cases / one invocation in 14.343 s, plus an
+  earlier eight-case focused run (303 executions/two invocations); 364 relative
+  links / 76 Markdown files. Separate actual pinned-worker acceptance dispatched
+  once through the journal, recovered interrupted capture, and replayed five
+  synthetic observations without worker redispatch. These are historical, not
+  executions in this guard-verification trial.
+- The seven mutation-event gaps, broader sandbox/OS isolation, nonempty adopted
+  memory use, real-data operation and real five-task A/B improvement remain open.
 
 ## Genuine remaining work
 
