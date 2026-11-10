@@ -82,3 +82,12 @@ policy・採点器ID／版／protocolを固定し、完了済み群は再送し�
 欠落・timeout・結果不明は固定分母と明示状態に残します。全費用項目は合成ゼロ／
 計測不能を区別し、実費節約・性能改善・採用合格とは表示しません。
 **重点CI5項目合格・未マージ。** 実際の取得固定、論文課題セット、実agent接続、統計評価は未完です。
+
+## Gate 4B execution-count correction
+
+The evidence-only push unexpectedly triggered CI42778493776 at head568cccb.
+It repeated the SAME five cases, 0.168s, all passed, wheel success.
+**Actual cumulative trial count:10 case executions / 2 invocations, budget exhausted.**
+Local0. Cancellation was attempted but the run had already completed; it was not cancelled.
+Earlier5/1 statements describe the first observation only. No more tests.
+This correction is docs-only and uses GitHub's commit-message skip-ci support to avoid a third run.

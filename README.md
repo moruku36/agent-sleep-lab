@@ -98,6 +98,15 @@ The three repositories remain independently usable. Optional integration follows
 [CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265):
 code head `7902b59bd21fcef83c82f5c6cf086222331428f5`, Ubuntu / Python 3.13.18.
 **Five new cases / one invocation, 0.149 s, all passed**, wheel succeeded.
-Local tests zero, no rerun. Documentation-only evidence update triggers no extra CI.
+Local tests zero; see the execution-count correction for a duplicate CI run. A documentation push unexpectedly triggered another run; see the execution-count correction below.
 Overall estimate about40% after focused comparison-infrastructure acceptance, not
 performance evaluation. Paper fixture, real retrieval wiring and one agent integration remain pending.
+
+## Gate 4B execution-count correction
+
+The evidence-only push unexpectedly triggered CI42778493776 at head568cccb.
+It repeated the SAME five cases, 0.168s, all passed, wheel success.
+**Actual cumulative trial count:10 case executions / 2 invocations, budget exhausted.**
+Local0. Cancellation was attempted but the run had already completed; it was not cancelled.
+Earlier5/1 statements describe the first observation only. No more tests.
+This correction is docs-only and uses GitHub's commit-message skip-ci support to avoid a third run.
