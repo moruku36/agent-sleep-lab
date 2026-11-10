@@ -395,3 +395,71 @@ def build_rollback_receipt(
     }
     data = encode_artifact("rollback_receipt", doc)
     return data, sha256_hex(data)
+
+
+def build_forget_request(
+    *,
+    operation_id: str,
+    run_id: str,
+    scope: dict[str, str],
+    expected_policy_revision: int,
+    memory_ids: Collection[str] = (),
+    event_ids: Collection[str] = (),
+    root_ids: Collection[str] = (),
+) -> tuple[bytes, str]:
+    """Canonical LOGICAL-forget request bytes and digest. Targets are explicit IDs only (sorted,
+    unique, at most 16 per kind, 32 in total); they are resolved against trusted local rows of
+    the exact scope by the writer. Not a physical-deletion request. run_id is an audit label."""
+    for values in (memory_ids, event_ids, root_ids):
+        if isinstance(values, (str, bytes)):
+            raise TypeError("targets must be collections of id strings")
+    doc = {
+        "schema_version": "agent-sleep-forget-request/1",
+        "operation_id": operation_id,
+        "run_id": run_id,
+        "scope": dict(scope),
+        "expected_policy_revision": expected_policy_revision,
+        "targets": {
+            "memory_ids": sorted(set(memory_ids)),
+            "event_ids": sorted(set(event_ids)),
+            "root_ids": sorted(set(root_ids)),
+        },
+    }
+    data = encode_artifact("forget_request", doc)
+    return data, sha256_hex(data)
+
+
+def build_forget_receipt(
+    request_bytes: object, *, resulting_policy_revision: int, resulting_policy_sha256: str,
+    added_exclusions: Mapping[str, Collection[str]], impact_sha256: str,
+    affected_event_count: int, affected_memory_count: int, affected_snapshot_ref_count: int,
+    now: datetime,
+) -> tuple[bytes, str]:
+    """Pure builder for the receipt persisted in the same transaction as the policy revision.
+    It carries IDs and counts only, never raw source or memory text."""
+    request = parse_canonical("forget_request", request_bytes)
+    if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError("now must be a timezone-aware datetime")
+    doc = {
+        "schema_version": "agent-sleep-forget-receipt/1",
+        "operation_id": request["operation_id"],
+        "run_id": request["run_id"],
+        "request_sha256": sha256_hex(bytes(request_bytes)),  # type: ignore[arg-type]
+        "scope": request["scope"],
+        "expected_policy_revision": request["expected_policy_revision"],
+        "resulting_policy_revision": resulting_policy_revision,
+        "resulting_policy_sha256": resulting_policy_sha256,
+        "added_exclusions": {k: sorted(added_exclusions[k])
+                             for k in ("memory_ids", "event_ids", "root_ids")},
+        "impact": {
+            "impact_sha256": impact_sha256,
+            "affected_event_count": affected_event_count,
+            "affected_memory_count": affected_memory_count,
+            "affected_snapshot_ref_count": affected_snapshot_ref_count,
+        },
+        "outcome": "logically_forgotten",
+        "physical_erasure": "not_performed",
+        "committed_at": now.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    data = encode_artifact("forget_receipt", doc)
+    return data, sha256_hex(data)

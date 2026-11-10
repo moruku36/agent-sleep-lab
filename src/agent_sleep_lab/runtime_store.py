@@ -422,28 +422,34 @@ class RuntimeStore(EvidenceStore):
         now = self._now()
         try:
             with self._immediate():
-                current = int(self._rows("SELECT COALESCE(MAX(revision), 0) FROM policy_revisions")[0][0])
-                if current != expected_revision:
-                    raise ConflictError(
-                        "policy.revision_conflict",
-                        f"current policy revision is {current}, expected {expected_revision}",
-                    )
-                previous = self.current_policy().document if current else None
-                doc = boundary.build_policy(body, revision=current + 1, now=now)
-                data = encode_artifact("policy", doc)
-                if previous is not None and _exclusion_removed(previous, doc):
-                    raise ContractViolation(
-                        "policy.exclusion_removed", "a policy revision may not drop an exclusion"
-                    )
-                digest = sha256_hex(data)
-                self._db().execute(
-                    "INSERT INTO policy_revisions (revision, policy_sha256, policy_bytes) "
-                    "VALUES (?, ?, ?)",
-                    (current + 1, digest, data),
-                )
-                return PolicyState(current + 1, digest, doc)
+                return self._set_policy_locked(boundary, body, expected_revision, now)
         except sqlite3.Error as exc:
             raise StorageError("storage.write_failed", f"write failed, rolled back ({exc})") from None
+
+    def _set_policy_locked(
+        self, boundary: ControlBoundary, body: object, expected_revision: int, now: datetime
+    ) -> PolicyState:
+        """CAS + monotonic publish; the caller owns the surrounding BEGIN IMMEDIATE transaction."""
+        current = int(self._rows("SELECT COALESCE(MAX(revision), 0) FROM policy_revisions")[0][0])
+        if current != expected_revision:
+            raise ConflictError(
+                "policy.revision_conflict",
+                f"current policy revision is {current}, expected {expected_revision}",
+            )
+        previous = self.current_policy().document if current else None
+        doc = boundary.build_policy(body, revision=current + 1, now=now)
+        data = encode_artifact("policy", doc)
+        if previous is not None and _exclusion_removed(previous, doc):
+            raise ContractViolation(
+                "policy.exclusion_removed", "a policy revision may not drop an exclusion"
+            )
+        digest = sha256_hex(data)
+        self._db().execute(
+            "INSERT INTO policy_revisions (revision, policy_sha256, policy_bytes) "
+            "VALUES (?, ?, ?)",
+            (current + 1, digest, data),
+        )
+        return PolicyState(current + 1, digest, doc)
 
     # ---- eligibility (reads only; designed to run inside the future adoption transaction)
 

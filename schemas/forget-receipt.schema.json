@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Sleep Lab logical-forget receipt (Gate 3, agent-sleep-forget-receipt/1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "operation_id",
+    "run_id",
+    "request_sha256",
+    "scope",
+    "expected_policy_revision",
+    "resulting_policy_revision",
+    "resulting_policy_sha256",
+    "added_exclusions",
+    "impact",
+    "outcome",
+    "physical_erasure",
+    "committed_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "agent-sleep-forget-receipt/1"},
+    "operation_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "run_id": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "task_family"],
+      "properties": {
+        "project": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "task_family": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+      }
+    },
+    "expected_policy_revision": {"type": "integer", "minimum": 1, "maximum": 2147483646},
+    "resulting_policy_revision": {"type": "integer", "minimum": 2, "maximum": 2147483647},
+    "resulting_policy_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "added_exclusions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memory_ids", "event_ids", "root_ids"],
+      "properties": {
+        "memory_ids": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}},
+        "event_ids": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}},
+        "root_ids": {"type": "array", "maxItems": 16, "uniqueItems": true, "items": {"type": "string", "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}}
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["impact_sha256", "affected_event_count", "affected_memory_count", "affected_snapshot_ref_count"],
+      "properties": {
+        "impact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "affected_event_count": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "affected_memory_count": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "affected_snapshot_ref_count": {"type": "integer", "minimum": 0, "maximum": 10000000}
+      }
+    },
+    "outcome": {"const": "logically_forgotten"},
+    "physical_erasure": {"const": "not_performed"},
+    "committed_at": {"type": "string", "maxLength": 20, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"}
+  }
+}
