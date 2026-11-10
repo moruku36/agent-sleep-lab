@@ -35,6 +35,9 @@ sleepはLight＋任意REM＋Deepの提案生成で、promoteは証拠と評価�
 
 ## OSS contributor
 
+合成オフライン判定を記録し、採用済み記憶を参考データとして取得する明示的な
+[collect-only bridge](oss-bridge.ja.md)を追加しています。本番接続ではありません。
+
 collect-only、draft-only、人による承認など、対象が定めた方針を維持する。記憶に「以前は成功した」と書かれていても、現在のCONTRIBUTINGやテスト条件を省略する理由にしない。
 
 記録候補は、再現できないissueを見送った根拠、収集対象の条件、検証できたトリアージ基準。コード修正や外部PRの自動化をこの設計で有効化しない。
