@@ -48,34 +48,47 @@ GitHubの読取りで2026-11-10T15:34:08Zのマージを確認しました。
 CI結果はここには記録していません。途中のoffline workerを保全draftとして
 マージしたもので、動作する接続checkerではありません。
 
+[PR #27](https://github.com/moruku36/agent-sleep-lab/pull/27)も所有者が**マージ済み**です。
+merge commitは`93ddb1a070c6ffdee65cd0809eea5c8ae68203c5`、対象ソースは
+`442b7ea1b4f67c878d67599a42bde6864604810b`。
+GitHubで2026-11-10T15:50:40ZのマージとPR CI（Python 3.11／3.13）の合格を確認しました。workerの入力検証と読込み契約テストの追加であり、
+動作する接続checkerではありません。
+
 ## 今回の開発branch
 
-PR #26のmerge commitを基点とする`feat/oss-offline-worker-contract`です。
-workerは引き続き**未完成のdraft**であり、動作する接続checkerではありません。
+PR #27のmerge commitを基点とする`feat/oss-offline-parent-checker`です。
 
-- 途中の[offline worker](../src/agent_sleep_lab/oss_offline_worker.py)の入力検証を強化。
-  payloadの完全一致key、上限付き小文字hex、項目ごとのbyte上限、厳格JSON
-  （重複key・非有限数・BOM・不正UTF-8を拒否）、合成experience参考bundleの完全一致keyと
-  件数／snapshot照合、組込み合成課題byteのみ受理。
-- 読込みはcompile直前にsource hashを再照合し、mapping順ではなくレビュー済み順を使い、
-  全sourceのcompile後にだけ実行し、同名moduleが既にあるprocessを拒否します。
-  worker自身の`__future__`指定がpin済みコードへ漏れる点も修正しました。
-- **[契約テスト](../tests/test_oss_offline_worker.py)21件を追加、全合格**。
-  入力検証と読込みの単体動作をテスト用の代替sourceで確認し、対象コードは実行しません。
-- 三段階を区別します。**構文／import・単体動作**は下記回帰で合格。
-  **実際の対象接続**（`run()`・guard・pin済み対象source）は未実行・未検証です。
-- 親checker、対象checkout／commit検証、bridge／journal接続、一気通貫の実行は未実装です。
-  埋込みsource pinの独立検証も未実施です。bundleのkey集合は取得契約のローカル複製で
-  乖離検出テストはなく、正規化byteやstore由来の確認もしません。
-  実データには使用しないでください。
-- guardは敵対的Pythonのsandboxではなく、境界テストも未実施です。
-  参考byteは対象notesへ代入しますが、`llm=None`のtriageは意味的に利用しません。
-  記憶の効果や本番接続を示すものではありません。
-- 今回の改訂はClaude Codeで作成しました。coordinatorが正常完了のterminal受領
-  （`is_error=false`、`terminal_reason=completed`）を取得し、canonical modelは
-  `claude-fable-5-2`（Fable 5.2）、providerは`firstParty`と確認しました。
-  permission denial・subagentはなく、別モデルへの切替はしていません。PR #26の以前の試行はCodex CLI `gpt-6.1-sol`／`xhigh`指定で、
-  モデル受領なしにtimeoutしました。
+- stdlibの[親checker／consumer](../src/agent_sleep_lab/oss_offline_parent.py)を追加。
+  上限付き読取り専用gitで明示root、ローカルorigin申告、固定commit、11件のsource hashを
+  照合します。Git objectからbyteを固定し、worktreeファイルの読込みや対象checkoutへの
+  書込みは行いません。
+- 組込み合成課題と上限付き正規化済みexperience参考byteだけを受理。
+  一時cwd・最小環境・shellなし・timeout・入出力上限付きの新しい
+  `python -I -B` workerを1回起動し、出力protocolとsource／task／参考／notesを照合。
+- journal互換consumerの受領は未確認自己申告です。注入されたworker commandは代替と明示。
+  配信確認、意味的記憶利用、採用、改善の証明にはしません。
+- coordinatorの差分レビュー後、**実際のpin済みソースによるオフライン実行が1回合格**。
+  ローカルrepoのcommit `e40b39c6258ac5a4446c38246bdfd7f5dc5dbf7b`について、
+  Git blob 11件すべてが埋込みSHA-256と一致しました。実際の収集・digest・一時ledger経路で、
+  candidate／低得点skip／pending LLM／重複skip／infra errorの5判定とpending 1件を確認。
+- 参考は空の合成adoption storeから実際に取得し、record 0件・active snapshotなしでした。
+  返った5判定を同じ一時合成storeへ`CollectOnlyBridge`経由でcaptureしました。
+  記憶・採用・検証／評価受領は作成していません。
+- 合成入力での固定コード実行とcapture契約の接続確認であり、**採用記憶の利用確認ではありません**。
+  参考は`Target.notes`へ到達しますが、`llm=None`では意味的利用されません。
+  受入script／artifactはローカルのcoordinator記録であり、可搬な回帰や本番導入ではありません。
+- 残り：bridge／journal／consumerの一気通貫orchestration、journalとworker（32,768 byte）の
+  上限整合、bundle key集合の乖離検出、汎用consumerのstore由来束縛、
+  guard境界の独立テスト、空でない採用記憶の利用、実データの許可契約。
+  guardは敵対的Pythonのsandboxではありません。originは書換え可能で認証済み識別ではなく、
+  敵対的Git設定も未検証です。
+- Claude Codeの正常完了をcoordinatorのterminal受領で確認：
+  `is_error=false`、`terminal_reason=completed`、canonical model
+  `claude-fable-5-2`、provider `firstParty`、permission denial・subagentなし。
+  別モデルへの切替なし。coordinatorは実装前に両READMEと設計／評価文書を読みましたが、
+  coding worker自身はその4文書をすべて読んではいません。
+- PR #27の厳格入力／loader契約と代替sourceの単体21件はマージ済み基盤です。
+  今回の実オフライン受入と新規親契約10件とは区別します。
 
 以下はPR #25でマージ済みです。
 
@@ -98,18 +111,19 @@ workerは引き続き**未完成のdraft**であり、動作する接続checker�
 
 ## 今回branchの検証
 
-- 既存のPython 3.13.18検証環境で**全276項目／ローカル全件1回、全合格、13.446秒**。
-  workerの単体／契約テスト新規21件を含みます。install・ハーネスの有料推論はありません。
-- **相対ファイルリンク364件／Markdown 76ファイル合格**。anchorと外部URLは対象外です。
-  今回featureのCIは未実行です。
-- 履歴（今回の編集前、PR #26のbranch）：Python 3.13.18で既存の全255項目／1回が
-  13.415秒で合格、相対ファイルリンク362件／Markdown 76ファイル合格。
-  これらはworkerを実行しておらず、今回branchの検証ではありません。
-- workerの入力検証と代替sourceの読込みは単体レベルのみ検証済みです。
-  実際の`run()`、guard、対象ソース実行、一気通貫の接続は未検証です。
-- PR #25の以前の255項目／13.588秒とPR #24の247項目／12.183秒は履歴であり、
-  今回試行の実行回数には含めません。
-- 5課題の実A/B、実モデルの性能改善は未確認です。
+- Python 3.13.18で**全286項目／ローカル全件1回、14.081秒で合格**。
+  親checker新規10件と既存worker 21件を含みます。新規回帰は代替source・git応答・processを
+  使用し、対象checkout不要、ネットワーク／モデル呼出しなしです。
+- 別のローカル受入：実pin済みworker 1回、合成5判定のcapture、
+  採用記憶0件・検証／評価受領0件。worker出力SHA-256：
+  `fb0503a72112677b5610a5471f378578539d1dc43c4906704c94ca51ef8266af`。
+  回帰項目として数えず、回帰内での繰返しもしていません。
+- 文書：**相対ファイルリンク362件／Markdown 76ファイル合格**。
+  anchor・外部URLは対象外。空白差分検査も合格。feature CI未実行。
+- 履歴：PR #27のローカル全276項目／1回13.446秒、相対リンク364件／Markdown 76ファイル。
+  PR #26は255項目／1回13.415秒、相対リンク362件／76ファイル。今回試行の実行ではありません。
+- guardの拒否境界、journal一気通貫dispatch、実データ利用、5課題実A/B、
+  実モデル性能改善は未確認です。
 
 ## 本当に残っていること
 
