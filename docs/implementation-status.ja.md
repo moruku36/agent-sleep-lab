@@ -75,7 +75,47 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-所有者がマージした[PR #34](https://github.com/moruku36/agent-sleep-lab/pull/34)を
+所有者がマージした[PR #35](https://github.com/moruku36/agent-sleep-lab/pull/35)を
+基点とする`feat/oss-verdict-evaluation`です。merge
+`7dc833f14034087b1559eb6ffcef71cf2675e582`、ソース
+`c9d7d5e18723ee7858972a9bb3d99013bcb31e27`。GitHubでMERGEDと
+PR CIのPython 3.11／3.13両check合格を確認しました。
+
+- [厳格な判定parserと固定fixture評価](../src/agent_sleep_lab/oss_verdict_evaluation.py)を追加。
+  元OSS parserと同一ではなく、意図的に厳格な部分集合です。
+  JSON全体、boolのaccept、空でない上限内の理由文だけを受け、
+  重複key、数値からの理由変換、前後の文章、非有限数、surrogate、追加fieldを拒否します。
+  エラーは未信頼本文を含まない有限codeです。
+- 任意manifestをplan登録時に固定。呼出し前に、合成の正解label、task hashと課題番号、
+  evaluator／parser／strict JSON実装hash、固定target sourceと採点条件を束縛します。
+  labelはprovider promptへ渡しません。後付け・変更を拒否し、
+  旧未採点planはschema移行せず未採点のままです。
+- reportで解析済み判定・不正判定・未完了／結果不明を区別します。
+  不正な完了返答は再送せず0点。未実行／結果不明から比較差を作りません。
+  現在文脈が失効すると理由文と点数を非表示にし、実装hash不一致では勝手に再採点しません。
+  1つの合成fixtureの差を科学的効果とは扱いません。
+- [新規回帰8件](../tests/test_oss_verdict_evaluation.py)を追加。
+  **ローカル全339件が1回で合格**（Python 3.13、18.845秒）。
+  strict JSONと課題番号の束縛補修後、関連8件（1.168秒）と16件（2.725秒）も合格。
+  合計363ケース実行／3起動で、重複なしは339件です。
+- 別オフライン受入では実際の固定sourceと捕捉promptを使用し、返答だけ模擬にしました。
+  固定parserとの3例で1例一致・2例を意図的に厳格側で拒否。
+  実capture→片側保存→reopen→次群→再掲→失効後の非表示まで合格し、
+  1受入あたり模擬呼出し2回。課題番号の束縛前後に2回実施したため、
+  差分例は計6実行／end-to-end fixtureは計2回です。作った差であり、実modelの性能ではありません。
+- worker来歴：`meta/muse-wonder-1.0`を明示したレビュー1回はツール側で270秒timeout。
+  応答・正常完了・解決済みmodel／費用の受領は未取得です。読取照合でprocessは該当なしですが、
+  それだけでは遠隔の結果を確定できません。再試行・代替workerなし。
+  coordinatorが許可済み実装・レビュー・検証を続行し、Muse正常完了とは報告しません。
+- [契約と制限](oss-verdict-evaluation.md)：実推論、有料効果計測、採用、target変更、
+  default／認証／schedule／mergeは未実施。labelは認証された正解ではなく合成fixtureで、
+  理由の真偽・品質も未検証。残りは独立に根拠付けた評価集合、複数課題集計、
+  費用承認下の実接続確認、使用量／費用schemaと実際の対応比較です。
+  初期版は引き続き暫定**30〜35%**です。
+
+## PR #35でマージ済みの永続実行journal
+
+履歴：所有者がマージした[PR #34](https://github.com/moruku36/agent-sleep-lab/pull/34)を
 基点とする`feat/oss-durable-prompt-execution`です。merge
 `4492cb05a5aa057b1905753834bd0bcbb0d84f81`、ソース
 `c7071b43e30f95f0b3a7b59b9720f50048b0fbec`。GitHubでMERGEDと

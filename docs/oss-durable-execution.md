@@ -65,9 +65,12 @@ Replacing an adapter must never retry an interrupted or terminal arm.
 - Source/worker/store labels are caller-controlled, not authenticated authority.
 - Usage/cost remain unavailable; byte bounds are not generation-token or monetary
   caps. Subprocess output is buffered before post-output validation.
-- Replies are raw text, not parsed OSS verdicts or evaluator/adoption receipts.
-  No live inference, actual target acceptance, paid effect evaluation, CLI command,
-  default-model change, new credentials, schedules or merge occurs in these tests.
+- Execution replies remain raw text, not evaluator/adoption authority. Optional
+  [strict verdict parsing and frozen fixture scoring](oss-verdict-evaluation.md)
+  now attach a separate report-time result to predeclared manifests; plans without
+  one remain unscored. Synthetic scoring is not live effect evidence.
+  No live inference, paid effect evaluation, CLI command, default-model change,
+  new credentials, schedules or merge occurs in these tests.
 
 [Eight regression cases](../tests/test_oss_execution_journal.py) cover restart/
 replay, interruption, revocation before/after reply, foreign DB refusal, frozen
