@@ -21,6 +21,14 @@ GitHubの読取りでマージと
 Python 3.11／3.13それぞれ全241件合格（合計482実行／matrix 2回）、
 相対ファイルリンク339件、wheelビルド合格です。CIの有料API呼出しは0です。
 
+[PR #24](https://github.com/moruku36/agent-sleep-lab/pull/24)も**マージ済み**です。
+merge commitは`2117e96fcad631f69422541b6a6dbad9c6c025ed`、
+ソースは`ab05819d253d15ed7e3dc733f52efd4b034df604`。
+専用merge tool停止後に所有者がマージしました。
+[PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42801027617)の両checkと
+[main workflow](https://github.com/moruku36/agent-sleep-lab/actions/runs/42801229632)は成功です。
+合成collect-only bridgeの追加であり、本番agent接続ではありません。
+
 基盤は合成の証拠・出典・policy・受領、原子的な採用、取得、rollback／論理忘却、
 本文・hash付きv2 Light／Deep、生成candidate、明示CLI、MiMo adapter、
 永続checkpoint、同一A/B拒否、比較不可の診断モード、手動handoff、停止後の復旧です。
@@ -29,7 +37,15 @@ Python 3.11／3.13それぞれ全241件合格（合計482実行／matrix 2回）
 
 ## 今回の開発branch
 
-PR #23のmerge commitを基点とする`feat/offline-agent-memory-bridge`です。
+PR #24のmerge commitを基点とする`feat/reference-use-journal`です。
+
+- [参考記憶の受け渡しjournal](reference-use.ja.md)を追加。上限付きtask／参考byteと
+  対象・consumer識別を固定し、呼出し前の意図永続化、CAS、結果不明時の再実行防止、
+  呼出し前後の文脈照合を行います。
+- 有効な返答はhash付きで保持しますが、受領は未確認自己申告です。
+  `delivery_and_use_verified`は常にfalseで、意味的な利用や性能改善の結論ではありません。
+
+以下はPR #24でマージ済みです。
 
 - 既存OSS Contributorの`TriageDecision`辞書契約に対応する、
   明示的な[collect-only bridge](oss-bridge.ja.md)を追加。
@@ -43,13 +59,12 @@ PR #23のmerge commitを基点とする`feat/offline-agent-memory-bridge`です�
 
 ## 今回branchの検証
 
-- 既存のPython 3.13 wheel検証環境で、**全247項目／1回、全合格、12.183秒**。
-  新規bridgeの6項目を含みます。環境の新規作成・変更はしていません。
-- 途中のsystem Pythonはjsonschemaがなく本体実行0件。一般開発環境でbridge 6件を
-  実行し、受領テーブル名を誤ったテスト1件がerrorでした。修正後の全件回帰は合格です。
-  今回合計253項目実行／本体を実行した呼出し2回＋loadのみ失敗1回。
+- 既存のPython 3.13 wheel検証環境で、**全255項目／1回、全合格、13.588秒**。
+  新規journalの8項目を含みます。環境の新規作成・変更、今回試行の再実行はありません。
+- PR #24の以前のローカル結果は247項目／全件1回、全合格、12.183秒でした。
+  過去の基点の証拠で、今回branchの新しい実行回数には含めません。
 - 新branchのCIは未実行です。上記マージ基点のCIと混同しません。
-- **相対ファイルリンク349件／Markdown 74ファイル合格**。anchorと外部URLは対象外です。
+- **相対ファイルリンク360件／Markdown 76ファイル合格**。anchorと外部URLは対象外です。
 - 5課題の実A/B、実モデルの性能改善は未確認です。
 
 ## 本当に残っていること
@@ -62,7 +77,8 @@ PR #23のmerge commitを基点とする`feat/offline-agent-memory-bridge`です�
    [架空の開発課題](../examples/paper-pilot/README.md)は準備のみで独立holdoutではなく、
    完全一致fixture採点を科学的な論文品質の証明とはしません。
 3. 既存agent一つの実capture／取得利用を確認すること。オフラインadapter契約と
-   手動handoffは準備です。実データ境界、配信・利用記録は未完です。
+   手動handoffは準備です。実データ境界と実配信・利用検証は未完です。
+   今回のローカルjournalは実行記録であり、認証済みの利用証明ではありません。
 4. raw関連度順位付け、物理purge、広い本番障害受入も未完です。
    オフラインテスト合格で完了とはしません。
 

@@ -60,6 +60,10 @@ No target scorer, threshold, pending state, ledger or collect-only gate changes.
 The bridge does not execute the consumer: returning reference bytes is not proof
 that an agent received or used them. Delivery/use verification remains required.
 
+Use the optional [reference dispatch journal](reference-use.md) to freeze the
+exact bundle and record one explicit local consumer call. Its receipt remains
+unreviewed and is not verified delivery/use.
+
 ## Offline verification and next boundary
 
 Contract regressions cover exact capture/replay without adoption, untrusted
