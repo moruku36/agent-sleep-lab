@@ -1,7 +1,8 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: 3 focused Gate 3 rollback cases (UNEXECUTED until the single PR CI run). The 4 scoped-
-retrieval cases remain selectable by explicit name. Pass explicit unittest names to select checks for another change.
+Default: 3 focused Gate 3 audited-forgetting cases (UNEXECUTED; to run once in PR CI ONLY after the
+owner approves +3, which would bring the Gate 3 trial to 13). The rollback (merged, PR #14) and
+scoped-retrieval cases remain selectable by explicit name. Pass explicit unittest names to select checks for another change.
 --list validates/selects without executing test bodies. Historical tests remain available, but
 this entry never starts a full discovery run. The 10-case cap is unchanged.
 """
@@ -14,9 +15,9 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_rollback.RollbackTests.test_scope_bound_rollback_then_normal_adoption",
-    "test_rollback.RollbackTests.test_current_revocation_refuses_whole_rollback_and_leaves_history",
-    "test_rollback.RollbackTests.test_stale_head_conflict_and_exact_replay_survive_reopen",
+    "test_forgetting.ForgettingTests.test_same_scope_impact_preserves_unrelated_and_commit_is_atomic",
+    "test_forgetting.ForgettingTests.test_forgotten_descendant_cannot_resurrect_in_retrieval_adoption_or_rollback",
+    "test_forgetting.ForgettingTests.test_policy_cas_id_conflict_and_ack_replay_survive_reopen",
 )
 
 

@@ -57,6 +57,9 @@ ARTIFACT_KINDS: dict[str, tuple[str, str]] = {
     # Gate 3 control recovery. Separate kinds: adoption v1/v2 artifacts are untouched.
     "rollback_request": ("agent-sleep-rollback-request/1", "rollback-request.schema.json"),
     "rollback_receipt": ("agent-sleep-rollback-receipt/1", "rollback-receipt.schema.json"),
+    # Gate 3 audited LOGICAL forgetting (exclusion additions only; not physical erasure).
+    "forget_request": ("agent-sleep-forget-request/1", "forget-request.schema.json"),
+    "forget_receipt": ("agent-sleep-forget-receipt/1", "forget-receipt.schema.json"),
 }
 
 # Fixed allowlist: artifact identifiers never become caller-selected paths or URLs.
@@ -157,6 +160,18 @@ def _adoption_problems(kind: str, doc: dict[str, Any], problems: list[Problem]) 
     elif kind == "rollback_receipt":
         if doc["snapshot_sha256"] == doc["parent_snapshot_sha256"]:
             bad("contract.rollback_noop", "a rollback receipt must restore a different snapshot")
+    elif kind in ("forget_request", "forget_receipt"):
+        lists = doc["targets"] if kind == "forget_request" else doc["added_exclusions"]
+        total = 0
+        for field in ("memory_ids", "event_ids", "root_ids"):
+            if lists[field] != sorted(lists[field]):
+                bad("contract.forget_not_canonical", f"{field} must be sorted")
+            total += len(lists[field])
+        if total < 1 or total > 32:
+            bad("contract.forget_target_count", "between 1 and 32 explicit targets are required")
+        if (kind == "forget_receipt"
+                and doc["resulting_policy_revision"] != doc["expected_policy_revision"] + 1):
+            bad("contract.forget_revision", "a forget receipt advances the policy by exactly one")
 
 MAX_ARTIFACT_BYTES = 256 * 1024
 

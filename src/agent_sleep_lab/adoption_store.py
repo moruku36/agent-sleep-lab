@@ -4,13 +4,21 @@ All commit-time decisions, payload writes, journal and scope head share ONE
 BEGIN IMMEDIATE transaction. Replay returns historical receipt bytes, not present
 permission to use a memory. v2 files require an explicit, atomic upgrade.
 
-``commit_rollback`` (Gate 3, UNEXECUTED until CI) adds explicit control recovery to a retained
+``commit_rollback`` (Gate 3, merged PR #14 with focused CI acceptance) adds explicit control recovery to a retained
 snapshot using the SAME v3 tables: no schema change, no migration. A rollback journal row stores
 the rollback request/receipt bytes with EMPTY manifest/source columns. Adoption request/receipt
 v1/v2 bytes and their replay are untouched.
+
+``plan_forget_impact`` / ``commit_forget`` (Gate 3, UNEXECUTED until CI) add audited LOGICAL
+forgetting on the SAME v3 layout: forget request/receipt rows also keep EMPTY manifest/source
+columns and are dispatched by exact schema_version. The writer appends exclusions (never removes
+one) as the next policy revision and stores the immutable request/receipt in the SAME BEGIN
+IMMEDIATE transaction. This is NOT physical deletion: append-only rows, old SQLite pages, backups
+and caller-held bundles keep the bytes. Purge/cache/index/diary cleanup is not implemented.
 """
 from __future__ import annotations
 
+import copy
 import os
 import sqlite3
 from dataclasses import dataclass
@@ -19,18 +27,21 @@ from functools import lru_cache
 from typing import Callable, Mapping
 
 from agent_sleep_lab.adoption_candidates import (
-    _memory_document, build_candidate, build_committed_receipt, build_rollback_receipt,
-    evidence_origin_failures, parse_canonical,
+    _memory_document, build_candidate, build_committed_receipt, build_forget_receipt,
+    build_forget_request, build_rollback_receipt, evidence_origin_failures, parse_canonical,
 )
+from agent_sleep_lab.validation import validate_bytes
 from agent_sleep_lab.strictjson import StrictJSONError, loads_strict_bytes
 from agent_sleep_lab.evidence_store import (
     APPLICATION_ID, _DDL, _Reader, _as_bytes, _connect, _header, _rollback,
 )
 from agent_sleep_lab.provenance import (
     CaptureBoundary, ConflictError, ContractViolation, StorageError,
-    parse_timestamp, sha256_hex,
+    canonical_json, parse_timestamp, sha256_hex,
 )
-from agent_sleep_lab.runtime_artifacts import EvaluatorBoundary, VerifierBoundary
+from agent_sleep_lab.runtime_artifacts import (
+    ControlBoundary, EvaluatorBoundary, VerifierBoundary, parse_artifact_bytes,
+)
 from agent_sleep_lab.runtime_store import (
     RuntimeStore, _EXTENSION_DDL, _begin, _check_supported_schema, _schema_rows,
 )
@@ -135,6 +146,32 @@ class AdoptionResult:
     receipt_sha256: str
 
 
+MAX_IMPACT_EVENTS = 4096
+MAX_IMPACT_MEMORIES = 4096
+MAX_IMPACT_SNAPSHOTS = 1024
+MAX_IMPACT_LINKS = 32768
+MAX_IMPACT_REFS = 16384
+_TARGET_FIELDS = ("memory_ids", "event_ids", "root_ids")
+
+
+@dataclass(frozen=True)
+class ForgetImpact:
+    """Deterministic dry-run plan. IDs, hashes and counts only: never source or memory text.
+
+    ``new_exclusions`` is what a commit would add (targets not already excluded). Affected
+    events/memories/snapshot references are DERIVED by ancestry and stay recorded unchanged; the
+    current policy hides them. This describes logical exclusion, not physical erasure."""
+    scope: dict
+    policy_revision: int
+    targets: dict
+    new_exclusions: dict
+    affected_event_ids: tuple
+    affected_memory_ids: tuple
+    snapshot_refs: tuple  # (snapshot_sha256, memory_id) for every member entry of the scope
+    current_head_affected: bool  # the current head holds an ACTIVE affected member
+    impact_sha256: str
+
+
 class AdoptionStore(RuntimeStore):
     """v3 extension; configured boundaries are trusted local simulations, not credentials."""
 
@@ -196,6 +233,11 @@ class AdoptionStore(RuntimeStore):
                 operation_id, req_sha, req_data, rec_sha, rec_data,
                 _as_bytes(manifest_blob), _as_bytes(source_blob),
             )
+        if self._is_forget(req_data):
+            return self._resolve_forget(
+                operation_id, req_sha, req_data, rec_sha, rec_data,
+                _as_bytes(manifest_blob), _as_bytes(source_blob),
+            )
         req = parse_canonical("adoption_request", req_data)
         rec = parse_canonical("committed_receipt", rec_data)
         manifest_data, source_data = _as_bytes(manifest_blob), _as_bytes(source_blob)
@@ -232,6 +274,67 @@ class AdoptionStore(RuntimeStore):
         except StrictJSONError:
             return False  # the adoption parser then reports it as corrupt
         return isinstance(doc, dict) and doc.get("schema_version") == "agent-sleep-rollback-request/1"
+
+    @staticmethod
+    def _is_forget(req_data):
+        try:
+            doc = loads_strict_bytes(req_data)
+        except StrictJSONError:
+            return False
+        return isinstance(doc, dict) and doc.get("schema_version") == "agent-sleep-forget-request/1"
+
+    def _resolve_forget(self, operation_id, req_sha, req_data, rec_sha, rec_data, manifest, source):
+        """Forget rows reuse the v3 journal columns; manifest/source must be empty. The row is bound
+        to the exact policy revision it published. Replay never re-applies anything."""
+        if manifest != b"" or source != b"":
+            raise StorageError("adoption.journal_corrupt", "forget journal carries adoption payloads")
+        req = parse_canonical("forget_request", req_data)
+        rec = parse_canonical("forget_receipt", rec_data)
+        expected = {
+            "operation_id": operation_id, "run_id": req["run_id"], "request_sha256": req_sha,
+            "scope": req["scope"], "expected_policy_revision": req["expected_policy_revision"],
+        }
+        if req["operation_id"] != operation_id or any(rec.get(k) != v for k, v in expected.items()):
+            raise StorageError("adoption.journal_corrupt", "forget receipt binding mismatch")
+        if any(not set(rec["added_exclusions"][f]) <= set(req["targets"][f]) for f in _TARGET_FIELDS):
+            raise StorageError("adoption.journal_corrupt", "forget receipt adds untargeted exclusions")
+        rows = self._rows(
+            "SELECT policy_sha256, policy_bytes FROM policy_revisions WHERE revision = ?",
+            (rec["resulting_policy_revision"],),
+        )
+        if not rows or rows[0][0] != rec["resulting_policy_sha256"]:
+            raise StorageError("adoption.journal_corrupt", "forget receipt policy revision mismatch")
+        policy_data = _as_bytes(rows[0][1])
+        if sha256_hex(policy_data) != rows[0][0]:
+            raise StorageError("adoption.journal_corrupt", "forget policy revision fails its hash")
+        try:
+            policy = parse_artifact_bytes("policy", policy_data)
+        except ContractViolation:
+            raise StorageError("adoption.journal_corrupt", "forget policy revision is invalid") from None
+        previous_rows = self._rows(
+            "SELECT policy_sha256, policy_bytes FROM policy_revisions WHERE revision = ?",
+            (req["expected_policy_revision"],),
+        )
+        if not previous_rows:
+            raise StorageError("adoption.journal_corrupt", "forget previous policy is absent")
+        previous_data = _as_bytes(previous_rows[0][1])
+        if sha256_hex(previous_data) != previous_rows[0][0]:
+            raise StorageError("adoption.journal_corrupt", "forget previous policy fails its hash")
+        try:
+            previous = parse_artifact_bytes("policy", previous_data)
+        except ContractViolation:
+            raise StorageError("adoption.journal_corrupt", "forget previous policy is invalid") from None
+        if (policy["revision"] != rec["resulting_policy_revision"]
+                or previous["revision"] != req["expected_policy_revision"]
+                or any(policy[k] != previous[k] for k in
+                       ("authorizations", "accepted_purposes", "accepted_partitions"))):
+            raise StorageError("adoption.journal_corrupt", "forget changed an unrelated policy value")
+        for field in _TARGET_FIELDS:
+            added = [i for i in req["targets"][field] if i not in previous["exclusions"][field]]
+            if (rec["added_exclusions"][field] != added
+                    or policy["exclusions"][field] != previous["exclusions"][field] + added):
+                raise StorageError("adoption.journal_corrupt", "forget policy delta differs from targets")
+        return req_sha, req_data, AdoptionResult("replayed", rec_data, rec_sha), rec
 
     def _resolve_rollback(self, operation_id, req_sha, req_data, rec_sha, rec_data, manifest, source):
         """Rollback rows reuse the v3 journal columns; manifest/source columns must be empty."""
@@ -516,3 +619,201 @@ class AdoptionStore(RuntimeStore):
             return result  # returned only after COMMIT
         except sqlite3.Error as exc:
             raise StorageError("storage.write_failed", f"rollback rolled back ({exc})") from None
+
+    # ---- audited logical forgetting (Gate 3, UNEXECUTED until CI)
+
+    def _stored_memory(self, memory_id, digest, blob):
+        data = _as_bytes(blob)
+        try:
+            doc = loads_strict_bytes(data)
+        except StrictJSONError:
+            doc = None
+        if (sha256_hex(data) != digest or not isinstance(doc, dict)
+                or doc.get("memory_id") != memory_id or not isinstance(doc.get("scope"), dict)
+                or not isinstance(doc.get("evidence"), list)
+                or not validate_bytes("memory", data).valid):
+            raise StorageError("adoption.memory_corrupt", "stored memory fails its binding")
+        return doc
+
+    def _check_forget_targets(self, scope, targets):
+        """Every target must be a trusted local row of EXACTLY this scope. Unknown and
+        other-scope targets are indistinguishable (one code), so a scope cannot probe or revoke
+        another scope's IDs."""
+        pair = (scope["project"], scope["task_family"])
+
+        def unavailable():
+            return ContractViolation("forget.target_unavailable", "a target is not a row of this scope")
+
+        for event_id in targets["event_ids"]:
+            rows = self._rows("SELECT project, task_family FROM evidence WHERE event_id = ?", (event_id,))
+            if not rows or tuple(rows[0]) != pair:
+                raise unavailable()
+        for root_id in targets["root_ids"]:
+            rows = self._rows(
+                "SELECT project, task_family, root_id FROM evidence WHERE event_id = ?", (root_id,))
+            if not rows or tuple(rows[0][:2]) != pair or rows[0][2] != root_id:
+                raise unavailable()  # must be an existing independent-or-generated ROOT event
+        # Expiry must not prevent forgetting, but corrupted target bindings do.
+        # This is an integrity check, not an authorization grant.
+        for event_id in set(targets["event_ids"]) | set(targets["root_ids"]):
+            if set(self.verify(event_id).failures) - {"authorization.expired"}:
+                raise StorageError("forget.target_corrupt", "target evidence fails integrity")
+        for memory_id in targets["memory_ids"]:
+            rows = self._rows(
+                "SELECT memory_sha256, memory_bytes FROM adoption_memories WHERE memory_id = ?",
+                (memory_id,))
+            if not rows or self._stored_memory(memory_id, rows[0][0], rows[0][1])["scope"] != scope:
+                raise unavailable()
+
+    def _impact_rows(self, sql, params, limit):
+        """Bound materialized rows; refuse excess rather than returning a partial plan."""
+        rows = self._rows(sql + " LIMIT ?", params + (limit + 1,))
+        if len(rows) > limit:
+            raise StorageError("forget.impact_too_large", "impact scan exceeds the synthetic limit")
+        return rows
+
+    def _forget_plan(self, scope, targets, policy):
+        """Shared by the dry run and the writer, so both see the identical deterministic plan.
+        Only the named IDs become exclusions; descendants and dependent memories are hidden by the
+        existing ancestor recheck, never by over-broad exclusion of shared or unrelated rows."""
+        self._check_forget_targets(scope, targets)
+        pair = (scope["project"], scope["task_family"])
+        current = policy.document["exclusions"]
+        new_exclusions = {f: tuple(i for i in targets[f] if i not in set(current[f]))
+                          for f in _TARGET_FIELDS}
+        events = self._impact_rows(
+            "SELECT event_id, root_id FROM evidence WHERE project = ? AND task_family = ?",
+            pair, MAX_IMPACT_EVENTS)
+        children = {}
+        for child, parent in self._impact_rows(
+                "SELECT l.child_id, l.parent_id FROM lineage l JOIN evidence e ON e.event_id = l.child_id "
+                "WHERE e.project = ? AND e.task_family = ?", pair, MAX_IMPACT_LINKS):
+            children.setdefault(parent, []).append(child)
+        wanted_roots = set(targets["root_ids"]) | set(targets["event_ids"])
+        pending = list(set(targets["event_ids"]) | set(targets["root_ids"])
+                       | {e for e, root in events if root in wanted_roots})
+        affected_events = set()
+        while pending:
+            event_id = pending.pop()
+            if event_id in affected_events:
+                continue
+            affected_events.add(event_id)
+            pending.extend(children.get(event_id, ()))
+        affected_memories = set(targets["memory_ids"])
+        for memory_id, digest, blob in self._impact_rows(
+                "SELECT memory_id, memory_sha256, memory_bytes FROM adoption_memories ORDER BY memory_id",
+                (), MAX_IMPACT_MEMORIES):
+            doc = self._stored_memory(memory_id, digest, blob)
+            if doc["scope"] != scope:
+                continue
+            if any(isinstance(e, dict) and e.get("event_id") in affected_events for e in doc["evidence"]):
+                affected_memories.add(memory_id)
+        refs, head_affected = [], False
+        head = self._head(scope)
+        for digest, blob in self._impact_rows(
+                "SELECT snapshot_sha256, snapshot_bytes FROM adoption_snapshots ORDER BY snapshot_sha256",
+                (), MAX_IMPACT_SNAPSHOTS):
+            data = _as_bytes(blob)
+            if sha256_hex(data) != digest:
+                raise StorageError("adoption.snapshot_corrupt", "snapshot hash mismatch")
+            snapshot = parse_canonical("candidate_snapshot", data)
+            if snapshot["scope"] != scope:
+                continue
+            for member in snapshot["members"]:
+                if member["memory_id"] in affected_memories:
+                    refs.append((digest, member["memory_id"]))
+                    if len(refs) > MAX_IMPACT_REFS:
+                        raise StorageError("forget.impact_too_large", "too many snapshot references")
+                    head_affected = head_affected or (digest == head and member["state"] == "active")
+        ordered = {
+            "scope": scope, "policy_revision": policy.revision,
+            "targets": {f: list(targets[f]) for f in _TARGET_FIELDS},
+            "new_exclusions": {f: list(new_exclusions[f]) for f in _TARGET_FIELDS},
+            "affected_event_ids": sorted(affected_events),
+            "affected_memory_ids": sorted(affected_memories),
+            "snapshot_refs": [list(r) for r in sorted(refs)],
+            "current_head_snapshot_sha256": head, "current_head_affected": head_affected,
+        }
+        return ForgetImpact(
+            scope=dict(scope), policy_revision=policy.revision,
+            targets={f: tuple(targets[f]) for f in _TARGET_FIELDS}, new_exclusions=new_exclusions,
+            affected_event_ids=tuple(ordered["affected_event_ids"]),
+            affected_memory_ids=tuple(ordered["affected_memory_ids"]),
+            snapshot_refs=tuple(sorted(refs)), current_head_affected=head_affected,
+            impact_sha256=sha256_hex(canonical_json(ordered)),
+        )
+
+    def plan_forget_impact(
+        self, *, scope: dict[str, str], memory_ids=(), event_ids=(), root_ids=(),
+    ) -> ForgetImpact:
+        """Read-only deterministic dry run: one deferred read transaction, no write, no ID consumed.
+        Same arguments on the same state give the same ``impact_sha256``."""
+        # Reuse the request contract for scope/ID/count validation; the placeholder IDs are discarded.
+        data, _ = build_forget_request(
+            operation_id="dry-run", run_id="dry-run", scope=scope, expected_policy_revision=1,
+            memory_ids=memory_ids, event_ids=event_ids, root_ids=root_ids)
+        doc = parse_canonical("forget_request", data)
+        db = self._db()
+        if db.in_transaction:
+            raise StorageError("forget.nested_transaction", "planning needs its own read transaction")
+        try:
+            db.execute("BEGIN")
+        except sqlite3.Error as exc:
+            raise StorageError("storage.busy_or_locked", f"cannot start read transaction ({exc})") from None
+        try:
+            _check_v3(db)
+            return self._forget_plan(doc["scope"], doc["targets"], self.current_policy())
+        finally:
+            _rollback(db)  # read-only: nothing to commit
+
+    def commit_forget(self, *, request_bytes: object, control: ControlBoundary) -> AdoptionResult:
+        """Audited LOGICAL forgetting. In ONE BEGIN IMMEDIATE transaction: operation lookup (exact
+        replay returns the historical receipt and never re-applies anything) -> policy revision CAS
+        -> exact-scope target resolution -> impact plan -> next policy revision that is the current
+        one plus the new exclusions (every other value preserved, stamped by the explicitly supplied
+        ``control`` boundary) -> immutable request/receipt journal row. Any failure leaves no
+        policy revision and no journal row. Head and history are never rewritten; the new
+        exclusions apply to retrieval, adoption and rollback at once. NOT physical deletion."""
+        if not isinstance(control, ControlBoundary):
+            raise TypeError("control must be a ControlBoundary")
+        req = parse_canonical("forget_request", request_bytes)
+        req_data = bytes(request_bytes)
+        req_sha = sha256_hex(req_data)
+        try:
+            with self._immediate():
+                _check_v3(self._db())
+                prior = self._resolve_operation(req["operation_id"])
+                if prior:
+                    if prior[0] != req_sha or prior[1] != req_data:
+                        raise ConflictError("adoption.operation_conflict", "operation ID already has different content")
+                    return prior[2]  # historical receipt; no policy write or present-time assertion
+                now = self._now()
+                policy = self.current_policy()
+                if policy.revision != req["expected_policy_revision"]:
+                    raise ConflictError("adoption.policy_conflict", "current policy revision differs")
+                impact = self._forget_plan(req["scope"], req["targets"], policy)
+                if not any(impact.new_exclusions.values()):
+                    raise ContractViolation("forget.no_new_exclusion", "every target is already excluded")
+                body = copy.deepcopy({k: policy.document[k] for k in
+                                      ("authorizations", "accepted_purposes", "accepted_partitions")})
+                body["exclusions"] = {  # additive: existing entries and order are kept
+                    f: list(policy.document["exclusions"][f]) + list(impact.new_exclusions[f])
+                    for f in _TARGET_FIELDS
+                }
+                state = self._set_policy_locked(control, body, policy.revision, now)
+                rec_bytes, rec_sha = build_forget_receipt(
+                    req_data, resulting_policy_revision=state.revision,
+                    resulting_policy_sha256=state.sha256, added_exclusions=impact.new_exclusions,
+                    impact_sha256=impact.impact_sha256,
+                    affected_event_count=len(impact.affected_event_ids),
+                    affected_memory_count=len(impact.affected_memory_ids),
+                    affected_snapshot_ref_count=len(impact.snapshot_refs), now=now,
+                )
+                self._db().execute(
+                    "INSERT INTO adoption_journal VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (req["operation_id"], req_sha, req_data, b"", b"", rec_sha, rec_bytes),
+                )
+                result = AdoptionResult("created", rec_bytes, rec_sha)
+            return result  # returned only after COMMIT
+        except sqlite3.Error as exc:
+            raise StorageError("storage.write_failed", f"forget rolled back ({exc})") from None

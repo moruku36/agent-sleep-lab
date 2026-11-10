@@ -2,7 +2,9 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-Last updated: 2026-11-10 JST. **Gate 1, Gate 2A, the Gate 2B receipt/policy helpers, pure candidate planning (PR #9), the synthetic durable-adoption core (PR #10) and the later run-ID/process additions (PR #11) are all MERGED; PR #12 merged documentation only** (PR #10, #11 and #12 merge states verified by fresh GitHub reads; PR #10 merge commit `629560858b5aef5423d75d90a71df99b6eec65d3`). **Full Gate 2B acceptance is not complete** (trusted run registration and broader fault fixtures remain). The old writer trial is closed: its final total was **19 case executions in 5 invocations, budget exhausted**. **Gate 3 scoped retrieval is MERGED ([PR #13](https://github.com/moruku36/agent-sleep-lab/pull/13), `9e3d1107f96034b61a812ab2a5abb1c95ef5eaba`; 4 local + 3 CI cases passed before merge, CI at head `90b3d9e`). A synthetic rollback slice is implemented but UNEXECUTED on `feat/gate-3-safe-rollback` (awaiting its limited CI; not merged); overall initial-version progress stays about 40% until its single 3-case PR CI run verifies it.** Deletion, evaluation-frozen retrieval, delivered-memory logging, full Gate 2B acceptance, Light/Deep, comparison evaluation and the adapter are pending.
+Last updated: 2026-11-10 JST. Gate 1/2A, Gate 2B helpers/adoption core, run audit labels, retrieval (PR #13) and rollback (PR #14) are merged. Full Gate 2B/3 acceptance is incomplete. [Audited logical forgetting](gate-3-forgetting.md) is implemented but **UNTESTED / not merged**.
+
+Latest verified milestone: PR #14 merged as `ab25b0036ca3a04de92a0df665a8731ee59f22a7`. Its [CI run](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078) passed 3 rollback cases once (0.452 s) and built the wheel at head `901ef2d`. Overall initial-version progress is **about 45%**. The SAME Gate 3 trial has now used **10/10 case executions in 3 invocations** (retrieval local 4 + CI 3 + rollback CI 3), exhausting its budget. Forgetting has **0 executed cases**. The proposed next step requires explicit approval for **+3 cases once in PR CI (13 total / 4 invocations)** before creating that PR; no local rerun. The old writer trial (19 cases / 5 invocations) and earlier full-suite records are historical, not verification of this change. [Review record](../reports/gate-3-forgetting-progress.md). No running sleep engine or measured performance improvement exists.
 
 ## Test-count history (dated, 2026-11-10) — superseded by the final total above
 
@@ -16,7 +18,7 @@ Future trials execute at most 10 selected cases total, counting local/CI/retries
 
 ## Overall progress estimate
 
-Approximately **40% (a rough 35–45% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts, candidate planning and the synthetic adoption core exist. Versioned audit labels and selected process boundaries are locally checked; registered-run integration, broader writer faults, full Gate 3 acceptance (including frozen evaluation retrieval), rollback/deletion, coordinator, evaluation runner and integration remain. Basic current-policy bounded retrieval is merged with focused acceptance; that was the last increase. The unexecuted rollback slice adds nothing to the estimate until its CI run is verified. The figure reflects delivered, verified capability, not test or file counts.
+Approximately **45%** of the initial version: capture → adoption → retrieval → Light/Deep → comparison evaluation → one existing-agent integration, excluding REM/diary/wider rollout. Focused retrieval and rollback are verified/merged; untested forgetting adds nothing to the estimate. Full Gate 2B acceptance, frozen retrieval, delivered-memory logging, sleep phases, evaluation runner and integration remain. This is scope-based judgment, not file/test counts or measured performance.
 
 ## Capability overview
 
@@ -30,8 +32,9 @@ Approximately **40% (a rough 35–45% range)** of the initial end-to-end version
 | Candidate snapshot from parent + operations | Implemented, locally accepted, merged via PR #9 | [Pure planning](gate-2b-candidates.md); 22 new tests, 174 combined; no database write/adoption |
 | Memory adoption and active-version updates | Synthetic core implemented, locally checked, merged (PR #10, #11) | [v3 writer](gate-2b-adoption.md); atomic journal/head, current receipts/policy and exact replay; versioned audit labels checked; registered-run integration/broader faults pending (full Gate 2B not complete) |
 | Scoped retrieval (read-only library) | Implemented, locally checked, **merged (PR #13)** | [Gate 3 slice](gate-3.md); 4 local cases (0.782 s) and 3 CI cases at head `90b3d9e` passed before merge; UTF-8 byte budget, no tokenizer; evaluation-frozen retrieval and delivered-memory logging pending |
-| Rollback (explicit control recovery) | **Implemented, UNEXECUTED**; branch `feat/gate-3-safe-rollback`, pending limited CI | [Gate 3 rollback](gate-3.md#safe-rollback-unexecuted-until-ci); restore a retained snapshot of the same scope with a new operation ID, CAS on head and policy, whole-or-nothing current revalidation; not a fresh adoption or evaluation claim; 3 cases reserved for one PR CI run |
-| Deletion / physical purge / cache cleanup | Not implemented | Non-resurrection under current exclusions in retrieval/adoption/rollback is by recheck only; no physical deletion or index/cache cleanup |
+| Rollback (explicit control recovery) | **Merged (PR #14)**, 3 CI cases passed | [Gate 3](gate-3.md#safe-rollback); head/policy CAS and whole-target current revalidation, not fresh adoption/evaluation |
+| Logical forgetting | **Implemented, UNTESTED** | [Contract](gate-3-forgetting.md); additive exclusions and atomic audit receipt |
+| Physical purge / cache cleanup | Not implemented | No erasure of content, history, backups or caller-held bundles |
 | Light/Deep candidate generation | Not implemented: planned Gate 4 | Manual coordinator with fake providers and recovery checks first |
 | Paper-curation A/B evaluation | Not implemented or executed: planned Gate 5 | Runner must retain all trials, failures and costs; no measured improvement |
 | Existing-agent integration | Not implemented or executed: planned Gate 6 | One target only after standalone acceptance |
@@ -72,13 +75,17 @@ Acceptance reports preserve observations made at each gate. This page also summa
 - 174 tests (152 prior + 22 new) and fresh outside-checkout installed-wheel checks passed. Publication/merge are recorded separately in the acceptance record and live PR.
 - Candidate `active` labels and receipt-format builders are not actual activation or proof of commit. The subsequent atomic-writer core is now locally checked; full Gate 2B acceptance remains pending.
 
-## Latest slice: Gate 3 safe rollback (implemented, UNEXECUTED)
+## Latest slice: audited logical forgetting (UNTESTED)
 
-[Rollback contract](gate-3.md#safe-rollback-unexecuted-until-ci): `AdoptionStore.commit_rollback` restores a retained, previously adopted snapshot of the same exact scope in one `BEGIN IMMEDIATE` transaction, with a new operation ID, explicit run audit label, expected head and expected policy revision. Every active target member is revalidated under the current authorization, expiry and exclusions; any failure refuses the whole rollback and leaves head and history unchanged. The rollback request digest and receipt are stored in the same transaction as the head so ACK loss resolves through operation lookup; exact replay returns the historical receipt and a same-ID different payload conflicts. New versioned artifacts `agent-sleep-rollback-request/1` / `-receipt/1`; adoption v1/v2 artifacts and replay are unchanged; no storage migration (v3 tables reused). **Rollback is control recovery, not fresh candidate adoption, and makes no performance or evaluation claim.** Three focused cases exist in `tests/test_rollback.py`; **none has been run**. They are the default of `tests/run_tests.py` and are reserved for one PR CI invocation. Not implemented: deletion/purge/cache cleanup, evaluation-frozen retrieval, delivered-memory logging, full Gate 2B acceptance, Light/Deep, comparison evaluation, adapter.
+[Contract](gate-3-forgetting.md) / [review record](../reports/gate-3-forgetting-progress.md). Impact dry run, current-policy CAS, atomic additive exclusions plus immutable receipt, lost-ACK resolution and exact replay are implemented. Content/history is retained. Three focused cases remain unexecuted; no PR/CI before an explicit budget increase.
+
+## Previous milestone: safe rollback (PR #14, merged)
+
+Restores a retained, previously adopted same-scope snapshot after current-policy revalidation of every active member; any failure refuses the whole operation. Three focused CI cases passed once (0.452 s, head `901ef2d`) and the wheel built. [CI evidence](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078).
 
 ## Previous milestone: Gate 3 basic scoped retrieval (merged, PR #13)
 
-[Gate 3 API and limits](gate-3.md): a read-only, synthetic-only library over `AdoptionStore` with one same-connection read transaction, current-policy/ancestor rechecks before ranking, fail-closed integrity handling, and an explicit UTF-8 byte budget. Dated observations: 4 selected local cases passed once (0.782 s) and 3 PR CI cases passed at head `90b3d9e`; PR #13 is merged. Same-trial accounting: **7 case executions / 2 invocations of 10 used**; the remaining 3 are reserved for the rollback PR CI run. The earlier writer trial (19 cases / 5 invocations) is historical and exhausted. See the [acceptance record](../reports/gate-3-retrieval-progress.md).
+[Gate 3 API and limits](gate-3.md): a read-only, synthetic-only library over `AdoptionStore` with one same-connection read transaction, current-policy/ancestor rechecks before ranking, fail-closed integrity handling, and an explicit UTF-8 byte budget. Dated observations: 4 selected local cases passed once (0.782 s) and 3 PR CI cases passed at head `90b3d9e`; PR #13 is merged. Same-trial current accounting: **10/10 case executions / 3 invocations**, including the later rollback CI; budget exhausted. The earlier writer trial (19 cases / 5 invocations) is historical and exhausted. See the [acceptance record](../reports/gate-3-retrieval-progress.md).
 
 ## Previous milestone: synthetic durable-adoption core (merged)
 
@@ -102,7 +109,7 @@ The [implementation contract and SLP-01–12 cases](contracts-and-acceptance.md)
 
 - Capture is a locally configured boundary simulation, not authenticated users/adapters. Hashes do not prove truth or consent.
 - `get()` is raw lookup; `verify()` checks stored integrity/expiry, not current revocation or adoption eligibility.
-- Synthetic adoption is a library capability. The Gate 3 retrieval library is merged with focused synthetic acceptance, and the rollback writer is unexecuted; neither is live-agent integration. No sleep provider integration, production adapters or performance experiments. Real transcripts, credentials and private memory stay outside this public repository.
+- Synthetic adoption is a library capability. The Gate 3 retrieval library is merged with focused synthetic acceptance, and rollback is merged with focused CI acceptance; logical forgetting is untested; neither is live-agent integration. No sleep provider integration, production adapters or performance experiments. Real transcripts, credentials and private memory stay outside this public repository.
 - Three local process-crash/concurrency cases passed; broader crash points, power-loss and network-filesystem durability remain unverified.
 
 ## Keeping this current

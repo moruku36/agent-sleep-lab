@@ -2,7 +2,7 @@
 
 **English** | [日本語](gate-3.ja.md) | [Status](implementation-status.md)
 
-Status: **scoped retrieval is MERGED** ([PR #13](https://github.com/moruku36/agent-sleep-lab/pull/13), merge commit `9e3d1107f96034b61a812ab2a5abb1c95ef5eaba`; verified merged). Before merge, 4 selected local cases passed once (0.782 s) and 3 PR CI cases passed at head `90b3d9e` (dated observations; not a claim about later commits). **Rollback (below) is a separate slice on `feat/gate-3-safe-rollback`: implemented but UNEXECUTED, awaiting its limited CI; not merged, until its single 3-case PR CI run.** Initial-version progress stays about 40% until that is verified. Full Gate 3 remains incomplete (see [Not implemented](#not-implemented)).
+Status: scoped retrieval (PR #13) and safe rollback (PR #14) are merged. Rollback merge: `ab25b0036ca3a04de92a0df665a8731ee59f22a7`; [CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42748316078) passed 3 cases once (0.452 s) and built the wheel at head `901ef2d`. Overall progress: about 45%. [Audited logical forgetting](gate-3-forgetting.md) is a later, untested branch slice. Full Gate 3 is incomplete.
 
 Contract basis: [contracts section 5–6](contracts-and-acceptance.ja.md). The retrieval slice is a read-only library over the existing `AdoptionStore` (`src/agent_sleep_lab/retrieval.py`). It changes no writer or adoption semantics.
 
@@ -40,7 +40,7 @@ bundle.bundle_sha256, bundle.used_bytes
 
 `schema_version`, `reference_data_only`, `synthetic_only`, `scope`, `partition`, `as_of`, `snapshot_sha256` (null if no head), `policy {revision, sha256}`, `exclusions {version, policy_sha256}` (the exclusion version is the policy revision), `budget`, `counts {active_members, eligible, returned, dropped}` (eligible is before record/byte caps; dropped includes both caps), `records`. Each record: `eligibility: verified`, `rank`, `score`, `memory_id`, `memory_sha256`, `kind`, `verification_receipt {receipt_id, receipt_sha256}`, `evidence` (event/source/provenance hashes) and the whole `memory` document.
 
-## Safe rollback (UNEXECUTED until CI)
+## Safe rollback
 
 Explicit **control recovery**: restore a retained, previously adopted snapshot of the same exact scope. It is **not** a fresh model-candidate adoption, needs no evaluation receipt, and is **not** a performance or evaluation claim.
 
@@ -69,7 +69,7 @@ Contract decisions:
 6. **Adoption after rollback.** The new head is the restored snapshot; the next adoption names that snapshot as its expected parent and works as before. Retrieval reads the head through the same path.
 7. "Previously adopted" requires both retained snapshot bytes and a hash-bound, same-scope original `adopted` journal receipt, resolved in the same transaction. An orphan blob is refused (`rollback.target_not_adopted`); no new evaluation is inferred. The synthetic implementation scans the local journal to find this receipt.
 
-Not implemented: physical deletion/purge/cache cleanup, evaluation-frozen retrieval, logging of delivered memories, run authentication/registration. Three focused cases in `tests/test_rollback.py` (successful scope-bound rollback then adoption; current-revocation refusal with unchanged head/history; stale-head/ID-conflict/exact-replay across reopen) have **not been run**; they are reserved for one PR CI invocation (3 cases).
+Not implemented: physical deletion/purge/cache cleanup, evaluation-frozen retrieval, logging of delivered memories, run authentication/registration. Three focused cases in `tests/test_rollback.py` passed once in PR #14 CI (3 cases, 0.452 s). This is dated synthetic acceptance, not full Gate 3 or later-code verification.
 
 ## Not implemented
 
@@ -87,6 +87,6 @@ Deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-me
 
 Historical (dated 2026-11-10, retrieval slice): `.venv/bin/python tests/run_tests.py --limit 4 test_retrieval.RetrievalTests` passed all four cases once in 0.782 s on macOS arm64 / Python 3.13.18, then 3 PR CI cases passed at head `90b3d9e`; PR #13 is merged. The [acceptance record](../reports/gate-3-retrieval-progress.md) details remaining boundaries. The earlier writer trial (**19 executions / 5 invocations**) is historical and exhausted.
 
-Current trial accounting (same Gate 3 trial): **7 case executions / 2 invocations used of 10** (4 local + 3 CI, retrieval). The rollback slice has had **0 executions**; the remaining 3 are reserved for one PR CI invocation. A failure there would leave no spare budget; any further run needs an explicit owner increase.
+Current accounting (the SAME Gate 3 trial): **10/10 executions / 3 invocations**, exhausted (retrieval local 4 + CI 3 + rollback CI 3). Forgetting has 0 executions; +3 once in PR CI (13 total / 4 invocations) requires explicit approval before PR creation.
 
-`tests/test_retrieval.py` has four methods (unchanged). `tests/test_rollback.py` has exactly three. `tests/run_tests.py` now selects the three rollback cases by default (cap 10 unchanged; retrieval cases remain selectable by explicit name). See the [testing budget](testing-budget.ja.md).
+`tests/test_retrieval.py` has four methods and `tests/test_rollback.py` three, retained without rerunning. The runner now proposes exactly three forgetting methods, unexecuted pending the increase. See the [testing budget](testing-budget.ja.md).
