@@ -10,13 +10,13 @@ AIエージェントが作業経験を振り返り、根拠付きの記憶へ整
 対象head `a5d64acb294186c840fee7222be5f000661940e2`、
 [CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)で
 **新規5項目／1回・0.197秒・全合格**、wheel成功。Ubuntu／Python 3.13.18。
-ローカル実行0項目。試行累計5項目／1回。文書更新で二重CIは起動しません。
+ローカル実行0項目。試行累計5項目／1回。これは当時のGate 4A結果です。PRのpaths判定は累積diffのため、CI後の結果記録だけのpushは行いません。
 合成の記録→Light→Deep→独立受領→採用→取得と中断境界の重点受入により、
 Gate 4A受入時点の初期版見積りは**約35〜40%**。本番接続・比較評価・広い障害受入は未完。
 
-**現在：初期版全体は約約40%。** PR #16の基盤レビュー修正はマージ済み（8e2f871）。[Gate 4A](docs/gate-4-light-deep.md)はマージ済み。現在のfeature branchは[Gate 4B](docs/gate-4b-comparison.md)の合成A/B比較・計画固定・評価接触履歴を追加し、重点CI5項目に合格しました。PR #19は未マージです。実APIを呼ぶsleep engineやモデル性能実験ではありません。
+**現在：初期版全体は約40%。** [Gate 4A](docs/gate-4-light-deep.md)と[Gate 4B](docs/gate-4b-comparison.md)はマージ済み（PR #17／#19）。今回の[Gate 4C](docs/gate-4c-retrieval-comparison.md)は、採用済みstoreの取得を固定した出典一致比較へつなぐadapterと架空の論文fixtureです。この記述はCI前の時点：コードレビュー済み・Gate 4Cテスト未実行・未マージ。その後の結果はPR checksを参照してください。実モデルの性能実験ではありません。
 
-新規5項目をPR CIで1回だけ実行し、全合格しました。ローカル二重実行なし。過去のGate3は23項目／5回で枠終了済みで、再実行しません。比較評価・1 agent接続は未実装、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
+過去Gate 3は23項目／5回、Gate 4Bは二重CIを含む10項目／2回で枠終了済み。いずれも再実行しません。Gate 4Cは新しい取得接続5項目をPR CIで1回だけ選択し、ローカル二重実行はしません。完全な生取得baseline・実比較評価・既存agent一つの接続は未完、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
 
 **設計の前提：対象エージェントは忘れるものと置きます。** 内部メモリは根拠にせず、正本はこのハーネスの外部記憶に置きます（[設計判断 0002](docs/decisions/0002-assume-agent-forgets.md)、[dots との接続設計](docs/dots-integration.ja.md)）。
 
@@ -95,8 +95,9 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 - **マージ・重点CI合格済み**：[監査付き論理忘却](docs/gate-3-forgetting.ja.md)。物理削除ではありません。
 - **PR #16でマージ済み**：[レビュー修正](docs/review-followup.ja.md)（文書は当時の記録）。
 - **マージ済み・重点CI合格**：[Gate 4A](docs/gate-4-light-deep.md)の最小合成Light／Deep。
-- **feature branch・重点CI5項目合格・未マージ**：[Gate 4B](docs/gate-4b-comparison.md)のオフライン合成対応A/B比較ライブラリと評価接触記録。偽providerのみ、性能主張なし。
-- **未実装**：削除・物理purge・cache掃除、評価中の取得固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。
+- **PR #19マージ済み・異なる5項目を2回合格（10実行／2回、枠終了）**：[Gate 4B](docs/gate-4b-comparison.md)のオフライン合成対応A/B比較ライブラリと評価接触記録。偽providerのみ、性能主張なし。
+- **feature branch・コードのみ（未テスト・未実行・未マージ）**：[Gate 4C](docs/gate-4c-retrieval-comparison.md)。採用済みstoreの取得を固定済みの出典一致比較へ接続するadapterと架空の論文fixture。完全な生取得baselineではなく、性能・公平性の主張なし。（Gate 4B自体はPR #19でマージ済み。）
+- **未実装**：削除・物理purge・cache掃除、完全な生取得baselineの固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。Gate 4Cが固定するのは出典一致の文脈のみ。
 - **未実施**：対象エージェントとの接続、sleep providerの試行、A/B性能実験。Claude Codeでの開発セッションとは区別します。
 
 [手動実験](docs/manual-pilot.ja.md)から開始し、実運用前に[不足している契約](schemas/README.md#dreaming設計で追加が必要な契約未実装)を実装します。文書・合成例の検査は、性能改善の証明ではありません。
@@ -121,10 +122,10 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 
 ## Gate 4B 重点受入 — 2026-11-10
 
-[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19)は未マージ。
+[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19)は`acc553050b4437333514d8d534ceebed08609c1a`でマージ済み。以下は当時のGate 4B結果で、Gate 4Cの結果ではありません。
 [CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265)：
 対象コード `7902b59bd21fcef83c82f5c6cf086222331428f5`、Ubuntu／Python 3.13.18。
-**新規5項目・1回・0.149秒で全合格**、wheel成功。ローカルテスト0、再実行なし。
+**新規5項目・1回・0.149秒で全合格**、wheel成功。ローカルテスト0。これは最初の観測で、次の訂正に二重CIを記録します。
 文書pushでも追加CIが起動しました。下の実行件数訂正を参照。比較の計画固定・接触履歴・再開・欠測処理を
 重点受入したため全体約40%。実際の論文課題評価・取得接続・既存agent接続は未完。
 
