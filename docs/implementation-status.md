@@ -1,78 +1,72 @@
 # Implementation status
 
-## Gate 4A acceptance — 2026-11-10
-
-[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) is merged.
-Head `a5d64acb294186c840fee7222be5f000661940e2`;
-[CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
-passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Python 3.13.18.
-Local execution: zero. This trial totals 5 case executions / 1 invocation.
-Documentation-only follow-up does not trigger duplicate CI.
-The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
-slice justifies an overall initial-version estimate of **about 40%**.
-Production integration, comparison evaluation and broader fault acceptance remain incomplete.
-
-
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-2026-11-10: **about 40% of the initial version**, after focused Gate 4A acceptance.
-The target remains capture → adoption → retrieval → Light/Deep → comparison
-evaluation → one existing-agent integration. REM/diary/wider rollout are excluded.
+2026-11-10: **about 40% of the initial version**. This is the pre-CI Gate 4C
+snapshot; subsequent results are in its PR checks. 100% means capture → adoption →
+retrieval → Light/Deep → comparison evaluation → one existing-agent integration.
+REM, diary and wider rollout are excluded. Counts of files or tests are not progress.
 
 ## Current capabilities
 
 | Stage | Verified baseline | Feature branch / remaining boundary |
 |---|---|---|
-| Evidence, provenance, receipts, policy, adoption | Synthetic libraries merged | Not real authentication; broader fault acceptance incomplete |
-| Retrieval, rollback, logical forgetting | Merged, review fixes through PR #16 | No physical erasure, frozen retrieval or delivered-memory logging |
-| Light/Deep and run lifecycle | Gate 4A merged (PR #17) | Offline fake-provider slice, focused CI accepted; broader faults pending |
-| Comparison evaluation | Not merged | [Gate 4B](gate-4b-comparison.md) offline synthetic paired A/B library and contact tracking saved as code on `feat/gate-4b-offline-comparison`: **five focused CI cases passed, unmerged**. Paper fixture, frozen-retrieval wiring, statistics and live runs pending |
+| Evidence, provenance, receipts, policy, adoption | Synthetic libraries merged | Not authentication; broader fault acceptance incomplete |
+| Retrieval, rollback, logical forgetting | Merged, review fixes through PR #16 | No physical erasure or delivered-memory logging |
+| Light/Deep and run lifecycle | [Gate 4A](gate-4-light-deep.md), PR #17 merged | Offline fake-provider slice; broader faults pending |
+| Comparison infrastructure | [Gate 4B](gate-4b-comparison.md), PR #19 merged | Synthetic paired plans/contact tracking, not a performance experiment |
+| Retrieval-to-comparison wiring | [Gate 4C](gate-4c-retrieval-comparison.md) saved and reviewed on `feat/gate-4c-paper-retrieval` | Pre-CI: untested, unexecuted, unmerged. Source-matched context only, not a complete raw-retrieval baseline |
 | Existing-agent integration | Not implemented | One real adapter remains pending |
 
-## Evidence and budget
+## Acceptance evidence and test budget
 
-PR #16 baseline: `8e2f871eb1ace6f29378ce44fad8821f36259e18`.
-Historical focused CI42755593975 passed ten cases once. Historical Gate 3 total:
-23 case executions / 5 invocations, exhausted, not rerun here.
+- **Historical Gate 3:** PR #16 baseline `8e2f871eb1ace6f29378ce44fad8821f36259e18`.
+  CI42755593975 passed ten selected cases once; trial total **23 executions / 5
+  invocations**, exhausted. Not rerun by this branch.
+- **Gate 4A:** PR #17 merged. Source head `a5d64acb294186c840fee7222be5f000661940e2`;
+  [CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
+  passed five new cases once, 0.197 s, plus wheel; Ubuntu / Python 3.13.18.
+  Trial **5 executions / 1 invocation**, local zero. Dated milestone estimate 35–40%.
+- **Gate 4B:** [PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19) merged at
+  `acc553050b4437333514d8d534ceebed08609c1a`. Source head
+  `7902b59bd21fcef83c82f5c6cf086222331428f5` passed five new cases in
+  [CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265),
+  0.149 s, wheel success. A status-only push unexpectedly repeated those cases in
+  [CI42778493776](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778493776),
+  head `568cccb4c1c27d7b36095ff6a23ef3ec6d86b401`, 0.168 s, wheel success.
+  Cancellation found it already complete, not cancelled. Actual trial **10
+  executions / 2 invocations**, local zero, exhausted. Earlier 5/1 observations
+  describe the first run only; [dated correction](../reports/gate-4b-acceptance-20261110.md).
+- **Gate 4C:** five NEW retrieval-integration methods selected explicitly in the
+  bounded runner and PR-only workflow. **At this pre-CI snapshot: 0 executions,
+  no pass claimed.** Plan: one five-case invocation, no local duplicate, no push CI,
+  matrix or historical suite. Trial cap remains ten including corrections.
+  PR path filters use the cumulative diff: do not push an acceptance-only update
+  after CI. Subsequent results belong to PR checks and the external local receipt.
 
-The [new Gate 4A slice](gate-4-light-deep.md) is implemented, merged and
-focused-CI-accepted. Five new explicit cases passed in one PR-only CI run;
-no local duplicate or historical suite. No runtime pass is claimed in advance.
+## Gate 4C boundary
 
-Gate 4B: CI42778158265 passed five new cases / one invocation, 0.149 s; wheel built.
-Local execution zero. PR #19 unmerged. Overall estimate about40%, based on accepted
-comparison infrastructure, not a real experiment. No adoption or performance claim.
+The read-only adapter freezes exact event/source text and hashes behind currently
+eligible retrieved memories, plus whole consolidated records, scope, partition,
+retrieval parameters, snapshot and policy. A receives those raw sources; B gets
+the same raw prefix plus records within the same cap. It excludes raw evidence
+not cited by eligible returned memories, so is a **source-matched representation
+fixture, not a fair full raw-baseline evaluation**. All paper data are fictional;
+co-authored experience/tasks are not an independent holdout. Fake replies/scores
+are not measured quality, savings, performance or an adoption receipt.
 
-## Limits
+Every dispatch/evaluation/report rechecks the current store. Revocation, missing
+or mismatching evidence, or a changed context invalidates the plan without revival.
+Saved context/replies survive reopen without replay. Context persistence is not
+physical erasure. Separate reads and recheck-to-dispatch race remain documented;
+local construction/run registration is not authentication. No live provider,
+network, CLI, REM, diary, scheduler or extra spend is added to the harness.
 
-The coordinator binds local run labels to scope/input/config/parent and persists
-Light/Deep checkpoints and conservative byte/call reservations. Only explicit adds
-are proposed. Trusted local preparation and the unchanged writer enforce independent
-receipts/current policy/parent CAS. Local registration is not authentication.
-No live provider, REM, diary or schedule is added to the harness.
+## Remaining work
 
-Physical purge, exclusion capacity and post-forget cleanup, unified capture/use policy,
-frozen retrieval, delivered-memory and evaluation-contact logging, broader crash/
-concurrency acceptance, A/B evaluation and one real integration remain incomplete.
-No measured improvement. [Dated review disposition](review-followup.ja.md) /
-[Gate 4A boundaries](gate-4-light-deep.md) /
-[history](../reports/implementation-status-history-20261110.md).
-
-## Gate 4B focused acceptance — 2026-11-10
-
-[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19) remains unmerged.
-[CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265):
-code head `7902b59bd21fcef83c82f5c6cf086222331428f5`, Ubuntu / Python 3.13.18.
-**Five new cases / one invocation, 0.149 s, all passed**, wheel succeeded.
-Local tests zero; see the execution-count correction for a duplicate CI run. A documentation push unexpectedly triggered another run; see the execution-count correction below.
-Overall estimate about40% after focused comparison-infrastructure acceptance, not
-performance evaluation. Paper fixture, real retrieval wiring and one agent integration remain pending.
-
-## Gate 4B execution-count correction
-
-The evidence-only push unexpectedly triggered CI42778493776 at head568cccb.
-It repeated the SAME five cases, 0.168s, all passed, wheel success.
-**Actual cumulative trial count:10 case executions / 2 invocations, budget exhausted.**
-Local0. Cancellation was attempted but the run had already completed; it was not cancelled.
-Earlier5/1 statements describe the first observation only. No more tests.
-This correction is docs-only and uses GitHub's commit-message skip-ci support to avoid a third run.
+Complete raw-baseline frozen retrieval and delivered-memory logging; a real
+comparison protocol and honest total-cost measurement; broader crash/concurrency
+acceptance; physical purge, exclusion capacity and post-forget cleanup; unified
+capture/use policy; authenticated provenance/run integration; and one existing-agent
+adapter. No measured improvement yet. [Dated review disposition](review-followup.ja.md)
+/ [history](../reports/implementation-status-history-20261110.md).

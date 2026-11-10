@@ -11,14 +11,14 @@ Head `a5d64acb294186c840fee7222be5f000661940e2`;
 [CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
 passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Python 3.13.18.
 Local execution: zero. This trial totals 5 case executions / 1 invocation.
-Documentation-only follow-up does not trigger duplicate CI.
+This is the dated Gate 4A result, not a promise about later CI. PR path filters use the cumulative diff; do not push status-only updates after CI.
 The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
 slice supported an initial-version estimate of **35–40% at the Gate 4A milestone**.
 Production integration, comparison evaluation and broader fault acceptance remain incomplete.
 
-**Current status: initial version about 40% complete.** Foundation review fixes are merged through PR #16 (8e2f871). [Gate 4A](docs/gate-4-light-deep.md) is merged. The feature branch adds [Gate 4B](docs/gate-4b-comparison.md) frozen synthetic paired comparison and contact tracking; five focused CI cases passed, PR #19 remains unmerged. It is not a live sleep engine or model-performance experiment.
+**Current status: initial version about 40% complete.** [Gate 4A](docs/gate-4-light-deep.md) and [Gate 4B](docs/gate-4b-comparison.md) are merged (PR #17 / #19). This branch adds [Gate 4C](docs/gate-4c-retrieval-comparison.md): accepted-store retrieval into a frozen source-matched comparison and a fictional paper fixture. This is a pre-CI snapshot: code reviewed, no Gate 4C test bodies executed yet, unmerged. See the PR checks for subsequent results; no live model-performance experiment.
 
-Five new cases passed in one PR-only CI invocation, with no local duplicate. The historical Gate 3 trial remains exhausted at 23 case executions / 5 invocations and is not rerun. Comparison evaluation and one existing-agent integration remain unimplemented; no performance improvement measured. [Current table](docs/implementation-status.md).
+Historical Gate 3 is exhausted at 23 case executions / 5 invocations; Gate 4B is exhausted at 10 / 2 after a duplicate CI run. Neither is rerun here. Gate 4C selects five NEW retrieval-integration cases once in PR-only CI, with no local duplicate. Full raw-baseline comparison, real evaluation and one existing-agent integration remain pending; no measured improvement. [Current table](docs/implementation-status.md).
 
 ## Personal-development test budget
 
@@ -72,8 +72,9 @@ The detailed documents are initially in Japanese.
 - **Merged with focused CI acceptance:** [logical forgetting](docs/gate-3-forgetting.md), not erasure.
 - **Merged through PR #16:** [review fixes](docs/review-followup.ja.md) (dated review document).
 - **Merged, focused CI accepted:** [Gate 4A](docs/gate-4-light-deep.md) offline synthetic Light/Deep slice.
-- **Feature branch, five focused CI cases passed, unmerged:** [Gate 4B](docs/gate-4b-comparison.md) offline synthetic paired A/B comparison library with evaluation-contact tracking. Fake provider only; no performance claim.
-- **Not implemented:** deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-memory logging, real capture/retrieval adapters, production sleep phases, authenticated provenance, authenticated run integration and broader adoption fault acceptance, diary, and scheduling.
+- **Merged (PR #19), five distinct cases passed twice (10 executions / 2 invocations; exhausted):** [Gate 4B](docs/gate-4b-comparison.md) offline synthetic paired A/B comparison library with evaluation-contact tracking. Fake provider only; no performance claim.
+- **Feature branch, code only — untested, unexecuted, unmerged:** [Gate 4C](docs/gate-4c-retrieval-comparison.md) adapter from accepted-store retrieval to a frozen source-matched comparison, with a fictional paper fixture. Not the complete raw-retrieval baseline; no performance or fairness claim. (Gate 4B itself is merged through PR #19.)
+- **Not implemented:** deletion/physical purge/cache cleanup, complete evaluation-frozen raw retrieval, delivered-memory logging, real capture/retrieval adapters, production sleep phases, authenticated provenance, authenticated run integration and broader adoption fault acceptance, diary, and scheduling. Gate 4C freezes source-matched context only.
 - **Not executed:** target-agent integration, sleep-provider trials, and A/B performance experiments. Claude Code development sessions are separate from harness experiments.
 
 Start with the [manual pilot](docs/manual-pilot.ja.md). The [contract gaps](schemas/README.md#dreaming設計で追加が必要な契約未実装) must be closed before runtime adoption. Document and fixture checks are not evidence of performance improvement.
@@ -94,7 +95,7 @@ The three repositories remain independently usable. Optional integration follows
 
 ## Gate 4B focused acceptance — 2026-11-10
 
-[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19) remains unmerged.
+[PR #19](https://github.com/moruku36/agent-sleep-lab/pull/19) is merged at `acc553050b4437333514d8d534ceebed08609c1a`. The following runs are dated Gate 4B evidence, not Gate 4C results.
 [CI42778158265](https://github.com/moruku36/agent-sleep-lab/actions/runs/42778158265):
 code head `7902b59bd21fcef83c82f5c6cf086222331428f5`, Ubuntu / Python 3.13.18.
 **Five new cases / one invocation, 0.149 s, all passed**, wheel succeeded.

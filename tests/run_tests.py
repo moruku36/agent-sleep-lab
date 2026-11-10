@@ -1,7 +1,7 @@
 """Bounded personal-development test entry: <=10 cases, concise output.
 
-Default: five new offline Gate 4B cases, one PR-only invocation.
-Historical Gate 3 is exhausted and is NOT rerun by this selection.
+Default: five new offline Gate 4C retrieval-integration cases, one PR-only invocation.
+Historical Gate 3 and Gate 4B are exhausted and are NOT rerun by this selection.
 A per-invocation cap is not a cumulative-budget ledger. No full-suite discovery.
 --list validates/selects without executing test bodies. Historical tests remain available, but
 this entry never starts a full discovery run. The 10-case cap is unchanged.
@@ -15,11 +15,11 @@ import unittest
 
 MAX_CASES = 10
 DEFAULT_CASES = (
-    "test_ab_comparison.ComparisonTests.test_paired_arms_are_isolated_ordered_and_reported_without_claims",
-    "test_ab_comparison.ComparisonTests.test_reopen_skips_completed_arms_and_rejects_changed_binding",
-    "test_ab_comparison.ComparisonTests.test_reused_final_taskset_is_recorded_as_development_contact",
-    "test_ab_comparison.ComparisonTests.test_timeout_stays_in_denominator_and_unknown_outcome_never_replays",
-    "test_ab_comparison.ComparisonTests.test_policy_change_invalidates_comparison_and_stops_dispatch",
+    "test_retrieval_comparison.RetrievalComparisonTests.test_adopted_store_retrieval_freezes_source_matched_paper_comparison",
+    "test_retrieval_comparison.RetrievalComparisonTests.test_corrupt_or_missing_evidence_fails_closed_before_and_after_freeze",
+    "test_retrieval_comparison.RetrievalComparisonTests.test_only_exact_scope_and_partition_records_are_frozen",
+    "test_retrieval_comparison.RetrievalComparisonTests.test_live_revocation_after_plan_blocks_next_dispatch_and_report",
+    "test_retrieval_comparison.RetrievalComparisonTests.test_whole_record_budget_and_frozen_reopen_without_replay",
 )
 
 
