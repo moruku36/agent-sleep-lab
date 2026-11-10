@@ -54,41 +54,55 @@ merge commitは`93ddb1a070c6ffdee65cd0809eea5c8ae68203c5`、対象ソースは
 GitHubで2026-11-10T15:50:40ZのマージとPR CI（Python 3.11／3.13）の合格を確認しました。workerの入力検証と読込み契約テストの追加であり、
 動作する接続checkerではありません。
 
+[PR #28](https://github.com/moruku36/agent-sleep-lab/pull/28)も**マージ済み**です。
+merge commit `709e7642be3de65f83abd76e5337357829450aa5`、
+対象ソース `6a3bba2c53158053583ff86dab56da87c4a60027`。
+GitHubで2026-11-10T16:07:42ZのマージとPR CI（Python 3.11／3.13）の合格を確認。
+親checkerと代替sourceの契約10件をマージしました。別のローカル受入では空の合成参考で
+固定対象コードを1回動かし、合成5判定をcaptureしましたが、journal経由ではありませんでした。
+
 ## 今回の開発branch
 
-PR #27のmerge commitを基点とする`feat/oss-offline-parent-checker`です。
+PR #28を基点とする`feat/oss-offline-journal-pipeline`です。
 
-- stdlibの[親checker／consumer](../src/agent_sleep_lab/oss_offline_parent.py)を追加。
-  上限付き読取り専用gitで明示root、ローカルorigin申告、固定commit、11件のsource hashを
-  照合します。Git objectからbyteを固定し、worktreeファイルの読込みや対象checkoutへの
-  書込みは行いません。
-- 組込み合成課題と上限付き正規化済みexperience参考byteだけを受理。
-  一時cwd・最小環境・shellなし・timeout・入出力上限付きの新しい
-  `python -I -B` workerを1回起動し、出力protocolとsource／task／参考／notesを照合。
-- journal互換consumerの受領は未確認自己申告です。注入されたworker commandは代替と明示。
-  配信確認、意味的記憶利用、採用、改善の証明にはしません。
-- coordinatorの差分レビュー後、**実際のpin済みソースによるオフライン実行が1回合格**。
-  ローカルrepoのcommit `e40b39c6258ac5a4446c38246bdfd7f5dc5dbf7b`について、
-  Git blob 11件すべてが埋込みSHA-256と一致しました。実際の収集・digest・一時ledger経路で、
-  candidate／低得点skip／pending LLM／重複skip／infra errorの5判定とpending 1件を確認。
-- 参考は空の合成adoption storeから実際に取得し、record 0件・active snapshotなしでした。
-  返った5判定を同じ一時合成storeへ`CollectOnlyBridge`経由でcaptureしました。
-  記憶・採用・検証／評価受領は作成していません。
-- 合成入力での固定コード実行とcapture契約の接続確認であり、**採用記憶の利用確認ではありません**。
-  参考は`Target.notes`へ到達しますが、`llm=None`では意味的利用されません。
-  受入script／artifactはローカルのcoordinator記録であり、可搬な回帰や本番導入ではありません。
-- 残り：bridge／journal／consumerの一気通貫orchestration、journalとworker（32,768 byte）の
-  上限整合、bundle key集合の乖離検出、汎用consumerのstore由来束縛、
-  guard境界の独立テスト、空でない採用記憶の利用、実データの許可契約。
-  guardは敵対的Pythonのsandboxではありません。originは書換え可能で認証済み識別ではなく、
-  敵対的Git設定も未検証です。
-- Claude Codeの正常完了をcoordinatorのterminal受領で確認：
-  `is_error=false`、`terminal_reason=completed`、canonical model
-  `claude-fable-5-2`、provider `firstParty`、permission denial・subagentなし。
-  別モデルへの切替なし。coordinatorは実装前に両READMEと設計／評価文書を読みましたが、
-  coding worker自身はその4文書をすべて読んではいません。
-- PR #27の厳格入力／loader契約と代替sourceの単体21件はマージ済み基盤です。
-  今回の実オフライン受入と新規親契約10件とは区別します。
+- [OfflinePipeline](../src/agent_sleep_lab/oss_offline_pipeline.py)を追加：
+  bridge取得→永続reference journal→親checker→判定保存→capture。
+  bridgeのrepository／commitは組込み固定課題と一致必須。
+  参考上限をworkerの32,768 byte／256 record以下に統一します。
+- 取得条件、対象path、起動設定、capture時刻／session／許可を正規化契約へ固定し、
+  hashをjournalのconsumer versionへ束縛してからdispatchします。
+  同一use IDでの設定変更は競合。上限付きconsumer出力へ契約・checker要約・
+  hash付き実返却判定を保存してからcaptureへ進みます。
+- captureは保存済み出力だけから再開。決定的event IDと既存storeの同一byte再送により、
+  部分中断後もworkerを再実行しません。結果不明・不正受領・invalidatedは再dispatchせず、
+  成功としてcaptureしません。capture前・各件の間・完了後に現在文脈を照合し、
+  再送でもcapture境界が許可を確認します。policy変更前に保存した観測はrollbackせず、
+  残りを止めて部分観測と報告します。
+- 読取り専用`ReferenceUseJournal.context_unchanged()`を追加。
+  schema変更・migration・新DB・自動retry機構なし。
+- **実際の固定workerをjournal経由で動かす別受入が合格**：
+  一時合成storeの空参考、実worker 1回、capture 3件目の直前で中断、
+  journal再open後に2件replay＋3件新規capture。さらに呼ぶと全5件replayで、
+  worker総実行は1回のままでした。candidate／低得点skip／pending LLM／重複skip／
+  infra errorの5判定を確認。採用記憶・検証／評価受領は0件です。
+- [新規回帰9件](../tests/test_oss_offline_pipeline.py)は実際の一時合成store／journalと
+  mock checkerを使用し、対象コードは動かしません。再送、部分再開、契約競合、
+  結果不明、文脈変更、現在のcapture許可、上限、capture中policy変更、出力超過を検証。
+  mock結果は代替と明示します。
+- 実装来歴：Claude Codeのterminal metadataで`claude-fable-5-2`／`firstParty`を確認。
+  ただし**正常完了ではありません**。`is_error=true`、
+  `terminal_reason=api_error`、HTTP 429 `usage_limit_reached`で停止し、
+  pipelineとjournal accessorだけを保存しました。coordinatorが途中成果をレビューし、
+  受入9件と各capture間の文脈照合を追加して検証／実装状況更新を完了しました。
+  別coding worker／モデルは起動していません。
+- 合成オフライン接続であり、本番接続や認証済み配信／利用ではありません。
+  受領は未確認自己申告で`delivery_and_use_verified`はfalse。
+  空参考は`Target.notes`へ届きますが、`llm=None`では意味的利用されません。
+- 残り：空でない採用記憶の利用、guard境界の独立テスト、bundle key乖離とstore由来束縛、
+  実データ許可、実比較評価。capture／journal／storeを跨ぐ単一transactionではありません。
+  明示storeは呼出し側の管理で認証済みではなく、再開には同じ証拠storeの存続が必要です。
+  origin URLは変更可能で、guardは敵対的Pythonのsandboxではありません。
+  実受入script／artifactはローカルcoordinator記録で、repo内の可搬な実対象回帰ではありません。
 
 以下はPR #25でマージ済みです。
 
@@ -111,19 +125,19 @@ PR #27のmerge commitを基点とする`feat/oss-offline-parent-checker`です�
 
 ## 今回branchの検証
 
-- Python 3.13.18で**全286項目／ローカル全件1回、14.081秒で合格**。
-  親checker新規10件と既存worker 21件を含みます。新規回帰は代替source・git応答・processを
-  使用し、対象checkout不要、ネットワーク／モデル呼出しなしです。
-- 別のローカル受入：実pin済みworker 1回、合成5判定のcapture、
-  採用記憶0件・検証／評価受領0件。worker出力SHA-256：
-  `fb0503a72112677b5610a5471f378578539d1dc43c4906704c94ca51ef8266af`。
-  回帰項目として数えず、回帰内での繰返しもしていません。
-- 文書：**相対ファイルリンク362件／Markdown 76ファイル合格**。
+- 既存Python 3.13.18環境で**全295項目／全件1回、14.343秒で合格**。
+  新規pipeline 9件を含みます。capture中policy変更のケースとレビュー修正を追加する前に、
+  8件の限定検証も1回合格：今回の回帰は合計**303項目実行／2 invocation**です。
+- 別の実受入：固定worker 1回、中断／再open／再開／再送、合成5判定capture、
+  採用記憶0件・検証／評価受領0件。回帰項目には数えません。
+  保存pipeline出力SHA-256：
+  `c023ff7231f34e1a87f1aa8e7ffb0b3a1b328eff53561d58e50f198b82357e31`。
+- 文書：**相対リンク364件／Markdown 76ファイル合格**。
   anchor・外部URLは対象外。空白差分検査も合格。feature CI未実行。
-- 履歴：PR #27のローカル全276項目／1回13.446秒、相対リンク364件／Markdown 76ファイル。
-  PR #26は255項目／1回13.415秒、相対リンク362件／76ファイル。今回試行の実行ではありません。
-- guardの拒否境界、journal一気通貫dispatch、実データ利用、5課題実A/B、
-  実モデル性能改善は未確認です。
+- 履歴：PR #28は全286項目／1回14.081秒、相対リンク362件／Markdown 76ファイル、
+  別の固定worker smoke。PR #27は全276項目／1回13.446秒。今回試行の実行ではありません。
+- guard拒否の独立テスト、空でない採用記憶の意味的利用、実データ運用、
+  5課題実A/B改善は未確認です。
 
 ## 本当に残っていること
 
