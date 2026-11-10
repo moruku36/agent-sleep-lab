@@ -2,7 +2,7 @@
 
 **English** | [日本語](gate-3-forgetting.ja.md) | [Status](implementation-status.md)
 
-Implemented on `feat/gate-3-audited-forgetting`, **UNTESTED / not merged**. This is synthetic local-library work, not a live adapter or physical deletion. Retrieval (PR #13) and rollback (PR #14) are merged. See the [review / budget record](../reports/gate-3-forgetting-progress.md).
+**Merged via PR #15, focused CI passed** (merge `dd79e234fc2888f99685fb2dcf3961b04645f399`). CI42752368409 passed 3 cases once (0.652 s) and built the wheel. Synthetic logical exclusion, not physical deletion. [Current status](implementation-status.md) / [review issues](review-followup.ja.md).
 
 ## API (illustrative; not executed)
 
@@ -42,6 +42,6 @@ Materialized scans refuse excess rather than silently truncating: 4,096 scope ev
 
 This is **logical exclusion only**. Source blobs, memory text, SQLite pages, retained history, backups, caller-held reference bundles, external caches/indexes/diaries and delivered outputs are not erased. Already issued bundles cannot be recalled. New content under unrelated new IDs/lineage is not suppressed by content hash. No physical cleanup, secure erasure, content-based re-ingestion tombstone, run authentication/registration, live-user authorization, evaluation-frozen retrieval or delivered-memory log is implemented. Boundaries are trusted synthetic configuration, not credentials. Full Gate 3 and performance improvement are not claimed.
 
-## Pending verification
+## Acceptance boundary
 
-Exactly three focused methods in `tests/test_forgetting.py`: scope/impact and atomic policy+journal commit; descendant non-resurrection across retrieval/adoption/rollback; policy CAS, ID conflict and lost-ACK replay across reopen. **No bodies have run.** Selection/listing is not acceptance. The SAME Gate 3 trial is exhausted at 10 executions / 3 invocations. Proposed approval: +3 once in PR CI, making 13 / 4; no local rerun or historical full suite. PR creation itself triggers CI and must wait for that increase.
+Three focused PR #15 CI cases passed, not a full-suite, erasure or live-adapter acceptance. SAME Gate 3 trial is exhausted at 13 executions / 4 invocations. Current review fixes are unexecuted; their 5 new + 5 existing cases need an explicit increase. The 1,024-ID policy capacity and adoption refusal while an excluded active member remains in the head are unresolved. See [review disposition](review-followup.ja.md).

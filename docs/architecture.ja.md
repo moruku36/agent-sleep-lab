@@ -1,6 +1,6 @@
 # 全体設計
 
-状態：提案。以下のコンポーネント名とインターフェースは実装予定であり、動作するコマンドではない。
+状態：全体設計と実装上の判断を分けて記載。出典・採用・取得・論理忘却の合成ライブラリはSQLiteで実装済み（[現在表](implementation-status.ja.md)）。sleep・coordinator・run・評価・adapterは未実装で、以下の名称は動くCLIの案内ではありません。
 
 ## 目的と境界
 
@@ -68,11 +68,13 @@ verifiedは「記載した範囲で根拠を確認した」という状態。新
 
 ## 次回の作業での取得
 
-task_familyとprojectを先に絞り、active版のverified項目だけを通常検索する。初期の注入上限は2,000トークン。上限はモデルのトークナイザーで計測する実装を予定し、超過時は低関連項目から除外する。毎回全wikiを読み込まない。
+task_familyとprojectを先に絞り、active版のverified項目だけを通常検索する。将来の注入上限案は2,000トークンですが、現在のライブラリはtokenizerなしの明示UTF-8 byte予算を使います。超過時は順位の低い完全なrecordから除外し、byteをtokenと呼びません。毎回全wikiを読み込まない。
 
 取得内容は根拠付きの参考データとして渡す。現在のユーザー指示・対象リポジトリの方針・実行権限の方が優先される。候補や古い記憶を見る場合は、通常利用と区別した調査モードに限定する。
 
 ## 保存と公開の分離
+
+**現実装の正本はローカルSQLite**です（[ADR 0004](decisions/0004-local-evidence-store.md)）。原証拠・出典・受領・policy・memory・snapshot・journal・scope headを保存し、採用／rollback／論理忘却はSQLite transactionで更新します。JSON/JSONLはartifactの入出力形式であってactive.jsonのreplaceで採用する実装ではありません。以下の階層は将来のrun／評価artifactを含む論理配置案です。
 
 ```text
 ローカル／非公開の実行保存先（この公開repoの外）
@@ -104,10 +106,14 @@ GitHubには実行保存先を自動同期しない。公開対象を明示し�
 - 原証拠にアクセスできない候補はcandidateのまま保留する。
 - 費用／時間／トークン上限で止まったrunはincompleteと記録し、active版を更新しない。
 - 一つのprojectのactive更新はsingle writer。親ハッシュ不一致なら再読み込みして再評価する。
-- 書き込みは一時ファイルからのatomic replaceを想定する。異常終了後も直前のactive版を使用できるようにする。
-- 悪化した場合はactive参照を親snapshotへ戻し、評価結果と失敗原因を残す。
+- 現在の採用・head／journal更新はSQLiteのBEGIN IMMEDIATE＋COMMIT／ROLLBACKで原子的に行います。将来ファイルartifactを出力する場合のatomic replaceとは区別します。
+- 復旧は保持済み・採用済みsnapshotの全active memberを現在policyで再確認してrollbackします。除外や期限切れがあれば単純に親へ戻すことはできません。評価結果・失敗原因の記録は別に残します。
 - 記憶を削除する必要がある場合は、派生ノート・索引・snapshot・日記への参照も追跡して処理する。再取り込みとrollbackにも削除対象の除外を適用する。公開Git履歴を原ログの保存先にしない。
 - 空のrun・採用なし・日記だけの失敗を、sleep全体の成功や性能向上と取り違えない。run状態とmemory状態を別々に記録する。
+
+## captureと利用許可の境界
+
+現状captureはCaptureBoundaryの受入設定、採用・取得は保存policyを照合します。別役割の模擬境界で、同一正本へ統合済みではありません。両方を満たす必要があり不一致で利用許可を拡大しません。将来のrun／adapter構築では共通の方針から設定を生成し、不一致を早期拒否する必要があります。
 
 ## 実装面の選択
 

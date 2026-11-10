@@ -9,7 +9,7 @@ snapshot using the SAME v3 tables: no schema change, no migration. A rollback jo
 the rollback request/receipt bytes with EMPTY manifest/source columns. Adoption request/receipt
 v1/v2 bytes and their replay are untouched.
 
-``plan_forget_impact`` / ``commit_forget`` (Gate 3, UNEXECUTED until CI) add audited LOGICAL
+``plan_forget_impact`` / ``commit_forget`` (Gate 3, merged PR #15 with focused CI acceptance) add audited LOGICAL
 forgetting on the SAME v3 layout: forget request/receipt rows also keep EMPTY manifest/source
 columns and are dispatched by exact schema_version. The writer appends exclusions (never removes
 one) as the next policy revision and stores the immutable request/receipt in the SAME BEGIN
@@ -19,6 +19,7 @@ and caller-held bundles keep the bytes. Purge/cache/index/diary cleanup is not i
 from __future__ import annotations
 
 import copy
+from contextlib import contextmanager
 import os
 import sqlite3
 from dataclasses import dataclass
@@ -354,9 +355,23 @@ class AdoptionStore(RuntimeStore):
             raise StorageError("adoption.journal_corrupt", "rollback receipt binding mismatch")
         return req_sha, req_data, AdoptionResult("replayed", rec_data, rec_sha), rec
 
+    @contextmanager
+    def _read_transaction(self):
+        """Consistent metadata read without reserving the SQLite writer lock."""
+        db = self._db()
+        if db.in_transaction:
+            raise StorageError("storage.nested_transaction", "metadata read needs its own transaction")
+        try:
+            db.execute("BEGIN")
+            yield
+        except sqlite3.Error as exc:
+            raise StorageError("storage.read_failed", f"metadata read failed ({exc})") from None
+        finally:
+            _rollback(db)
+
     def resolve_operation(self, operation_id: str) -> AdoptionResult | None:
         """Read-only ACK-loss reconciliation. Never re-applies or grants present eligibility."""
-        with self._immediate():
+        with self._read_transaction():
             _check_v3(self._db())
             row = self._resolve_operation(operation_id)
             return row[2] if row else None
@@ -384,7 +399,7 @@ class AdoptionStore(RuntimeStore):
         """Historical snapshot metadata ONLY; not a currently eligible retrieval result."""
         if type(scope) is not dict or set(scope) != {"project", "task_family"}:
             raise ValueError("scope must name project and task_family")
-        with self._immediate():
+        with self._read_transaction():
             _check_v3(self._db())
             digest = self._head(scope)
             return self._snapshot(digest, scope) if digest else None
@@ -415,6 +430,7 @@ class AdoptionStore(RuntimeStore):
     def _check_members(self, scope, members, entries, memory_bytes, now):
         """Revalidate every ACTIVE member under the CURRENT policy, expiry and exclusions.
         Shared by adoption and rollback so one rule decides eligibility; any failure raises."""
+        policy = self.current_policy().document
         for member in members:
             if member["state"] != "active":
                 continue
@@ -432,11 +448,11 @@ class AdoptionStore(RuntimeStore):
             if memory["kind"] != member["kind"]:
                 raise StorageError("adoption.memory_corrupt", "snapshot kind differs from memory")
             ref = member["verification_receipt"]
-            failures = self.eligibility_failures(
+            failures = self._eligibility_failures_with_policy(
                 memory_id=mid, memory_sha256=digest,
                 scope=(scope["project"], scope["task_family"]),
                 receipt_id=ref["receipt_id"], receipt_sha256=ref["receipt_sha256"],
-                verifier=self._verifier, now=now,
+                verifier=self._verifier, now=now, policy=policy,
             )
             if failures:
                 raise ContractViolation("adoption.ineligible", ", ".join(failures))
@@ -590,7 +606,21 @@ class AdoptionStore(RuntimeStore):
                 # A retained blob alone is not proof of a committed adoption. Resolve
                 # the original, hash-bound adoption receipt in this same transaction.
                 adopted = False
-                for (operation_id,) in self._rows("SELECT operation_id FROM adoption_journal"):
+                for operation_id, request_blob in self._rows(
+                        "SELECT operation_id, request_bytes FROM adoption_journal "
+                        "WHERE instr(CAST(request_bytes AS TEXT), ?) > 0", (target,)):
+                    # Candidate selection only, never proof. Do not fully resolve unrelated
+                    # manifests/receipts or let their corruption disable this scope's recovery.
+                    try:
+                        candidate = loads_strict_bytes(_as_bytes(request_blob))
+                    except StrictJSONError:
+                        continue
+                    if (not isinstance(candidate, dict)
+                            or candidate.get("schema_version") not in (
+                                "agent-sleep-adoption-request/1", "agent-sleep-adoption-request/2")
+                            or candidate.get("scope") != scope
+                            or candidate.get("candidate_snapshot_sha256") != target):
+                        continue
                     history = self._resolve_operation(operation_id)
                     receipt = history[3]
                     if (receipt["outcome"] == "adopted" and receipt["scope"] == scope
@@ -620,7 +650,7 @@ class AdoptionStore(RuntimeStore):
         except sqlite3.Error as exc:
             raise StorageError("storage.write_failed", f"rollback rolled back ({exc})") from None
 
-    # ---- audited logical forgetting (Gate 3, UNEXECUTED until CI)
+    # ---- audited logical forgetting (Gate 3, merged PR #15; focused CI acceptance)
 
     def _stored_memory(self, memory_id, digest, blob):
         data = _as_bytes(blob)

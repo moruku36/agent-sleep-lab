@@ -4,6 +4,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 import multiprocessing
 import signal
+from unittest import skipUnless
 
 from evidence_support import Clock, StoreCase, make_boundary
 from runtime_support import make_evaluator, make_verifier
@@ -102,6 +103,7 @@ class AdoptionProcessTests(StoreCase):
             "adoption_memories", "adoption_snapshots", "adoption_journal", "adoption_heads",
         ))
 
+    @skipUnless(hasattr(signal, "SIGKILL"), "POSIX SIGKILL crash acceptance; not verified on Windows")
     def test_kill_before_commit_rolls_back_all_adoption_rows(self):
         store = self.setup_store()
         payload = self.proposal(store)
@@ -116,6 +118,7 @@ class AdoptionProcessTests(StoreCase):
         self.assertEqual(reopened.commit_adoption(**payload).status, "created")
         self.assertEqual(self.counts(), (1, 1, 1, 1))
 
+    @skipUnless(hasattr(signal, "SIGKILL"), "POSIX SIGKILL crash acceptance; not verified on Windows")
     def test_kill_after_commit_reconciles_lost_ack_without_reapplying(self):
         store = self.setup_store()
         payload = self.proposal(store)
