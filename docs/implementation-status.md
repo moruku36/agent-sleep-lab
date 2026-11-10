@@ -2,7 +2,7 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-2026-11-10: **about 40% of the initial version**. This is the pre-CI Gate 4C
+2026-11-10: **about 40% of the initial version**. This is the pre-CI Gate 4D
 snapshot; subsequent results are in its PR checks. 100% means capture → adoption →
 retrieval → Light/Deep → comparison evaluation → one existing-agent integration.
 REM, diary and wider rollout are excluded. Counts of files or tests are not progress.
@@ -15,7 +15,8 @@ REM, diary and wider rollout are excluded. Counts of files or tests are not prog
 | Retrieval, rollback, logical forgetting | Merged, review fixes through PR #16 | No physical erasure or delivered-memory logging |
 | Light/Deep and run lifecycle | [Gate 4A](gate-4-light-deep.md), PR #17 merged | Offline fake-provider slice; broader faults pending |
 | Comparison infrastructure | [Gate 4B](gate-4b-comparison.md), PR #19 merged | Synthetic paired plans/contact tracking, not a performance experiment |
-| Retrieval-to-comparison wiring | [Gate 4C](gate-4c-retrieval-comparison.md) saved and reviewed on `feat/gate-4c-paper-retrieval` | Pre-CI: untested, unexecuted, unmerged. Source-matched context only, not a complete raw-retrieval baseline |
+| Retrieval-to-comparison wiring | [Gate 4C](gate-4c-retrieval-comparison.md), PR #20 merged; five new cases once, wheel success | Source-matched context only, not a complete raw baseline |
+| Independent raw baseline / input audit | [Gate 4D](gate-4d-raw-baseline.md) saved and reviewed on `feat/gate-4d-raw-baseline` | Pre-CI: untested, unexecuted, unmerged. Bounded ID order, not relevance ranking or live delivery |
 | Existing-agent integration | Not implemented | One real adapter remains pending |
 
 ## Acceptance evidence and test budget
@@ -37,14 +38,31 @@ REM, diary and wider rollout are excluded. Counts of files or tests are not prog
   Cancellation found it already complete, not cancelled. Actual trial **10
   executions / 2 invocations**, local zero, exhausted. Earlier 5/1 observations
   describe the first run only; [dated correction](../reports/gate-4b-acceptance-20261110.md).
-- **Gate 4C:** five NEW retrieval-integration methods selected explicitly in the
-  bounded runner and PR-only workflow. **At this pre-CI snapshot: 0 executions,
-  no pass claimed.** Plan: one five-case invocation, no local duplicate, no push CI,
-  matrix or historical suite. Trial cap remains ten including corrections.
+- **Gate 4C:** [PR #20](https://github.com/moruku36/agent-sleep-lab/pull/20) merged at
+  `bd4d0f6ce898d95c4b0e9afb1372a8f61b8cd81b`. Source head `bfbdcb9508a45149c635f67d25b352c410f013ab`;
+  [CI42781526252](https://github.com/moruku36/agent-sleep-lab/actions/runs/42781526252)
+  passed five new cases once, 1.308 s, wheel success; Ubuntu / Python3.13.18.
+  Historical trial total **5 executions / 1 invocation**, local zero, not rerun.
+- **Gate 4D:** five NEW raw-baseline/audit methods in the bounded runner and PR-only
+  workflow. **At this pre-CI snapshot: 0 executions, no pass claimed.** Plan: one
+  five-case invocation; no local duplicate, push CI, matrix or historical suite.
+  Trial cap remains ten including corrections.
   PR path filters use the cumulative diff: do not push an acceptance-only update
   after CI. Subsequent results belong to PR checks and the external local receipt.
 
-## Gate 4C boundary
+## Gate 4D boundary
+
+Raw selection scans the exact scope under current policy, expiry, provenance and
+lineage checks, independently of memory citations. The bounded scan fails on excess;
+selection cuts record counts/coverage explicitly. Both arms get the same whole raw
+prefix; B may add eligible memories. Null adopted head is supported. Frozen eligible
+set changes invalidate without revival. Read-only audit binds plan/context/config,
+request hash, arm identity and whole prefix to durable statuses, including unknown
+outcomes. It never proves delivery/read/use or resends. ID ordering is not relevance
+ranking, the fixture is synthetic, and no scientific fairness/performance is claimed.
+Separate scan/retrieval/audit reads and recheck-to-dispatch races remain.
+
+## Historical Gate 4C boundary
 
 The read-only adapter freezes exact event/source text and hashes behind currently
 eligible retrieved memories, plus whole consolidated records, scope, partition,
@@ -64,7 +82,7 @@ network, CLI, REM, diary, scheduler or extra spend is added to the harness.
 
 ## Remaining work
 
-Complete raw-baseline frozen retrieval and delivered-memory logging; a real
+Relevance-ranked raw retrieval and real delivery/use logging; a real
 comparison protocol and honest total-cost measurement; broader crash/concurrency
 acceptance; physical purge, exclusion capacity and post-forget cleanup; unified
 capture/use policy; authenticated provenance/run integration; and one existing-agent
