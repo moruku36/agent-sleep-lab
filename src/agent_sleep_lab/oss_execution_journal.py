@@ -14,6 +14,7 @@ import sqlite3
 
 from agent_sleep_lab import oss_paired_outcome as paired
 from agent_sleep_lab import oss_offline_worker as worker
+from agent_sleep_lab import oss_verdict_evaluation as evaluation
 from agent_sleep_lab.oss_mimo_adapter import OSSMimoAdapter, TRANSPORT_CLI, MODEL
 
 PROTOCOL = "agent-sleep-oss-execution/1"
@@ -159,7 +160,8 @@ class ExecutionJournal:
         except Exception:
             return False
 
-    def register(self, plan_id, *, adapter, live_transport=False, **options):
+    def register(self, plan_id, *, adapter, live_transport=False,
+                 evaluation_manifest=None, **options):
         binding = paired.build_binding(plan_id, **options)
         binding["protocol"] = PROTOCOL
         # The task/reference remains synthetic; execution provenance is distinct.
@@ -168,6 +170,10 @@ class ExecutionJournal:
         binding["capture_doc"] = worker.strict_json(worker.encoded(options["capture_doc"]))
         binding["adapter"] = adapter_spec(adapter, live_transport)
         binding["execution_kind"] = "exact_prompt_cli_not_original_http"
+        if evaluation_manifest is not None:
+            binding["evaluation_manifest"] = evaluation.validate_manifest(
+                evaluation_manifest, binding["source"]["task_sha256"],
+                binding["source"]["issue_number"])
         if binding["bounds"]["max_request_bytes_per_arm"] > adapter.max_request_bytes:
             raise JournalError("plan request bound exceeds adapter bound")
         raw = worker.encoded(binding)
@@ -279,9 +285,15 @@ class ExecutionJournal:
         states = [arms[a]["status"] for a in ARMS]
         status = ("stopped" if stopped else "invalidated" if not current else
                   "complete" if states == ["completed", "completed"] else "open")
+        manifest = binding.get("evaluation_manifest")
+        verdict_evaluation = evaluation.evaluate_pair(
+            manifest, task_sha256=binding["source"]["task_sha256"],
+            issue_number=binding["source"]["issue_number"], arms=arms,
+            context_current=current, plan_status=status)
         return dict(protocol=PROTOCOL, plan_id=plan_id, binding_sha256=digest,
                     plan_status=status, stop_reason=stopped, context_current=current,
                     arms=arms, adapter=binding["adapter"], source=binding["source"],
                     worker=binding["worker"], usage="unavailable", cost="unavailable",
-                    verdict=None, evaluator="not_run", semantic_memory_use="not_evaluated",
+                    verdict=None, evaluator="not_run" if manifest is None else "frozen_fixture_report",
+                    verdict_evaluation=verdict_evaluation, semantic_memory_use="not_evaluated",
                     performance_improvement="not_evaluated", adoption="none")

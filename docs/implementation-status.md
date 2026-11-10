@@ -79,7 +79,55 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-`feat/oss-durable-prompt-execution`, based on owner-merged
+`feat/oss-verdict-evaluation`, based on owner-merged
+[PR #35](https://github.com/moruku36/agent-sleep-lab/pull/35) at
+`7dc833f14034087b1559eb6ffcef71cf2675e582` (source
+`c9d7d5e18723ee7858972a9bb3d99013bcb31e27`). GitHub confirmed MERGED and
+successful Python 3.11 / 3.13 PR checks.
+
+- Added a [strict verdict parser and frozen fixture evaluator](../src/agent_sleep_lab/oss_verdict_evaluation.py).
+  This is an explicitly stricter subset of the pinned OSS parser, not a claim of
+  identical permissive semantics. Only whole JSON with boolean accept and
+  nonempty bounded text rationale is accepted; duplicate keys, coercion, prose,
+  nonfinite/surrogate data and extra fields fail with sanitized codes.
+- Optional manifest freezes the caller-declared synthetic label, task hash and
+  issue number, evaluator/parser/strict-JSON implementation hashes, target-source
+  hash and fixed criterion in the execution plan before any intent. Labels never
+  reach the provider prompt. Posthoc changes/attachment to an unscored plan conflict.
+  Existing unscored plans need no schema migration and remain unscored.
+- Report-time evaluation distinguishes parsed decisions, invalid verdict failures
+  and incomplete/unknown arms. Invalid completed outputs score zero without retry;
+  missing/unknown arms never create a paired difference. Current-context revocation
+  withholds parsed rationales and scores. Code/criterion mismatch prevents silent
+  rescoring. A single-fixture difference is not scientific effect evidence.
+- [Eight new regression cases](../tests/test_oss_verdict_evaluation.py).
+  Full local regression: **339 unique cases / one invocation passed** (Python 3.13,
+  18.845 s). Following strict-JSON and issue-binding improvements, related checks
+  passed: 8 cases (1.168 s) then 16 cases (2.725 s).
+  Total: 363 regression case executions / three invocations, 339 unique cases.
+- Separate offline acceptance used actual pinned source/captured prompts and only
+  injected replies. Three target-parser samples: one compatible strict verdict
+  and two intentionally stricter refusals. Actual capture → first saved reply →
+  reopen → second reply → stable replay → policy withholding passed with two
+  mock calls per acceptance. Two acceptance invocations (before/after issue binding);
+  six differential sample executions / two end-to-end fixture runs in total.
+  Manufactured fixture differences, not model verdicts/performance.
+- Worker provenance: one Muse Wonder review request was attempted with explicit
+  `meta/muse-wonder-1.0`, but the tool timed out at 270 s. No response, normal
+  completion, resolved-model or cost receipt was obtained; no matching process
+  remained on read-only inspection, which does not establish remote outcome.
+  No retry/substitution. Coordinator continued authorized implementation/review
+  and verification; this is not a successful Muse development receipt.
+- [Contract and limitations](oss-verdict-evaluation.md): no live/runtime inference,
+  paid effect measurement, adoption, target mutation, default/auth/schedule or merge.
+  Labels are unauthenticated synthetic fixtures; rationale quality is not verified.
+  Remaining: justified independent dataset, broader aggregation, live verification
+  under spending controls, usage/cost schema and actual paired effect measurement.
+  Provisional initial-version completion remains **30–35%**.
+
+## Merged PR #35 durable execution journal
+
+Historical branch `feat/oss-durable-prompt-execution`, based on owner-merged
 [PR #34](https://github.com/moruku36/agent-sleep-lab/pull/34) at
 `4492cb05a5aa057b1905753834bd0bcbb0d84f81` (source
 `c7071b43e30f95f0b3a7b59b9720f50048b0fbec`). GitHub confirmed MERGED and
