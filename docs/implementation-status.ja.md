@@ -2,7 +2,7 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
-2026-11-10：初期版は**約40%**。Gate 4DのCI前スナップショットです。
+2026-11-10：初期版は**約45%**。Gate 4EのCI前スナップショットです。
 その後の結果はPR checksを参照。100%は記録→採用→取得→Light/Deep→比較評価→
 既存agent一つへの接続。REM・日記・横展開は対象外。ファイル数やテスト数では計算しません。
 
@@ -15,8 +15,9 @@
 | Light/Deep・run lifecycle | [Gate 4A](gate-4-light-deep.md)／PR #17マージ済み | 偽provider最小縦切り。広い障害受入は未完 |
 | 比較基盤 | [Gate 4B](gate-4b-comparison.md)／PR #19マージ済み | 合成の対応A/B計画・接触履歴。性能実験ではない |
 | 取得から比較への接続 | [Gate 4C](gate-4c-retrieval-comparison.md)／PR #20マージ済み・新規5項目を1回合格・wheel成功 | 出典一致の文脈のみで、完全な生取得baselineではない |
-| 独立raw baseline／入力監査 | [Gate 4D](gate-4d-raw-baseline.md)を`feat/gate-4d-raw-baseline`に保存・レビュー済み | CI前：未テスト・未実行・未マージ。上限付きID順で、関連度順位や実配信ではない |
-| 既存agent接続 | 未実装 | 実adapter一つの接続が必要 |
+| 独立raw baseline／入力監査 | [Gate 4D](gate-4d-raw-baseline.md)／PR #21マージ済み・新規5項目を1回合格・wheel成功 | 上限付きID順で、関連度順位や実配信ではない |
+| 手動の研究ノート受け渡し | [Gate 4E](gate-4e-research-handoff.md)を`feat/gate-4e-research-handoff`に保存・レビュー済み | CI前：未テスト・未実行・未マージ。非公開の下書き台帳で、実配信ではない |
+| 既存agent接続 | 実接続なし | 手動受け渡しの準備は、対象agentへの接続完了ではない |
 
 ## 受入証拠とテスト枠
 
@@ -43,13 +44,30 @@
   [CI42781526252](https://github.com/moruku36/agent-sleep-lab/actions/runs/42781526252)で
   新規5項目・1回・1.308秒で合格、wheel成功。Ubuntu／Python3.13.18。
   当時の累計**5実行／1回**、ローカル0。再実行しません。
-- **Gate 4D**：新しいraw baseline／監査5メソッドだけをbounded runnerとPR-only workflowで
+- **Gate 4D**：[PR #21](https://github.com/moruku36/agent-sleep-lab/pull/21)は
+  `ea7fdf2fa8633cbdbecddf32ca345a025ec03e0a`でマージ済み。対象コード
+  `820467a9aed8f69ec9fb3562eb235a68fb8e68bf`を
+  [CI42784054544](https://github.com/moruku36/agent-sleep-lab/actions/runs/42784054544)で
+  新規5項目・1回・0.953秒で合格、wheel成功、Python3.13.18。
+  当時の累計**5実行／1回**、ローカル0。再実行しません。
+- **Gate 4E**：新しい手動受け渡し5メソッドだけをbounded runnerとPR-only workflowで
   明示選択。**このCI前時点では0実行、合格主張なし。** PR CIで5項目を1回の計画。
   ローカル二重実行・push CI・matrix・過去全件はなし。修正を含む上限は10実行。
   PR paths判定は累積diffのため、CI後に結果記録だけのpushをしません。
   その後の結果はPR checksとリポジトリ外のローカル受領に記録します。
 
-## Gate 4Dの境界
+## Gate 4Eの境界
+
+非公開の手動台帳で、固定済みの1群を研究ノート対象commit・正確なrequest hash・
+安全な日英出力pathへ束縛します。同じ群の一意slotで別IDによる再取得も防ぎ、
+byteを返す前に結果不明を保存。厳密に検査した返答は未レビュー下書きのままで、
+偽の比較scoreや採用受領は作りません。準備・取り出し・受入・保存下書きの開示時に
+再確認し、撤回後は保持したまま非開示にします。物理削除・既出byteの回収ではありません。
+書込みは台帳のみで、対象repo・公開用ファイル生成・network・実agent呼出しはなし。
+雛形の検査は機械的で、品質や認証の保証ではありません。別DB間・再確認から利用まで・
+他runとの競合は残り、statusは当時の台帳状態です。詳細は契約を参照。
+
+## 当時のGate 4Dの境界
 
 記憶の引用に依存せず、現行policy・期限・出典・系譜の検査下で正確なscopeの原証拠を
 走査します。走査上限超過は失敗し、選択上限による除外は件数とcoverageへ明記。
