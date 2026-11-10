@@ -28,7 +28,8 @@ Contract decisions
 * Ranking is deterministic and simple: count of distinct query words found in claim/tags
   (lowercased whitespace split), then ``memory_id``. No query => ``memory_id`` order.
 
-Not claimed: retrieval quality, authentication of the caller, rollback, deletion/cache cleanup,
+Not claimed: retrieval quality, authentication of the caller, deletion/cache cleanup (rollback is
+a separate writer-side operation, ``AdoptionStore.commit_rollback``; this module never performs it),
 production data or live agent integration. The result is reference data, not instructions.
 """
 from __future__ import annotations

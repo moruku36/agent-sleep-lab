@@ -54,6 +54,9 @@ ARTIFACT_KINDS: dict[str, tuple[str, str]] = {
         "agent-sleep-committed-operation-receipt/1",
         "committed-operation-receipt.schema.json",
     ),
+    # Gate 3 control recovery. Separate kinds: adoption v1/v2 artifacts are untouched.
+    "rollback_request": ("agent-sleep-rollback-request/1", "rollback-request.schema.json"),
+    "rollback_receipt": ("agent-sleep-rollback-receipt/1", "rollback-receipt.schema.json"),
 }
 
 # Fixed allowlist: artifact identifiers never become caller-selected paths or URLs.
@@ -148,6 +151,12 @@ def _adoption_problems(kind: str, doc: dict[str, Any], problems: list[Problem]) 
                 bad("contract.evaluation_required", "an adopted outcome needs an evaluation receipt")
         elif snapshot != parent or doc["evaluation_receipt"] is not None:
             bad("contract.audit_only_changed", "an audit-only outcome leaves the snapshot unchanged")
+    elif kind == "rollback_request":
+        if doc["target_snapshot_sha256"] == doc["expected_head_snapshot_sha256"]:
+            bad("contract.rollback_noop", "rollback target must differ from the expected head")
+    elif kind == "rollback_receipt":
+        if doc["snapshot_sha256"] == doc["parent_snapshot_sha256"]:
+            bad("contract.rollback_noop", "a rollback receipt must restore a different snapshot")
 
 MAX_ARTIFACT_BYTES = 256 * 1024
 

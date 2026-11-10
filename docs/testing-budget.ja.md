@@ -8,7 +8,7 @@
 
 ## 実行入口
 
-`tests/run_tests.py`は既定で候補構築の重点3件だけを選びます。変更に応じてunittestの具体的なテスト名を渡し、最大10件までに制限します。大きなclass/moduleや重複指定、上限超過は実行前に拒否します。出力は要約中心です。
+`tests/run_tests.py`は既定で、その時点の試行の重点3件（現在はゲート3 rollbackの3件。ローカル未実行でPR CIに予約）だけを選びます。変更に応じてunittestの具体的なテスト名を渡し、最大10件までに制限します。大きなclass/moduleや重複指定、上限超過は実行前に拒否します。出力は要約中心です。
 
 ```sh
 .venv/bin/python tests/run_tests.py --list
