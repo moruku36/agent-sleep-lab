@@ -35,6 +35,74 @@ _INELIGIBLE = frozenset({"evidence.authorization.expired", "evidence.not_synthet
 AUDIT_STATUS = {None: "planned_not_dispatched", "intent": "dispatch_intent_outcome_unknown"}
 
 
+def select_raw_evidence(store, *, scope, partition="experience", scan_limit=256, max_raw=16):
+    """One read transaction: policy, head and every evidence row of the exact scope."""
+    if partition not in SERVED_PARTITIONS:
+        raise ContractViolation("retrieval.partition_not_served", "partition is not served")
+    if (type(scan_limit) is not int or not 1 <= scan_limit <= 1024
+            or type(max_raw) is not int or not 1 <= max_raw <= 256):
+        raise ValueError("invalid bounded raw selection limits")
+    counts = dict(scanned=0, eligible=0, selected=0, dropped_by_cap=0, other_partition=0,
+                  non_evidence_origin=0, policy_excluded=0, ineligible=0)
+    eligible = []
+    with store._read_transaction():
+        _check_v3(store._db())
+        now, policy = store._now(), store.current_policy()  # missing/corrupt raises
+        if partition not in policy.document["accepted_partitions"]:
+            raise ContractViolation("retrieval.partition_not_accepted",
+                                    "policy does not accept partition")
+        head = store._head(scope)  # None when nothing was ever adopted
+        limit = scan_limit
+        rows = store._rows(
+            "SELECT event_id FROM evidence WHERE project = ? AND task_family = ? "
+            "ORDER BY event_id LIMIT ?", (scope["project"], scope["task_family"], limit + 1))
+        if len(rows) > limit:  # never silently omit a tail
+            _fail("raw_scan_exceeds_cap", "scope holds more evidence than scan_limit")
+        for (event_id,) in rows:
+            counts["scanned"] += 1
+            stored = store.get(event_id)  # missing source / unreadable provenance raises
+            hashes = {"event_id": event_id, "event_sha256": stored.event_sha256,
+                      "source_sha256": stored.source_sha256,
+                      "provenance_sha256": stored.provenance_sha256}
+            failures = set()
+            store._evidence_failures(hashes, policy.document, now, failures)
+            if (sha256_hex(stored.event_bytes) != stored.event_sha256
+                    or sha256_hex(stored.source_bytes) != stored.source_sha256
+                    or any(not code.startswith("policy.") and code not in _INELIGIBLE
+                           for code in failures)):
+                _fail("evidence_mismatch", "stored evidence fails its integrity recheck")
+            if (stored.project, stored.task_family) != (scope["project"],
+                                                        scope["task_family"]):
+                _fail("scope_mismatch", "evidence belongs to another scope")
+            if stored.provenance["partition"]["evaluation"] != partition:
+                counts["other_partition"] += 1
+                continue
+            if stored.provenance["origin"] not in INDEPENDENT_ORIGINS:
+                counts["non_evidence_origin"] += 1  # summaries, recall, REM, diary, answers
+                continue
+            if failures:
+                key = ("policy_excluded" if any(c.startswith("policy.") for c in failures)
+                       else "ineligible")  # e.g. expired, lineage, not synthetic
+                counts[key] += 1
+                continue
+            origins, partitions = _closure(store, [event_id])
+            if partitions != {partition} or not origins <= INDEPENDENT_ORIGINS:
+                counts["ineligible"] += 1
+                continue
+            try:
+                event = stored.event_bytes.decode("utf-8")
+                source = stored.source_bytes.decode("utf-8")
+            except UnicodeDecodeError:
+                _fail("evidence_not_text", "only UTF-8 synthetic evidence can be frozen")
+            eligible.append((hashes, _encode(dict(
+                hashes, kind="raw_source", event=event, source=source)).decode("ascii")))
+    counts["eligible"] = len(eligible)
+    selected = eligible[:max_raw]
+    counts["selected"] = len(selected)
+    counts["dropped_by_cap"] = len(eligible) - len(selected)
+    return policy, head, eligible, selected, counts
+
+
 class RawBaselineComparison(RetrievalComparison):
     def __init__(self, store, comparisons, *, scope, max_bytes, partition="experience",
                  query=None, max_records=16, scan_limit=256, max_raw=16):
@@ -49,69 +117,9 @@ class RawBaselineComparison(RetrievalComparison):
 
     # ---- live read-only observation -----------------------------------------
     def _scan(self):
-        """One read transaction: policy, head and every evidence row of the exact scope."""
-        store, scope, partition = self.store, self.scope, self.params["partition"]
-        if partition not in SERVED_PARTITIONS:
-            raise ContractViolation("retrieval.partition_not_served", "partition is not served")
-        counts = dict(scanned=0, eligible=0, selected=0, dropped_by_cap=0, other_partition=0,
-                      non_evidence_origin=0, policy_excluded=0, ineligible=0)
-        eligible = []
-        with store._read_transaction():
-            _check_v3(store._db())
-            now, policy = store._now(), store.current_policy()  # missing/corrupt raises
-            if partition not in policy.document["accepted_partitions"]:
-                raise ContractViolation("retrieval.partition_not_accepted",
-                                        "policy does not accept partition")
-            head = store._head(scope)  # None when nothing was ever adopted
-            limit = self.rules["scan_limit"]
-            rows = store._rows(
-                "SELECT event_id FROM evidence WHERE project = ? AND task_family = ? "
-                "ORDER BY event_id LIMIT ?", (scope["project"], scope["task_family"], limit + 1))
-            if len(rows) > limit:  # never silently omit a tail
-                _fail("raw_scan_exceeds_cap", "scope holds more evidence than scan_limit")
-            for (event_id,) in rows:
-                counts["scanned"] += 1
-                stored = store.get(event_id)  # missing source / unreadable provenance raises
-                hashes = {"event_id": event_id, "event_sha256": stored.event_sha256,
-                          "source_sha256": stored.source_sha256,
-                          "provenance_sha256": stored.provenance_sha256}
-                failures = set()
-                store._evidence_failures(hashes, policy.document, now, failures)
-                if (sha256_hex(stored.event_bytes) != stored.event_sha256
-                        or sha256_hex(stored.source_bytes) != stored.source_sha256
-                        or any(not code.startswith("policy.") and code not in _INELIGIBLE
-                               for code in failures)):
-                    _fail("evidence_mismatch", "stored evidence fails its integrity recheck")
-                if (stored.project, stored.task_family) != (scope["project"],
-                                                            scope["task_family"]):
-                    _fail("scope_mismatch", "evidence belongs to another scope")
-                if stored.provenance["partition"]["evaluation"] != partition:
-                    counts["other_partition"] += 1
-                    continue
-                if stored.provenance["origin"] not in INDEPENDENT_ORIGINS:
-                    counts["non_evidence_origin"] += 1  # summaries, recall, REM, diary, answers
-                    continue
-                if failures:
-                    key = ("policy_excluded" if any(c.startswith("policy.") for c in failures)
-                           else "ineligible")  # e.g. expired, lineage, not synthetic
-                    counts[key] += 1
-                    continue
-                origins, partitions = _closure(store, [event_id])
-                if partitions != {partition} or not origins <= INDEPENDENT_ORIGINS:
-                    counts["ineligible"] += 1
-                    continue
-                try:
-                    event = stored.event_bytes.decode("utf-8")
-                    source = stored.source_bytes.decode("utf-8")
-                except UnicodeDecodeError:
-                    _fail("evidence_not_text", "only UTF-8 synthetic evidence can be frozen")
-                eligible.append((hashes, _encode(dict(
-                    hashes, kind="raw_source", event=event, source=source)).decode("ascii")))
-        counts["eligible"] = len(eligible)
-        selected = eligible[:self.rules["max_raw"]]
-        counts["selected"] = len(selected)
-        counts["dropped_by_cap"] = len(eligible) - len(selected)
-        return policy, head, eligible, selected, counts
+        return select_raw_evidence(self.store, scope=self.scope,
+                                   partition=self.params["partition"],
+                                   scan_limit=self.rules["scan_limit"], max_raw=self.rules["max_raw"])
 
     def _observe(self):
         policy, head, eligible, selected, counts = self._scan()
@@ -151,7 +159,7 @@ class RawBaselineComparison(RetrievalComparison):
         return context
 
     def plan(self, *, plan_id, tasks, config, model, evaluator_identity,
-             budget=ArmBudget(), declared_role="development"):
+             budget=ArmBudget(), declared_role="development", diagnostic_only=False):
         """Freeze once; an identical reopen reuses the saved bytes without a new scan."""
         data, created = self._saved(plan_id), False
         if data is None:
@@ -172,7 +180,7 @@ class RawBaselineComparison(RetrievalComparison):
                         "rules": self.rules, "context_sha256": sha256_hex(data)},
                 model=model, scope=self.scope, snapshot_sha256=context["snapshot_binding"],
                 policy_sha256=context["policy_sha256"], evaluator_identity=evaluator_identity,
-                declared_role=declared_role, budget=budget)
+                declared_role=declared_role, budget=budget, diagnostic_only=diagnostic_only)
         except BaseException:
             if created:
                 self.comparisons.db.execute(

@@ -1,5 +1,7 @@
 # Gate 4A: manual offline Light/Deep slice
 
+> Historical gate specification. [日本語要約](gate-4-light-deep.ja.md). Current capabilities, merge state and verification evidence live only in [implementation status](implementation-status.md); old test limits and pre-merge labels below are dated history, not current instructions.
+
 ## Gate 4A acceptance — 2026-11-10
 
 [PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) remains unmerged.

@@ -1,0 +1,24 @@
+{
+  "tasks": [
+    {
+      "task_id": "paper-pilot-1",
+      "prompt": "FICTIONAL paper: Glass Owls Prefer Tuesdays. Sample size 12. Dataset license CC-BY-4.0. In one short sentence state the sample size and license; do not invent findings."
+    },
+    {
+      "task_id": "paper-pilot-2",
+      "prompt": "FICTIONAL paper: Tidal Lanterns in Paper Seas. Sample size is NOT REPORTED. Dataset license MIT. In one short sentence state the sample-size limitation and license."
+    },
+    {
+      "task_id": "paper-pilot-3",
+      "prompt": "FICTIONAL paper: Copper Rain Over Quiet Looms. Sample size 80, one laboratory only; dataset license Apache-2.0. In one short sentence state the main generalization caveat and license."
+    },
+    {
+      "task_id": "paper-pilot-4",
+      "prompt": "FICTIONAL paper: Seven Doors of a Folding Moon. Headline claims improvement, but no numeric result or uncertainty is supplied; dataset license not reported. In one short sentence state what is missing; do not guess."
+    },
+    {
+      "task_id": "paper-pilot-5",
+      "prompt": "FICTIONAL paper: Salt Clocks of the Paper Harbour. Dataset license forbids commercial use; sample size 24 from a single institution. In one short sentence state the license restriction and sampling caveat."
+    }
+  ]
+}

@@ -29,8 +29,6 @@ from agent_sleep_lab.raw_baseline import RawBaselineComparison
 from agent_sleep_lab.strictjson import loads_strict_bytes
 
 PROTOCOL = "agent-sleep-research-handoff/1"
-TARGET = {"repository": "moruku36/independent-tech-research-notes",
-          "commit": "b6ba067024c908cc931fc582c9904cb4596877da"}
 MAX_ENVELOPE_BYTES = 262144
 MAX_RESPONSE_BYTES = 131072
 MAX_OUTPUT_BYTES = 49152
@@ -86,9 +84,17 @@ def template_structure(outputs, paths):
 
 
 class ResearchHandoffJournal:
-    def __init__(self, path, baseline):
+    def __init__(self, path, baseline, *, target):
         if not isinstance(baseline, RawBaselineComparison):
             raise TypeError("RawBaselineComparison required")
+        target = dict(target)
+        if (set(target) != {"repository", "commit"}
+                or type(target["repository"]) is not str
+                or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", target["repository"])
+                or type(target["commit"]) is not str
+                or not re.fullmatch(r"[0-9a-f]{40}", target["commit"])):
+            raise ValueError("target requires repository and immutable 40-character commit")
+        self.target = target
         self.baseline = baseline
         self.db = sqlite3.connect(path, isolation_level=None, timeout=5)
         self.db.execute("PRAGMA synchronous=FULL")
@@ -183,7 +189,7 @@ class ResearchHandoffJournal:
             arm=arm, task_id=entry["task_id"], plan_sha256=audit["plan_sha256"],
             context_sha256=audit["context_sha256"], scope=context["scope"],
             policy_sha256=context["policy_sha256"], snapshot_sha256=context["snapshot_sha256"],
-            snapshot_binding=context["snapshot_binding"], target=TARGET, output_paths=paths,
+            snapshot_binding=context["snapshot_binding"], target=self.target, output_paths=paths,
             packed_request_sha256=entry["request_sha256"],
             packed_request_bytes=entry["request_bytes"])
         encoded = _encode(binding)

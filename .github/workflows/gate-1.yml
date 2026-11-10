@@ -1,35 +1,30 @@
-name: Focused personal-development checks
+name: Full regression
 
 on:
   pull_request:
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "tools/**"
-      - "pyproject.toml"
-      - "requirements*"
-      - ".github/workflows/gate-1.yml"
+  push:
+    branches: [main]
 
 permissions:
   contents: read
 
 jobs:
-  contracts:
+  regression:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: ${{ matrix.python }}
       - name: Install runtime dependencies
         run: python -m pip install .
-      - name: Five new manual-handoff cases (one PR-only invocation)
-        run: >-
-          python tests/run_tests.py --limit 5
-          test_research_handoff.ResearchHandoffTests.test_envelope_binds_frozen_arm_target_and_paths_without_answers
-          test_research_handoff.ResearchHandoffTests.test_prepare_is_stable_across_reopen_and_rejects_changed_binding
-          test_research_handoff.ResearchHandoffTests.test_claim_is_one_shot_and_leaves_durable_unknown_outcome
-          test_research_handoff.ResearchHandoffTests.test_result_import_is_strict_bound_idempotent_and_unreviewed
-          test_research_handoff.ResearchHandoffTests.test_policy_or_evidence_change_invalidates_before_export_and_import
-      - name: Build wheel (no extra test execution)
+      - name: Full regression (unique unittest IDs)
+        run: python tests/run_tests.py
+      - name: All documentation file links
+        run: python tools/check_docs.py
+      - name: Build wheel
         run: python -m pip wheel --no-deps --wheel-dir dist .

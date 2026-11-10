@@ -212,7 +212,10 @@ class RetrievalComparisonTests(StoreCase):
         size_a = first["A"]["request_bytes"]
         for plan_id, cap, expected in (("tight", size_a + 20, ((2, 0), (2, 2))),
                                        ("one", size_a - 1, ((1, 1), (1, 3)))):
-            self.plan(adapter, plan_id=plan_id,
+            with self.assertRaisesRegex(ValueError, "identical A/B"):
+                self.plan(adapter, plan_id=plan_id,
+                          budget=ArmBudget(calls=4, request_bytes=cap, reply_bytes=64))
+            self.plan(adapter, plan_id=plan_id, diagnostic_only=True,
                       budget=ArmBudget(calls=4, request_bytes=cap, reply_bytes=64))
             task = comparisons._plan(plan_id)[0]["tasks"][0]
             self.assertEqual(((task["A"]["included"], task["A"]["dropped"]),

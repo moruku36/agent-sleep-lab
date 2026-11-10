@@ -1,0 +1,21 @@
+{
+  "run_id": "sleep-public-fixture-1",
+  "observed_at": "2026-11-10T00:00:00Z",
+  "scope": {
+    "project": "p",
+    "task_family": "t"
+  },
+  "event_ids": [
+    "e-1"
+  ],
+  "config": {
+    "purpose": "public synthetic evidence only"
+  },
+  "limits": {
+    "calls": 2,
+    "input_bytes": 65536,
+    "output_bytes": 32768,
+    "stage_output_bytes": 16384,
+    "candidates": 16
+  }
+}

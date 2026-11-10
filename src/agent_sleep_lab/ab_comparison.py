@@ -131,7 +131,17 @@ def _request(task, items, cap):
 class ComparisonStore:
     def __init__(self, path):
         self.db = sqlite3.connect(path, isolation_level=None, timeout=5)
+        if (self.db.execute("PRAGMA application_id").fetchone()[0] != 0
+                or self.db.execute("PRAGMA user_version").fetchone()[0] != 0
+                or any(row[0] not in {"comparison_plans", "evaluation_contacts", "comparison_arms",
+                                     "frozen_contexts", "comparison_provider_receipts"}
+                       for row in self.db.execute("SELECT name FROM sqlite_master WHERE type=\'table\'"))):
+            self.db.close()
+            raise ValueError("separate comparison journal required; foreign database refused")
         self.db.execute("PRAGMA synchronous=FULL")
+        self.db.execute("""CREATE TABLE IF NOT EXISTS comparison_provider_receipts (
+            plan_id TEXT NOT NULL, task_index INTEGER NOT NULL, arm TEXT NOT NULL,
+            receipt BLOB NOT NULL, PRIMARY KEY(plan_id, task_index, arm))""")
         self.db.execute("""CREATE TABLE IF NOT EXISTS comparison_plans (
             plan_id TEXT PRIMARY KEY, plan BLOB NOT NULL, plan_sha256 TEXT NOT NULL,
             status TEXT NOT NULL, reason TEXT, contact_role TEXT NOT NULL)""")
@@ -149,7 +159,7 @@ class ComparisonStore:
     # ---- plan -------------------------------------------------------------
     def plan(self, *, plan_id, tasks, raw_references, consolidated_records, config, model,
              scope, snapshot_sha256, policy_sha256, evaluator_identity, declared_role="development",
-             budget=ArmBudget(), consolidation_cost="unavailable"):
+             budget=ArmBudget(), consolidation_cost="unavailable", diagnostic_only=False):
         """Bind an immutable canonical plan and record evaluation contact.
 
         Tasks carry only task_id and prompt; evaluator answers must stay inside
@@ -172,6 +182,8 @@ class ComparisonStore:
             raise ValueError("model label required")
         if declared_role not in ROLES or consolidation_cost not in COST_LABELS:
             raise ValueError("invalid role or cost label")
+        if type(diagnostic_only) is not bool:
+            raise ValueError("diagnostic_only must be boolean")
         raw = _texts(raw_references, "raw_references")
         memo = _texts(consolidated_records, "consolidated_records")
         # Exact prompt-content multiset: task renames and reordering do not erase contact.
@@ -186,17 +198,23 @@ class ComparisonStore:
                 entry[arm] = {"request": data.decode("ascii"), "request_sha256": sha256_hex(data),
                               "request_bytes": len(data), "included": included,
                               "dropped": len(items) - included}
+            if entry["A"]["request_sha256"] == entry["B"]["request_sha256"] and not diagnostic_only:
+                raise ValueError("identical A/B inputs: increase request budget or reduce raw context")
             planned.append(entry)
 
         def zero():
             return {"label": "synthetic_zero", "value": 0}
         cost = {arm: {phase: zero() for phase in COST_PHASES} for arm in "AB"}
+        from agent_sleep_lab.mimo_provider import MODEL
+        if model == MODEL:
+            cost = {arm: {phase: {"label": "unavailable", "value": None}
+                          for phase in COST_PHASES} for arm in "AB"}
         if consolidation_cost == "unavailable":
             cost["B"]["consolidation"] = {"label": "unavailable", "value": None}
         document = _encode(dict(
             version=1, synthetic_only=True, plan_id=plan_id, taskset_sha256=taskset_sha256,
             config_sha256=sha256_hex(_encode(config)), model=model, scope=scope,
-            evaluator_identity=evaluator_identity,
+            evaluator_identity=evaluator_identity, diagnostic_only=diagnostic_only,
             raw_references_sha256=sha256_hex(_encode(raw)),
             consolidated_records_sha256=sha256_hex(_encode(memo)),
             snapshot_sha256=snapshot_sha256, policy_sha256=policy_sha256,
@@ -265,8 +283,15 @@ class ComparisonStore:
         is a trusted local callable (task_id, reply_bytes) -> 0 or 1, separate
         from the provider. `limit` bounds new dispatches in this call."""
         plan, _, status, _, _ = self._plan(plan_id)
-        if not isinstance(provider, FakeTaskProvider) or not isinstance(evaluator, SyntheticEvaluator):
-            raise TypeError("offline fake provider and explicit synthetic evaluator required")
+        from agent_sleep_lab.mimo_provider import MODEL, OpenClawMimoProvider
+        fake = isinstance(provider, FakeTaskProvider)
+        if not (fake or isinstance(provider, OpenClawMimoProvider)) or not isinstance(evaluator, SyntheticEvaluator):
+            raise TypeError("explicit supported provider and protocol-bound evaluator required")
+        if (not fake and plan["model"] != MODEL) or (fake and plan["model"] == MODEL):
+            raise ValueError("provider/model binding conflict")
+        if not plan.get("diagnostic_only", False) and any(
+                t["A"]["request_sha256"] == t["B"]["request_sha256"] for t in plan["tasks"]):
+            raise ValueError("identical A/B inputs are not comparable")
         if evaluator.identity() != plan["evaluator_identity"]:
             raise ValueError("evaluator binding conflict")
         if limit is not None and (type(limit) is not int or limit < 1):
@@ -297,8 +322,15 @@ class ComparisonStore:
                         "INSERT INTO comparison_arms VALUES (?,?,?,?,?,?,NULL,NULL)",
                         (plan_id, index, arm, position, "intent", task[arm]["request_sha256"]))
                     dispatched += 1
+                    prior_receipt_count = len(getattr(provider, "receipts", []))
                     try:  # fresh context: the provider receives only this frozen request
-                        reply = provider.reply(task[arm]["request"].encode("ascii"), cap)
+                        try:
+                            reply = provider.reply(task[arm]["request"].encode("ascii"), cap)
+                        finally:
+                            if not fake and len(provider.receipts) > prior_receipt_count:
+                                self.db.execute(
+                                    "INSERT OR REPLACE INTO comparison_provider_receipts VALUES (?,?,?,?)",
+                                    (plan_id, index, arm, _encode(provider.receipts[-1])))
                     except TimeoutError:
                         self._arm(plan_id, index, arm, "timeout")
                         continue
@@ -337,8 +369,9 @@ class ComparisonStore:
             cost[arm] = {"phases": phases, "total": (
                 {"label": "unavailable", "value": None} if missing
                 else {"label": "synthetic_zero", "value": 0})}
+        from agent_sleep_lab.mimo_provider import MODEL
         document = {
-            "schema_version": REPORT_SCHEMA, "synthetic_only": True, "fake_provider": True,
+            "schema_version": REPORT_SCHEMA, "synthetic_only": True, "fake_provider": plan["model"] != MODEL,
             "scores_are_synthetic": True, "plan_id": plan_id, "plan_sha256": digest,
             "taskset_sha256": plan["taskset_sha256"], "status": status, "reason": reason,
             "declared_role": plan["declared_role"], "contact_role": role,
@@ -347,7 +380,7 @@ class ComparisonStore:
             "cost": cost, "measured_savings": None,
             "savings_basis": "none: synthetic-zero or unavailable costs are not measurements",
             "comparison": None,
-            "cost_unit": "synthetic_currency_units", "currency": None,
+            "cost_unit": None if plan["model"] == MODEL else "synthetic_currency_units", "currency": None,
             "evaluator_identity": plan["evaluator_identity"],
         }
         outcomes = {arm: dict(denominator=len(plan["tasks"]), completed=0, timeout=0,
@@ -359,10 +392,16 @@ class ComparisonStore:
             for arm in "AB":
                 value = observed.get((index, arm), "not_started")
                 outcomes[arm]["unknown" if value == "intent" else value] += 1
+        document["provider_receipts"] = [dict(task_index=i, arm=a, receipt=loads_strict_bytes(bytes(r)))
+            for i, a, r in self.db.execute(
+                "SELECT task_index, arm, receipt FROM comparison_provider_receipts WHERE plan_id=? "
+                "ORDER BY task_index, arm", (plan_id,))]
         document["outcomes"] = outcomes
         document["all_outcomes_scored"] = all(
             outcomes[arm]["completed"] == len(plan["tasks"]) for arm in "AB")
-        if status != "complete":
+        document["comparable"] = not plan.get("diagnostic_only", False) and all(
+            t["A"]["request_sha256"] != t["B"]["request_sha256"] for t in plan["tasks"])
+        if status != "complete" or not document["comparable"]:
             return document
         rows = {(r[0], r[1]): (r[2], r[3]) for r in self.db.execute(
             "SELECT task_index, arm, status, score FROM comparison_arms WHERE plan_id=?",

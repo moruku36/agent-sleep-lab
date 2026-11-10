@@ -1,5 +1,7 @@
 # Gate 4E — manual research-notes request/result handoff journal
 
+> Historical gate specification. [日本語要約](gate-4e-research-handoff.ja.md). Current capabilities, merge state and verification evidence live only in [implementation status](implementation-status.md); old test limits and pre-merge labels below are dated history, not current instructions.
+
 [Home](../README.md) | [Status](implementation-status.md) | [Gate 4D](gate-4d-raw-baseline.md)
 
 **Pre-CI snapshot (2026-11-10): saved and reviewed on `feat/gate-4e-research-handoff`;

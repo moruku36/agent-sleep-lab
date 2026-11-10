@@ -79,7 +79,9 @@ class ResearchHandoffTests(StoreCase):
     plan = Fixture.plan
 
     def journal(self, adapter):
-        journal = ResearchHandoffJournal(Path(self.dir) / "handoff.sqlite", adapter)
+        journal = ResearchHandoffJournal(Path(self.dir) / "handoff.sqlite", adapter,
+                                         target={"repository": "moruku36/independent-tech-research-notes",
+                                                 "commit": "b6ba067024c908cc931fc582c9904cb4596877da"})
         self.addCleanup(journal.close)
         return journal
 

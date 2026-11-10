@@ -89,7 +89,9 @@ class RawBaselineTests(StoreCase):
     def test_uncited_raw_is_selected_independently_and_without_adopted_memory(self):
         store = self.evidence_store()
         adapter = self.adapter(store)
-        self.plan(adapter)
+        with self.assertRaisesRegex(ValueError, "identical A/B"):
+            self.plan(adapter)
+        self.plan(adapter, diagnostic_only=True)
         frozen = adapter.frozen("raw-1")
         self.assertEqual(ids(frozen["events"]), ["e-1", "e-2", "e-3"])
         self.assertEqual((frozen["snapshot_sha256"], frozen["memories"]), (None, []))
@@ -108,7 +110,8 @@ class RawBaselineTests(StoreCase):
             self.assertEqual((ids(entry["raw_present"]), entry["memories_present"]),
                              (["e-1", "e-2", "e-3"], []))
         report = adapter.report("raw-1")
-        self.assertEqual(report["comparison"]["paired"]["neither"], 2)
+        self.assertFalse(report["comparable"])
+        self.assertIsNone(report["comparison"])
         for name in ("performance_claim", "adoption_receipt", "scientific_fairness_claim"):
             self.assertIsNone(report[name])
         self.adopt_fixture(store)  # memories cite only e-1 and e-2
@@ -136,7 +139,7 @@ class RawBaselineTests(StoreCase):
 
         def frozen_ids(plan_id, **override):
             adapter = self.adapter(store, comparisons, **override)
-            self.plan(adapter, plan_id=plan_id)
+            self.plan(adapter, plan_id=plan_id, diagnostic_only=True)
             return ids(adapter.frozen(plan_id)["events"])
 
         self.assertEqual(frozen_ids("exp"), ["e-1"])
@@ -234,7 +237,10 @@ class RawBaselineTests(StoreCase):
                              ("planned_not_dispatched", None))
         size_a = self.arm(audit, 0, "A")["request_bytes"]
         for plan_id, cap, kept in (("tight", size_a + 20, 3), ("one", size_a - 1, 2)):
-            self.plan(adapter, plan_id=plan_id,
+            with self.assertRaisesRegex(ValueError, "identical A/B"):
+                self.plan(adapter, plan_id=plan_id,
+                          budget=ArmBudget(calls=4, request_bytes=cap, reply_bytes=64))
+            self.plan(adapter, plan_id=plan_id, diagnostic_only=True,
                       budget=ArmBudget(calls=4, request_bytes=cap, reply_bytes=64))
             small = adapter.audit(plan_id)
             a, b = self.arm(small, 0, "A"), self.arm(small, 0, "B")

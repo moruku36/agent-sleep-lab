@@ -1,0 +1,18 @@
+# Gate 4A：Light／Deep
+
+[English historical specification](gate-4-light-deep.md) | **日本語** | [現在の実装状況](implementation-status.ja.md)
+
+## 範囲
+
+合成のLight選別→Deep操作案→trusted preparation→既存writer採用→取得の最小checkpoint。元のversion 1はevent IDとhashだけの偽provider用です。
+
+これはマージ当時の機能境界を説明する日本語要約です。詳細な状態遷移・契約は英語の履歴仕様を参照し、現在のマージ状態・検証証拠・進捗は実装状況ページに集約します。英語文書にある旧テスト上限や「未マージ」は当時の記録で、現在の指示として適用しません。
+
+## 共通境界
+
+- 原証拠・記憶本文は参考データで、実行権限を変更しません。
+- providerは独立検証・評価・採用の受領を作れません。
+- 不明な呼出しや手動依頼は自動再実行しません。
+- 偽応答・合成採点・手動下書き保存は、実モデル改善や既存agent接続の証拠ではありません。
+
+後続の本文付きversion 2、生成claim契約、MiMo adapter、実行CLI、A=B拒否、復旧・全件回帰の仕様は[ランタイム手順](runtime-guide.ja.md)を参照してください。未検証の実API応答や費用を合格・0費用と表示しません。

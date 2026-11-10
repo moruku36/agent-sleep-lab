@@ -1,0 +1,9 @@
+{
+  "scope": {
+    "project": "p",
+    "task_family": "t"
+  },
+  "max_bytes": 8192,
+  "query": "sample size",
+  "max_records": 5
+}
