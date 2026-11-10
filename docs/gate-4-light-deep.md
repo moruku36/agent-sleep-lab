@@ -1,7 +1,20 @@
 # Gate 4A: manual offline Light/Deep slice
 
-Status: implemented on the feature branch; **runtime acceptance pending**.
-Overall initial-version estimate remains **30–35% until acceptance**.
+## Gate 4A acceptance — 2026-11-10
+
+[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) remains unmerged.
+Head `a5d64acb294186c840fee7222be5f000661940e2`;
+[CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
+passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Python 3.13.18.
+Local execution: zero. This trial totals 5 case executions / 1 invocation.
+Documentation-only follow-up does not trigger duplicate CI.
+The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
+slice justifies an overall initial-version estimate of **35–40%**.
+Production integration, comparison evaluation and broader fault acceptance remain incomplete.
+
+
+Status: implemented on the feature branch; **five focused CI cases passed**.
+Overall initial-version estimate remains **35–40% after focused acceptance**.
 This is a synthetic library, not a live sleep agent or performance result.
 
 ## Public API and boundaries

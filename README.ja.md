@@ -1,12 +1,23 @@
 # agent-sleep-lab
 
+## Gate 4A 受入結果 — 2026-11-10
+
+[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17)は未マージ。
+対象head `a5d64acb294186c840fee7222be5f000661940e2`、
+[CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)で
+**新規5項目／1回・0.197秒・全合格**、wheel成功。Ubuntu／Python 3.13.18。
+ローカル実行0項目。試行累計5項目／1回。文書更新で二重CIは起動しません。
+合成の記録→Light→Deep→独立受領→採用→取得と中断境界の重点受入により、
+初期版全体見積りは**約35〜40%**。本番接続・比較評価・広い障害受入は未完。
+
+
 [English](README.md) | **日本語**
 
 AIエージェントが作業経験を振り返り、根拠付きの記憶へ整理し、次の作業で活用するための実験用ハーネスです。GitHubを含む普段の作業環境に「sleep」の工程を加え、同じ失敗の再発、訂正回数、タスク成功率、総費用がどう変わるかを検証します。
 
-**現在：初期版全体は約30〜35%。** PR #16の基盤レビュー修正はマージ済み（8e2f871）。現在のfeature branchに[Gate 4A](docs/gate-4-light-deep.md)を実装し、偽providerのLight／Deep、run束縛、予算予約、再開と既存writer引渡しを追加しました。**受入CIは未実行、未マージ**です。実APIを呼ぶsleep engineではありません。
+**現在：初期版全体は約35〜40%。** PR #16の基盤レビュー修正はマージ済み（8e2f871）。現在のfeature branchに[Gate 4A](docs/gate-4-light-deep.md)を実装し、偽providerのLight／Deep、run束縛、予算予約、再開と既存writer引渡しを追加しました。**重点CI5項目は合格済み、未マージ**です。実APIを呼ぶsleep engineではありません。
 
-新規5項目をPR CIで1回だけ実行する計画です。ローカル二重実行なし。過去のGate3は23項目／5回で枠終了済みで、再実行しません。比較評価・1 agent接続は未実装、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
+新規5項目をPR CIで1回だけ実行し、全合格しました。ローカル二重実行なし。過去のGate3は23項目／5回で枠終了済みで、再実行しません。比較評価・1 agent接続は未実装、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
 
 **設計の前提：対象エージェントは忘れるものと置きます。** 内部メモリは根拠にせず、正本はこのハーネスの外部記憶に置きます（[設計判断 0002](docs/decisions/0002-assume-agent-forgets.md)、[dots との接続設計](docs/dots-integration.ja.md)）。
 
@@ -84,7 +95,7 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 - **マージ済み**：[安全なrollback](docs/gate-3.ja.md)。明示的な制御上の復旧で、新規採用・評価ではありません。
 - **マージ・重点CI合格済み**：[監査付き論理忘却](docs/gate-3-forgetting.ja.md)。物理削除ではありません。
 - **PR #16でマージ済み**：[レビュー修正](docs/review-followup.ja.md)（文書は当時の記録）。
-- **今回branch・受入待ち**：[Gate 4A](docs/gate-4-light-deep.md)の最小合成Light／Deep。
+- **今回branch・重点CI合格・未マージ**：[Gate 4A](docs/gate-4-light-deep.md)の最小合成Light／Deep。
 - **未実装**：削除・物理purge・cache掃除、評価中の取得固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。
 - **未実施**：対象エージェントとの接続、sleep providerの試行、A/B性能実験。Claude Codeでの開発セッションとは区別します。
 

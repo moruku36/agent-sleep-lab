@@ -1,12 +1,25 @@
 # agent-sleep-lab
 
+## Gate 4A acceptance — 2026-11-10
+
+[PR #17](https://github.com/moruku36/agent-sleep-lab/pull/17) remains unmerged.
+Head `a5d64acb294186c840fee7222be5f000661940e2`;
+[CI42772057834](https://github.com/moruku36/agent-sleep-lab/actions/runs/42772057834)
+passed **5 new cases / 1 invocation, 0.197 s**, plus wheel build, Ubuntu / Python 3.13.18.
+Local execution: zero. This trial totals 5 case executions / 1 invocation.
+Documentation-only follow-up does not trigger duplicate CI.
+The accepted synthetic capture→Light→Deep→independent receipts→adoption→retrieval
+slice justifies an overall initial-version estimate of **35–40%**.
+Production integration, comparison evaluation and broader fault acceptance remain incomplete.
+
+
 **English** | [日本語](README.ja.md)
 
 An experimental harness that adds a sleep phase to existing AI-agent workflows: retain evidence, consolidate useful memories, verify them, and retrieve relevant experience for the next task. The aim is to measure changes in task success, repeated mistakes, human corrections, and total cost across GitHub-centered workflows.
 
-**Current status: initial version about 30–35% complete.** Foundation review fixes are merged through PR #16 (8e2f871). The feature branch now implements [Gate 4A](docs/gate-4-light-deep.md): offline fake-provider Light/Deep, locally bound runs, conservative budget reservations, checkpoints and existing-writer handoff. **Acceptance CI is pending; this slice is unmerged.** It is not a live sleep engine.
+**Current status: initial version about 35–40% complete.** Foundation review fixes are merged through PR #16 (8e2f871). The feature branch now implements [Gate 4A](docs/gate-4-light-deep.md): offline fake-provider Light/Deep, locally bound runs, conservative budget reservations, checkpoints and existing-writer handoff. **Five focused CI cases passed; this slice is unmerged.** It is not a live sleep engine.
 
-Five new cases are planned in one PR-only CI invocation, with no local duplicate. The historical Gate 3 trial remains exhausted at 23 case executions / 5 invocations and is not rerun. Comparison evaluation and one existing-agent integration remain unimplemented; no performance improvement measured. [Current table](docs/implementation-status.md).
+Five new cases passed in one PR-only CI invocation, with no local duplicate. The historical Gate 3 trial remains exhausted at 23 case executions / 5 invocations and is not rerun. Comparison evaluation and one existing-agent integration remain unimplemented; no performance improvement measured. [Current table](docs/implementation-status.md).
 
 ## Personal-development test budget
 
@@ -59,7 +72,7 @@ The detailed documents are initially in Japanese.
 - **Merged:** [safe rollback](docs/gate-3.md#safe-rollback), explicit control recovery, not fresh adoption/evaluation.
 - **Merged with focused CI acceptance:** [logical forgetting](docs/gate-3-forgetting.md), not erasure.
 - **Merged through PR #16:** [review fixes](docs/review-followup.ja.md) (dated review document).
-- **Feature branch, acceptance pending:** [Gate 4A](docs/gate-4-light-deep.md) offline synthetic Light/Deep slice.
+- **Feature branch, focused CI accepted:** [Gate 4A](docs/gate-4-light-deep.md) offline synthetic Light/Deep slice.
 - **Not implemented:** deletion/physical purge/cache cleanup, evaluation-frozen retrieval, delivered-memory logging, real capture/retrieval adapters, production sleep phases, authenticated provenance, authenticated run integration and broader adoption fault acceptance, diary, and scheduling.
 - **Not executed:** target-agent integration, sleep-provider trials, and A/B performance experiments. Claude Code development sessions are separate from harness experiments.
 
