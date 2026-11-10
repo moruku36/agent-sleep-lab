@@ -53,9 +53,10 @@ boundary. Constructing another instance or restarting a process does not recover
 an unknown outcome and must never be used to retry one.
 
 Artifact validity does not authenticate a worker, a store or current policy.
-A future live executor must check current context before and after each call,
-durably save intent/outcome/receipts and withhold stale reply bodies. That driver
-is not implemented here. The existing paired-outcome journal is still **fake-only**;
+The separate [durable driver](oss-durable-execution.md) now checks current context
+before/after each call, saves intent/outcome/receipts and withholds stale bodies;
+its verification is mock-only, not live evaluation. The adapter by itself still
+does not supply those guarantees. The existing paired-outcome journal is still **fake-only**;
 its provider type restriction, schema and synthetic reporting are unchanged.
 There is no new live CLI command, automatic schedule or paid evaluation.
 
