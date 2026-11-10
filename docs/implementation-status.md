@@ -1,15 +1,12 @@
 # Implementation status
 
-## Test-count correction — 2026-11-10 merge preparation
-
-The earlier 13-case/three-invocation total omitted [PR #10 CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42712205113). Its log proves three cases passed once (0.235 s) on the older writer commit. Actual cumulative execution is **16 cases in four invocations**: 7 local core + 3 prior PR CI + 3 local process + 3 local run-ID. The owner-approved cap was 13; this is a reporting/budget overrun, not retroactive permission. No new tests ran while discovering it. Earlier totals below are superseded by this reconciliation. A new run-ID PR would execute exactly three selected cases once, requiring explicit permission for **three more executions, reaching 19 total**, before PR creation. No bypass, CI suppression or test-budget reset.
-
-PR #10 writer core is already MERGED (`629560858b5aef5423d75d90a71df99b6eec65d3`); only the later run-ID/process continuation remains unmerged. Local merge-tree against current main reported no conflicts. Overall completion remains about35%.
-
-
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-Last updated: 2026-11-10 JST. **Gate 1, Gate 2A and Gate 2B receipt/policy helpers are merged. Pure candidate planning is merged via PR #9 (verified merge commit `122fed26305a5d039de3d14b5c42633811b8affc`). The synthetic durable-adoption core is implemented on a dependent feature branch: three current run-ID cases passed once, with earlier seven writer and three process cases retained as history (thirteen executions in three invocations, explicitly expanded cap); not merged, no new CI.**
+Last updated: 2026-11-10 JST. **Gate 1, Gate 2A, the Gate 2B receipt/policy helpers, pure candidate planning (PR #9), the synthetic durable-adoption core (PR #10) and the later run-ID/process additions (PR #11) are all MERGED; PR #12 merged documentation only** (PR #10, #11 and #12 merge states verified by fresh GitHub reads; PR #10 merge commit `629560858b5aef5423d75d90a71df99b6eec65d3`). **Full Gate 2B acceptance is not complete** (trusted run registration and broader fault fixtures remain). The old writer trial is closed: its final total was **19 case executions in 5 invocations, budget exhausted**. **Gate 3 scoped retrieval is implemented on `feat/gate-3-scoped-retrieval` and four selected cases passed once (0.782 s), not merged; overall initial-version progress is about 40%.** Rollback and deletion are not implemented.
+
+## Test-count history (dated, 2026-11-10) — superseded by the final total above
+
+An earlier 13-case/three-invocation total omitted [PR #10 CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42712205113) (three cases, once, 0.235 s, older writer commit). The reconciled count at that time was 16 cases in four invocations (7 local core + 3 prior PR CI + 3 local process + 3 local run-ID); the owner-approved cap then was 13, so that was a reporting/budget overrun, not retroactive permission. The run-ID PR CI took the old writer trial to the final **19 executions in 5 invocations**. Earlier "unmerged" and "pending approval" wording in older records below is historical.
 
 Use this page to see what works today. Future plans in the [roadmap](roadmap.ja.md), executed gate acceptance, and performance experiments are separate claims.
 
@@ -19,7 +16,7 @@ Future trials execute at most 10 selected cases total, counting local/CI/retries
 
 ## Overall progress estimate
 
-Approximately **35% (a rough 30–40% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts, candidate planning and the synthetic adoption core exist. Versioned audit labels and selected process boundaries are locally checked; registered-run integration, broader writer faults, retrieval, coordinator, evaluation runner and integration remain. This estimate advances only for the locally verified writer milestone.
+Approximately **40% (a rough 35–45% range)** of the initial end-to-end version: capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. Optional REM, diary and wider rollout are excluded. This is a scope-based judgment, not a calculation from files/tests or a measured performance improvement. Validation, storage, receipts, candidate planning and the synthetic adoption core exist. Versioned audit labels and selected process boundaries are locally checked; registered-run integration, broader writer faults, full Gate 3 acceptance (including frozen evaluation retrieval), rollback/deletion, coordinator, evaluation runner and integration remain. Basic current-policy bounded retrieval now has focused local acceptance; the increase reflects that delivered capability, not test or file counts.
 
 ## Capability overview
 
@@ -31,8 +28,9 @@ Approximately **35% (a rough 30–40% range)** of the initial end-to-end version
 | Stored evidence integrity checks | Implemented, checked, merged | Hashes, source presence and expiry; descendant capture also checks ancestors against configured current authorization revisions and evaluation partition |
 | Verification/evaluation receipts and current control policy | Implemented, checked, merged | [First Gate 2B slice](gate-2b.md); 42 new tests, 152 combined, fresh installed-wheel checks passed |
 | Candidate snapshot from parent + operations | Implemented, locally accepted, merged via PR #9 | [Pure planning](gate-2b-candidates.md); 22 new tests, 174 combined; no database write/adoption |
-| Memory adoption and active-version updates | Synthetic core implemented, seven local cases passed; not merged | [v3 writer](gate-2b-adoption.md); atomic journal/head, current receipts/policy and exact replay; versioned audit labels checked; registered-run integration/broader faults pending |
-| Retrieval, revocation and rollback | Not implemented: planned Gate 3 | Scoped bounded bundles and non-resurrection under current exclusions |
+| Memory adoption and active-version updates | Synthetic core implemented, locally checked, merged (PR #10, #11) | [v3 writer](gate-2b-adoption.md); atomic journal/head, current receipts/policy and exact replay; versioned audit labels checked; registered-run integration/broader faults pending (full Gate 2B not complete) |
+| Scoped retrieval (read-only library) | Implemented and locally checked on feature branch; **not merged** | [Gate 3 slice](gate-3.md); four selected synthetic cases passed once (0.782 s); no CI yet; UTF-8 byte budget, no tokenizer |
+| Rollback and deletion | Not implemented | Non-resurrection under current exclusions and cache/index cleanup remain future work |
 | Light/Deep candidate generation | Not implemented: planned Gate 4 | Manual coordinator with fake providers and recovery checks first |
 | Paper-curation A/B evaluation | Not implemented or executed: planned Gate 5 | Runner must retain all trials, failures and costs; no measured improvement |
 | Existing-agent integration | Not implemented or executed: planned Gate 6 | One target only after standalone acceptance |
@@ -73,9 +71,13 @@ Acceptance reports preserve observations made at each gate. This page also summa
 - 174 tests (152 prior + 22 new) and fresh outside-checkout installed-wheel checks passed. Publication/merge are recorded separately in the acceptance record and live PR.
 - Candidate `active` labels and receipt-format builders are not actual activation or proof of commit. The subsequent atomic-writer core is now locally checked; full Gate 2B acceptance remains pending.
 
-## Latest milestone: synthetic durable-adoption core
+## Latest milestone: Gate 3 basic scoped retrieval (locally checked)
 
-Latest read-only publication observation: PR #9 is MERGED, mergedAt `2026-11-09T22:19:24Z`, merge commit `122fed26305a5d039de3d14b5c42633811b8affc`. No merge was performed in this continuation. The later writer/run-ID feature branch remains unmerged.
+[Gate 3 API and limits](gate-3.md): a read-only, synthetic-only library over `AdoptionStore` with one same-connection read transaction, current-policy/ancestor rechecks before ranking, fail-closed integrity handling, and an explicit UTF-8 byte budget. **Four selected synthetic cases passed once (0.782 s)** after review fixes for whole-record cap accounting and explicit receipt-backed eligibility. Trial usage: 4 case executions / 1 invocation; reserve 3 PR CI cases (7 projected total of 10). No full-suite or writer-trial rerun. See the [acceptance record](../reports/gate-3-retrieval-progress.md).
+
+## Previous milestone: synthetic durable-adoption core (merged)
+
+PR #9 is MERGED (`122fed26305a5d039de3d14b5c42633811b8affc`, `2026-11-09T22:19:24Z`). PR #10, #11 and documentation-only #12 are MERGED per fresh GitHub reads. The text below is the dated record from the feature-branch period; its "unmerged" and cap statements are historical.
 
 [Scope, APIs and exact acceptance](gate-2b-adoption.md). Branch `feat/gate-2b-durable-adoption`, based on PR #9 head `31353d17035394840856283ad932c8005d120133`. Seven selected tests, one invocation, seven executions, all passed. No CI/wheel-runtime/full-suite rerun. A continuation passed three process cases once (SIGKILL before COMMIT, SIGKILL after COMMIT/before ACK, two spawned contenders); this trial now totals ten executions in two invocations and has no remaining test budget. The later [run-ID binding slice](gate-2b-run-id.md) passed three cases once (0.239 s), after explicit owner increase to 13 total. Cumulative trial: thirteen executions in three invocations, budget exhausted. Earlier ten cases were not rerun on this code. No new PR, merge or CI; feature-branch publication evidence is recorded separately. Muse Wonder supplied design advice; the implementation and local checks were separately reviewed/executed. This does not establish model coding-performance equivalence.
 
@@ -95,7 +97,7 @@ The [implementation contract and SLP-01–12 cases](contracts-and-acceptance.md)
 
 - Capture is a locally configured boundary simulation, not authenticated users/adapters. Hashes do not prove truth or consent.
 - `get()` is raw lookup; `verify()` checks stored integrity/expiry, not current revocation or adoption eligibility.
-- Synthetic adoption is a library capability, not present-time retrieval or live-agent integration. No sleep provider integration, production adapters or performance experiments. Real transcripts, credentials and private memory stay outside this public repository.
+- Synthetic adoption is a library capability. The Gate 3 retrieval library has focused synthetic local acceptance, not live-agent integration. No sleep provider integration, production adapters or performance experiments. Real transcripts, credentials and private memory stay outside this public repository.
 - Three local process-crash/concurrency cases passed; broader crash points, power-loss and network-filesystem durability remain unverified.
 
 ## Keeping this current
