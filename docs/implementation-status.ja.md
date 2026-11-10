@@ -66,29 +66,62 @@ merge commit `85300ee064b6a9621119c5748f6c8267e240d030`、
 対象ソース `9a7e3b8f25268d81503aa8bba91f5feb29d5647c`。
 GitHubで2026-11-10T17:54:44ZのマージとPR CI（Python 3.11／3.13）合格を確認しました。
 
+[PR #30](https://github.com/moruku36/agent-sleep-lab/pull/30)も**マージ済み**です。
+merge commit `9f281875925dd66a90b09c07af1562e3cdae3beb`、
+対象ソース `9d0cbb69dae3943becdbf7d886b4df488cb600dd`。
+GitHubで2026-11-10T18:11:11Zのマージを確認。
+PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42872601554)合格。
+選択したguard受入6件と正確な制限文書であり、guard挙動の補強ではありません。
+
 ## 今回の開発branch
 
-PR #29を基点とする`test/oss-offline-guard-boundaries`です。
+PR #30を基点とする`feat/oss-reference-prompt-contract`です。
+所有者の優先は、計測前に記憶利用と比較実行を実装することです。
+**有料／実モデルの計測は行っていません。**
 
-- 指定のFable coding workerは引き続き利用上限待ちです。表示されたresetは05:30 JST。
-  再試行・別coding worker／モデルの起動なし。今回はcoordinatorによる検証／文書更新であり、
-  新たなFable実装の正常完了ではありません。
-- [実guardの受入6件](../tests/test_oss_offline_guards.py)を追加。
-  mockではなく、各件で使い捨ての隔離子processを使用。socket生成、
-  subprocess／環境／cwd制限、外部へのtext／byte／raw／symlink経由write-open拒否、
-  一時scratch／指定ledgerの許可、他のSQLite拒否、資源上限と親processへの非漏洩を確認。
-  pin済み対象コードや外部接続先は使いません。一部process種別は実exec／forkではなく、
-  副作用のない監査event probeです。
-- 確認した制限は合格しましたが、**filesystem書込み全体の隔離は成立していません**。
-  別の副作用なし監査event調査で`os.remove`、`os.rename`、`os.mkdir`、
-  `os.link`、`os.symlink`、`os.chmod`、`os.truncate`が捕捉されないと確認。
-  対応する実filesystem操作は実行せず、外部の合成sentinelは変更されていません。
-- worker guardのdocstringを「全filesystem書込み」ではなく、選択したwrite-open／SQLite
-  検査と限界を記載するよう修正。guardの実際の挙動は変更していません。
-  既存descriptor・native code・syscall全体の隔離は対象外で、敵対的Python用sandboxではありません。
-- coding worker待ちが解消した後の実装修正は、path／dir-fdを含むfilesystem変更経路の
-  拒否と意味のある境界テストです。今回見つかった穴は未修正として残しています。
-  空でない採用記憶の意味的利用と実データ許可も未完です。
+- 別の[prompt捕捉parent](../src/agent_sleep_lab/oss_prompt_capture.py)と
+  [stdlib worker](../src/agent_sleep_lab/oss_prompt_capture_worker.py)を追加。
+  既存worker／pipeline protocolは変更なし。同じ11件の固定blobを既存preflightで照合し、
+  新しいguard付きprocessで実際のpin済み`OpenAITriager.judge → triage_prompt`を
+  組込みborderline課題について動かします。
+- 両群の課題、実default score／理由、mock model、要求設定は同じです。
+  baselineにproject notesはなく、reference群は上限付き参考bundleの正確なbyteを
+  明示的な未信頼データframeへ入れて挿入します。parentが要求／prompt hashを再計算し、
+  promptはその連続した挿入だけが異なり、prompt以外の要求fieldは一致すると照合します。
+- 注入したローカルtransportが要求を記録し、pin済み`LLMTriageError`を送出します。
+  外部送信・返答・架空の判定はありません。endpoint／model／credentialは明示的な
+  不活性fixture名で、環境の認証情報は参照せず、header値も出力しません。
+- `prepare_from_bridge()`は明示された既存bridgeのscope／現在policyを使って取得し、
+  workerのbyte／record上限と固定repository／commitを照合します。
+  store由来は呼出し側管理で認証済みではありません。artifact作成はdispatch許可ではなく、
+  将来のexecutorは現在文脈の再照合が必要です。
+- **実際の固定ソースによる受入が1回合格**：issue #3、実score 0.5、
+  固定judge／prompt関数が各2回、要求2本を捕捉、provider通信・返答・判定0件、
+  採用・検証／評価受領0件。参考は空の一時合成store由来でrecord 0件。
+  baseline prompt 962 UTF-8 byte、reference prompt 1,960 byteでした。
+  実要求経路への参考データ配置の確認であり、採用記憶の意味的利用ではありません。
+  収集pipeline全体の動作は変更していません。
+- [新規契約5件](../tests/test_oss_prompt_capture.py)は代替sourceを使い、
+  frame、束縛／label拒否、A/B同条件、返答なしtransport、preflight／代替labelを確認。
+  実モデル評価ではありません。
+- worker来歴：`claude-fable-5-2`を明示指定しましたが、2モジュール保存後に300秒でtimeout。
+  正常完了／解決済みmodelの受領は返らず、Fable正常完了とは呼びません。
+  process照合では1日以上前からの無関係なClaude processのみ確認。
+  worker再試行・別workerへの切替はなく、coordinatorが保存済みコードをレビューし、
+  テスト・実受入・実装状況更新を行いました。
+- 残り：空でない独立に利用可能な採用記憶の接続、明示上限付きlive provider executorと
+  実model受領、永続的な対応比較の結果／費用記録、固定評価器。
+  現捕捉経路は既存のASCII正規化bundle部分集合であり、一般のUnicode取得bundleは未対応。
+  frameはprompt injection耐性や認証済み由来の証明ではありません。
+
+## マージ済みguard検証の基点
+
+6件はfresh childでsocket／process／環境／cwd／write-open／SQLite／資源の
+選択した制限を確認したものです。敵対コード用sandboxではありません。
+別の副作用なしevent probeでは`os.remove`、`os.rename`、`os.mkdir`、
+`os.link`、`os.symlink`、`os.chmod`、`os.truncate`が未捕捉でした。
+実外部変更は行っていません。この穴とpath／dir-fd補強は未完で、
+今回branchもguardの実挙動は変更しません。
 
 ## PR #29でマージ済みのpipeline
 
@@ -154,19 +187,20 @@ PR #29を基点とする`test/oss-offline-guard-boundaries`です。
 
 ## 今回branchの検証
 
-- 既存Python 3.13.18環境で**全301項目／全件1回、15.011秒で合格**。
-  新規guard 6件を含みます。先行の限定6件／1回も0.127秒で合格。
-  今回は合計**307項目実行／2 invocation**です。
-- 別診断：上記7種の未捕捉filesystem変更イベントを副作用なしでprobe。
-  回帰項目には数えず、実変更・対象コード実行・通信／モデル呼出し・採用・受領作成なし。
-- 文書：**相対リンク366件／Markdown 76ファイル合格**。
+- 既存Python 3.13.18環境で**全306項目／全件1回、15.327秒で合格**。
+  新規prompt捕捉5件を含みます。先行の限定5件は4合格／fixture誤り1件。
+  代替source pathを必須trace名に合わせて修正し、影響する1件だけ再実行して合格。
+  今回は合計**312項目実行／3 invocation**です。
+- 別の実受入：fresh prompt捕捉worker 1回、固定judge／prompt経由の要求2本、
+  外部呼出し／model判定なし、空の参考データ。回帰項目には数えません。
+  worker出力SHA-256：
+  `2d26697d97af0cf4277582b77155fefcf72febdb4d2e0a651d800bee734acc02`。
+- 文書：**相対リンク370件／Markdown 76ファイル合格**。
   anchor・外部URLは対象外。空白差分検査も合格。feature CI未実行。
-- 履歴：PR #29は295項目／全件1回14.343秒と先行8件（計303実行／2 invocation）、
-  相対リンク364件／Markdown 76ファイル。別の実固定worker受入ではjournal dispatch 1回、
-  capture中断／再開／合成5観測replayを確認し、worker再実行なし。
-  今回のguard検証試行の実行ではありません。
-- 7種の変更イベント未捕捉、広いsandbox／OS隔離、空でない採用記憶の利用、
-  実データ運用、実5課題A/B改善は未完です。
+- 履歴：PR #30は301項目／1回15.011秒と先行6件（計307実行／2 invocation）、
+  相対リンク366件／Markdown 76ファイル。7eventの別診断は回帰ではありません。
+  PR #29の295項目＋先行8件、実空参考pipeline復旧受入も履歴であり、今回は再実行していません。
+- 空でない採用記憶の意味的利用、実比較評価、既知のfilesystem変更guard補強は未完です。
 
 ## 本当に残っていること
 
