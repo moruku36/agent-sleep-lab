@@ -23,6 +23,14 @@ passed all 241 unique cases on each of Python 3.11 and 3.13 (482 case
 executions / two matrix invocations), 339 relative file links and wheel build.
 No paid API calls occur in CI.
 
+[PR #24](https://github.com/moruku36/agent-sleep-lab/pull/24) is also **MERGED** at
+`2117e96fcad631f69422541b6a6dbad9c6c025ed`, source
+`ab05819d253d15ed7e3dc733f52efd4b034df604`. The owner completed the merge after
+the dedicated merge tool stopped. Both checks in
+[PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42801027617)
+and the [main workflow](https://github.com/moruku36/agent-sleep-lab/actions/runs/42801229632)
+succeeded. This adds the synthetic collect-only bridge, not a deployed agent.
+
 Merged foundation: synthetic evidence/provenance, policy and receipt libraries,
 transactional adoption, scoped retrieval, rollback/logical forgetting; body-bound
 v2 Light/Deep proposals and generated candidate claims; explicit runtime CLI;
@@ -33,7 +41,16 @@ This is not production authentication, physical purge or a deployed agent connec
 
 ## Current development branch
 
-`feat/offline-agent-memory-bridge`, based on the PR #23 merge above.
+`feat/reference-use-journal`, based on the PR #24 merge above.
+
+- Added the [reference dispatch journal](reference-use.md): bounded frozen task
+  and reference bytes, target/consumer identities, pre-dispatch durable intent,
+  compare-and-swap, no retry of unknown outcomes, and pre/post context rechecks.
+- Valid returned output is retained with hashes, but every consumer receipt stays
+  unreviewed. `delivery_and_use_verified` is always false; no semantic-use or
+  performance conclusion follows.
+
+Already merged in PR #24:
 
 - Added an opt-in [OSS Contributor collect-only bridge](oss-bridge.md) for the
   existing agent's `TriageDecision` dictionary contract.
@@ -49,16 +66,14 @@ This is not production authentication, physical purge or a deployed agent connec
 
 ## Current branch verification
 
-- **247 unique cases / one full invocation, all passed, 12.183 s**, using the
+- **255 unique cases / one full invocation, all passed, 13.588 s**, using the
   existing Python 3.13 wheel-verification environment with project dependency pins.
-  This includes six new bridge cases. No environment was created or modified.
-- Earlier repair checks: system Python lacked jsonschema and executed zero test
-  bodies; existing general dev environment ran six bridge cases with one test
-  error (wrong receipt-table name). Corrected the test and the full run passed.
-  Total this branch: 253 case executions / two body-running invocations, plus one
-  load-only failure. No hidden re-runs or changed test budget.
+  This includes eight new journal cases. No environment was created or modified,
+  and no test was repeated in this development trial.
+- PR #24's earlier local result was 247 cases / one full invocation, all passed,
+  12.183 s. It is historical baseline verification, not a new-branch test run.
 - New branch CI has not been run; merged-baseline CI above is not its verification.
-- Documentation: **349 relative file links / 74 Markdown files passed**;
+- Documentation: **360 relative file links / 76 Markdown files passed**;
   anchors and remote URLs are not checked.
 - Actual five-task A/B and live-model performance improvement remain unverified.
 
@@ -76,7 +91,8 @@ This is not production authentication, physical purge or a deployed agent connec
    paper-quality proof.
 3. Connect ONE existing agent and verify actual capture/retrieval use. Offline
    bridge contracts and manual handoff drafts are preparation only. Real-data
-   boundaries and delivery/use logging remain open.
+   boundaries and actual delivery/use verification remain open. The new local
+   dispatch journal supplies accounting only, not authenticated use evidence.
 4. Relevant raw ranking, physical purge and broader production fault acceptance
    remain open; none is established by passing offline tests.
 

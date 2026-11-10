@@ -36,6 +36,9 @@ issueの事実やモデルの理由が正しいと認めるものではありま
 対象のscore、閾値、pending状態、ledger、collect-only gateは変更しません。
 adapterは受信側を実行しないため、bundle生成を配信・利用確認とは呼びません。
 
+任意の[受け渡しjournal](reference-use.ja.md)で固定byteと明示的なローカルconsumer呼出しを
+記録できます。返答は未確認で、配信・利用の検証済み証明ではありません。
+
 ## 検証と残作業
 
 合成fixtureで記録／replay、未信頼の理由、実データ拒否、対象repo不一致、
