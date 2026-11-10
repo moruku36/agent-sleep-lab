@@ -61,9 +61,38 @@ GitHubで2026-11-10T16:07:42ZのマージとPR CI（Python 3.11／3.13）の合�
 親checkerと代替sourceの契約10件をマージしました。別のローカル受入では空の合成参考で
 固定対象コードを1回動かし、合成5判定をcaptureしましたが、journal経由ではありませんでした。
 
+[PR #29](https://github.com/moruku36/agent-sleep-lab/pull/29)も**マージ済み**です。
+merge commit `85300ee064b6a9621119c5748f6c8267e240d030`、
+対象ソース `9a7e3b8f25268d81503aa8bba91f5feb29d5647c`。
+GitHubで2026-11-10T17:54:44ZのマージとPR CI（Python 3.11／3.13）合格を確認しました。
+
 ## 今回の開発branch
 
-PR #28を基点とする`feat/oss-offline-journal-pipeline`です。
+PR #29を基点とする`test/oss-offline-guard-boundaries`です。
+
+- 指定のFable coding workerは引き続き利用上限待ちです。表示されたresetは05:30 JST。
+  再試行・別coding worker／モデルの起動なし。今回はcoordinatorによる検証／文書更新であり、
+  新たなFable実装の正常完了ではありません。
+- [実guardの受入6件](../tests/test_oss_offline_guards.py)を追加。
+  mockではなく、各件で使い捨ての隔離子processを使用。socket生成、
+  subprocess／環境／cwd制限、外部へのtext／byte／raw／symlink経由write-open拒否、
+  一時scratch／指定ledgerの許可、他のSQLite拒否、資源上限と親processへの非漏洩を確認。
+  pin済み対象コードや外部接続先は使いません。一部process種別は実exec／forkではなく、
+  副作用のない監査event probeです。
+- 確認した制限は合格しましたが、**filesystem書込み全体の隔離は成立していません**。
+  別の副作用なし監査event調査で`os.remove`、`os.rename`、`os.mkdir`、
+  `os.link`、`os.symlink`、`os.chmod`、`os.truncate`が捕捉されないと確認。
+  対応する実filesystem操作は実行せず、外部の合成sentinelは変更されていません。
+- worker guardのdocstringを「全filesystem書込み」ではなく、選択したwrite-open／SQLite
+  検査と限界を記載するよう修正。guardの実際の挙動は変更していません。
+  既存descriptor・native code・syscall全体の隔離は対象外で、敵対的Python用sandboxではありません。
+- coding worker待ちが解消した後の実装修正は、path／dir-fdを含むfilesystem変更経路の
+  拒否と意味のある境界テストです。今回見つかった穴は未修正として残しています。
+  空でない採用記憶の意味的利用と実データ許可も未完です。
+
+## PR #29でマージ済みのpipeline
+
+履歴：PR #28を基点とし、PR #29でマージした`feat/oss-offline-journal-pipeline`です。
 
 - [OfflinePipeline](../src/agent_sleep_lab/oss_offline_pipeline.py)を追加：
   bridge取得→永続reference journal→親checker→判定保存→capture。
@@ -98,7 +127,7 @@ PR #28を基点とする`feat/oss-offline-journal-pipeline`です。
 - 合成オフライン接続であり、本番接続や認証済み配信／利用ではありません。
   受領は未確認自己申告で`delivery_and_use_verified`はfalse。
   空参考は`Target.notes`へ届きますが、`llm=None`では意味的利用されません。
-- 残り：空でない採用記憶の利用、guard境界の独立テスト、bundle key乖離とstore由来束縛、
+- 残り：空でない採用記憶の利用、guard境界の追加検証／補強、bundle key乖離とstore由来束縛、
   実データ許可、実比較評価。capture／journal／storeを跨ぐ単一transactionではありません。
   明示storeは呼出し側の管理で認証済みではなく、再開には同じ証拠storeの存続が必要です。
   origin URLは変更可能で、guardは敵対的Pythonのsandboxではありません。
@@ -125,19 +154,19 @@ PR #28を基点とする`feat/oss-offline-journal-pipeline`です。
 
 ## 今回branchの検証
 
-- 既存Python 3.13.18環境で**全295項目／全件1回、14.343秒で合格**。
-  新規pipeline 9件を含みます。capture中policy変更のケースとレビュー修正を追加する前に、
-  8件の限定検証も1回合格：今回の回帰は合計**303項目実行／2 invocation**です。
-- 別の実受入：固定worker 1回、中断／再open／再開／再送、合成5判定capture、
-  採用記憶0件・検証／評価受領0件。回帰項目には数えません。
-  保存pipeline出力SHA-256：
-  `c023ff7231f34e1a87f1aa8e7ffb0b3a1b328eff53561d58e50f198b82357e31`。
-- 文書：**相対リンク364件／Markdown 76ファイル合格**。
+- 既存Python 3.13.18環境で**全301項目／全件1回、15.011秒で合格**。
+  新規guard 6件を含みます。先行の限定6件／1回も0.127秒で合格。
+  今回は合計**307項目実行／2 invocation**です。
+- 別診断：上記7種の未捕捉filesystem変更イベントを副作用なしでprobe。
+  回帰項目には数えず、実変更・対象コード実行・通信／モデル呼出し・採用・受領作成なし。
+- 文書：**相対リンク366件／Markdown 76ファイル合格**。
   anchor・外部URLは対象外。空白差分検査も合格。feature CI未実行。
-- 履歴：PR #28は全286項目／1回14.081秒、相対リンク362件／Markdown 76ファイル、
-  別の固定worker smoke。PR #27は全276項目／1回13.446秒。今回試行の実行ではありません。
-- guard拒否の独立テスト、空でない採用記憶の意味的利用、実データ運用、
-  5課題実A/B改善は未確認です。
+- 履歴：PR #29は295項目／全件1回14.343秒と先行8件（計303実行／2 invocation）、
+  相対リンク364件／Markdown 76ファイル。別の実固定worker受入ではjournal dispatch 1回、
+  capture中断／再開／合成5観測replayを確認し、worker再実行なし。
+  今回のguard検証試行の実行ではありません。
+- 7種の変更イベント未捕捉、広いsandbox／OS隔離、空でない採用記憶の利用、
+  実データ運用、実5課題A/B改善は未完です。
 
 ## 本当に残っていること
 
