@@ -41,22 +41,41 @@ GitHubの読取りで2026-11-10T10:54:59Zのマージを確認しました。
 生成candidateの独立検証・採用は自動ではありません。
 本番認証、物理purge、本番agent接続とは区別します。
 
+[PR #26](https://github.com/moruku36/agent-sleep-lab/pull/26)も**マージ済み**です。
+merge commitは`9a36ee6dca4569ea2fe1d32dd42969ea9a62c6c3`、
+対象ソースは`37439d00d95a4f74d5225a3dc2aab27fdf3c658c`。
+GitHubの読取りで2026-11-10T15:34:08Zのマージを確認しました。
+CI結果はここには記録していません。途中のoffline workerを保全draftとして
+マージしたもので、動作する接続checkerではありません。
+
 ## 今回の開発branch
 
-PR #25のmerge commitを基点とする`feat/oss-offline-integration-check`です。
-**未完成のdraft**であり、動作する接続checkerではありません。
+PR #26のmerge commitを基点とする`feat/oss-offline-worker-contract`です。
+workerは引き続き**未完成のdraft**であり、動作する接続checkerではありません。
 
-- 中断した開発の途中成果である[offline worker](../src/agent_sleep_lab/oss_offline_worker.py)を保全。
-  source hash許可リスト、組込み合成課題、一時ledger、ローカルguard、trace出力を定義します。
-- 親checker、対象checkout／commit検証、bridge／journal接続、動作テスト、
-  一気通貫の実行は未実装または未検証です。埋込みsource pinの独立検証も未実施です。
+- 途中の[offline worker](../src/agent_sleep_lab/oss_offline_worker.py)の入力検証を強化。
+  payloadの完全一致key、上限付き小文字hex、項目ごとのbyte上限、厳格JSON
+  （重複key・非有限数・BOM・不正UTF-8を拒否）、合成experience参考bundleの完全一致keyと
+  件数／snapshot照合、組込み合成課題byteのみ受理。
+- 読込みはcompile直前にsource hashを再照合し、mapping順ではなくレビュー済み順を使い、
+  全sourceのcompile後にだけ実行し、同名moduleが既にあるprocessを拒否します。
+  worker自身の`__future__`指定がpin済みコードへ漏れる点も修正しました。
+- **[契約テスト](../tests/test_oss_offline_worker.py)21件を追加、全合格**。
+  入力検証と読込みの単体動作をテスト用の代替sourceで確認し、対象コードは実行しません。
+- 三段階を区別します。**構文／import・単体動作**は下記回帰で合格。
+  **実際の対象接続**（`run()`・guard・pin済み対象source）は未実行・未検証です。
+- 親checker、対象checkout／commit検証、bridge／journal接続、一気通貫の実行は未実装です。
+  埋込みsource pinの独立検証も未実施です。bundleのkey集合は取得契約のローカル複製で
+  乖離検出テストはなく、正規化byteやstore由来の確認もしません。
   実データには使用しないでください。
 - guardは敵対的Pythonのsandboxではなく、境界テストも未実施です。
   参考byteは対象notesへ代入しますが、`llm=None`のtriageは意味的に利用しません。
   記憶の効果や本番接続を示すものではありません。
-- Codex CLIへの指定は`gpt-6.1-sol`／`xhigh`ですが、呼出しが正常完了・モデル受領なしで
-  timeoutしました。途中ファイルだけでは指定モデルの実行確認になりません。
-  別モデルへの切替やworkerの重複起動はしていません。
+- 今回の改訂はClaude Codeで作成しました。coordinatorが正常完了のterminal受領
+  （`is_error=false`、`terminal_reason=completed`）を取得し、canonical modelは
+  `claude-fable-5-2`（Fable 5.2）、providerは`firstParty`と確認しました。
+  permission denial・subagentはなく、別モデルへの切替はしていません。PR #26の以前の試行はCodex CLI `gpt-6.1-sol`／`xhigh`指定で、
+  モデル受領なしにtimeoutしました。
 
 以下はPR #25でマージ済みです。
 
@@ -79,12 +98,15 @@ PR #25のmerge commitを基点とする`feat/oss-offline-integration-check`で�
 
 ## 今回branchの検証
 
-- 既存のPython 3.13.18 wheel検証環境で、**既存の全255項目／1回、全合格、13.415秒**。
-  環境新規作成・install・有料推論はしていません。
-- 途中workerは`py_compile`の構文確認のみ合格。既存回帰はworkerを実行しないため、
-  workerの動作、対象ソース実行、一気通貫の接続は未検証です。
-- **相対ファイルリンク362件／Markdown 76ファイル合格**。anchorと外部URLは対象外です。
-  Draft PRのCIは保留で、マージ基点のCIを今回branchの検証とは呼びません。
+- 既存のPython 3.13.18検証環境で**全276項目／ローカル全件1回、全合格、13.446秒**。
+  workerの単体／契約テスト新規21件を含みます。install・ハーネスの有料推論はありません。
+- **相対ファイルリンク364件／Markdown 76ファイル合格**。anchorと外部URLは対象外です。
+  今回featureのCIは未実行です。
+- 履歴（今回の編集前、PR #26のbranch）：Python 3.13.18で既存の全255項目／1回が
+  13.415秒で合格、相対ファイルリンク362件／Markdown 76ファイル合格。
+  これらはworkerを実行しておらず、今回branchの検証ではありません。
+- workerの入力検証と代替sourceの読込みは単体レベルのみ検証済みです。
+  実際の`run()`、guard、対象ソース実行、一気通貫の接続は未検証です。
 - PR #25の以前の255項目／13.588秒とPR #24の247項目／12.183秒は履歴であり、
   今回試行の実行回数には含めません。
 - 5課題の実A/B、実モデルの性能改善は未確認です。

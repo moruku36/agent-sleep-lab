@@ -44,23 +44,46 @@ non-comparability, manual handoff and stopped-worker recovery.
 Generated candidates are not independently verified or adopted automatically.
 This is not production authentication, physical purge or a deployed agent connection.
 
+[PR #26](https://github.com/moruku36/agent-sleep-lab/pull/26) is **MERGED** at
+`9a36ee6dca4569ea2fe1d32dd42969ea9a62c6c3`, source
+`37439d00d95a4f74d5225a3dc2aab27fdf3c658c`. A GitHub read confirmed the merge at
+2026-11-10T15:34:08Z; its CI result is not recorded here. It merged the partial offline worker as a
+preserved draft, not a working integration checker.
+
 ## Current development branch
 
-`feat/oss-offline-integration-check`, based on the PR #25 merge above.
-This is an **incomplete draft**, not an operational integration checker.
+`feat/oss-offline-worker-contract`, based on the PR #26 merge above.
+The worker is still an **incomplete draft**, not an operational integration checker.
 
-- Preserves the partial [offline worker](../src/agent_sleep_lab/oss_offline_worker.py)
-  left by an interrupted development attempt. It defines a source-hash allowlist,
-  built-in synthetic tasks, temporary-ledger execution, local guards and trace output.
-- The parent checker, target checkout/commit verification, bridge/journal wiring,
-  behavior tests and end-to-end run are NOT implemented or verified. The embedded
-  source pins have not been independently verified. Do not use this draft on real data.
+- Hardened input validation in the partial
+  [offline worker](../src/agent_sleep_lab/oss_offline_worker.py): exact payload keys,
+  bounded lowercase hex, per-field byte caps, strict JSON (duplicate keys, non-finite
+  numbers, BOM and invalid UTF-8 rejected), the exact synthetic experience
+  reference-bundle key set with record-count and snapshot checks, and built-in
+  synthetic task bytes only.
+- Loading rechecks source hashes immediately before compiling, uses the reviewed
+  order instead of mapping order, compiles every source before executing any,
+  refuses a process where those module names already exist, and no longer leaks the
+  worker's `__future__` flags into pinned code.
+- Added **21 passing [contract tests](../tests/test_oss_offline_worker.py)** for
+  validation and loader unit behavior using test-authored stand-in sources;
+  they never run target code.
+- Three levels remain distinct: **syntax/import and unit behavior** pass the
+  regression below; **actual target integration** (`run()`, guards, pinned target
+  sources) remains unexecuted and unverified.
+- The parent checker, target checkout/commit verification, bridge/journal wiring
+  and end-to-end run are NOT implemented. The embedded source pins have not been
+  independently verified. The bundle key set is a local copy of the retrieval
+  contract with no drift test; canonical bundle bytes and store origin are not
+  checked. Do not use this draft on real data.
 - Guard code is not a sandbox for hostile Python; it has not passed boundary tests.
   Reference bytes are assigned to target notes, which triage with `llm=None` does
   not use semantically. No memory benefit or deployed connection is demonstrated.
-- The requested Codex CLI model/effort was `gpt-6.1-sol` / `xhigh`. The invocation
-  timed out without a normal completion/model receipt; partial files do not verify
-  that model/effort. No replacement model or duplicate worker was started.
+- This revision was written in Claude Code. The coordinator received a successful
+  terminal result (`is_error=false`, `terminal_reason=completed`) naming canonical
+  model `claude-fable-5-2` (Fable 5.2), provider `firstParty`, with no permission
+  denials or subagents. No fallback model was used. The earlier PR #26 attempt
+  requested Codex CLI `gpt-6.1-sol` / `xhigh` and timed out without a model receipt.
 
 Already merged in PR #25:
 
@@ -86,14 +109,18 @@ Already merged in PR #24:
 
 ## Current branch verification
 
-- **255 unique existing regression cases / one full invocation, all passed,
-  13.415 s**, using the existing Python 3.13.18 wheel-verification environment.
-  No environment creation, installation or paid inference was performed.
-- The partial worker passed `py_compile` only. Existing regressions do not exercise
-  it: no worker behavior, target-source execution or end-to-end integration is verified.
-- Documentation: **362 relative file links / 76 Markdown files passed**;
-  anchors and remote URLs are not checked. Draft PR CI is pending.
-  Merged-baseline CI is not verification of this branch.
+- **276 unique cases / one full local invocation, all passed in 13.446 s**,
+  with the existing Python 3.13.18 verification environment. This includes
+  21 new worker unit/contract cases. No installs or paid harness inference.
+- Documentation: **364 relative file links / 76 Markdown files passed**;
+  anchors and remote URLs are not checked. Feature CI is not run.
+- Historical, from the PR #26 branch before these edits: 255 unique existing
+  regression cases / one invocation passed in 13.415 s on Python 3.13.18, and
+  362 relative file links / 76 Markdown files passed. Those runs did not exercise
+  the worker and are not verification of this branch.
+- Worker input validation and stand-in loader behavior are verified only at the
+  unit level. Actual `run()`, guards, target-source execution and end-to-end
+  integration remain unverified.
 - PR #25's earlier local result (255 cases, 13.588 s) and PR #24's result
   (247 cases, 12.183 s) are historical, not executions in this trial.
 - Actual five-task A/B and live-model performance improvement remain unverified.
