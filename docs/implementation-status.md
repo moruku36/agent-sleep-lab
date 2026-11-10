@@ -79,7 +79,54 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-`feat/oss-adopted-reference-preparation`, based on merged PR #31.
+`feat/oss-paired-outcome-journal`, based on owner-merged
+[PR #32](https://github.com/moruku36/agent-sleep-lab/pull/32) at
+`46a1e585e580275aef003c72bc74f08c9be09b52` (source
+`96ba94bb25d71089a5f6abdd8cd14926e42ddb97`). GitHub confirmed MERGED and
+successful Python 3.11 / 3.13 PR CI checks.
+
+- Added a separate [paired-outcome journal](../src/agent_sleep_lab/oss_paired_outcome.py)
+  consuming actual captured OSS request artifacts, not replacement task prompts.
+  Registration validates the capture, source/task/reference hashes, current-policy
+  context and caller-supplied worker labels, then freezes both exact requests,
+  original reference bytes, retrieval/bridge identity and equal per-arm byte bounds.
+  Artifacts and caller-controlled store/summary labels are not authenticated authority.
+- Each arm commits intent before one fake dispatch and commits its reply before
+  the next arm. Close/reopen can continue an unstarted second arm; saved replies
+  replay without redispatch. Unknown outcomes permanently stop the plan.
+  A changed/unavailable context prevents remaining dispatches; context is rechecked
+  after replies and on report, withholding stale reply bodies.
+- Private SQLite journal has a separate application ID/schema, explicit full-sync
+  settings, foreign-database refusal and saved-reply integrity checks.
+  This assumes one driver per plan and is not a cross-store atomic transaction.
+- **Fake-only execution:** only an explicitly supplied local fixture provider is
+  supported. Replies are synthetic bytes, not parsed target verdicts or real model
+  receipts. Usage/cost stay unavailable; byte caps are not generation-token or
+  monetary caps. No live provider, CLI or evaluator was added.
+- [Eight new regression cases](../tests/test_oss_paired_outcome.py) cover byte-exact
+  Unicode request binding/provenance, durable continuation/replay, unknown outcomes,
+  policy revocation before/after replies, malformed bindings/size bounds,
+  unavailable context, database identity/durability and reply corruption.
+  All **317 unique local cases passed in one invocation** (17.497 s, Python 3.13).
+- Separate acceptance captured a nonempty Japanese reference through the actual
+  pinned OSS judge/prompt, then passed those exact request bytes to the fake journal.
+  One arm completed, the journal closed/reopened, the other completed; a third run
+  replayed both, with two total fake calls. Current exclusion withheld both saved
+  reply bodies. Preparation/fake execution wrote nothing to the adoption store.
+  External provider calls, model verdicts and live usage/cost measurements: zero.
+  Store adoption/verifier/evaluator data were explicitly test-authored fixtures.
+- Worker provenance: explicitly requested `claude-fable-5-2`, but the invocation
+  timed out at 300 s after saving the module and six cases. No normal-completion
+  or resolved-model receipt was returned; no worker retry/substitution. Coordinator
+  reviewed and hardened saved code, added two regression cases and verified it.
+- Remaining: bounded live-provider wiring with current-context checks, real model
+  identity/usage receipts, target verdict parsing, a frozen independent evaluator,
+  paired cost accounting and effect measurement. This is offline execution plumbing,
+  not semantic-memory-use or performance evidence. Known guard gaps remain open.
+
+## Merged PR #32 adopted-reference preparation
+
+Historical branch `feat/oss-adopted-reference-preparation`, based on merged PR #31.
 **Locally verified:** all 309 unique regression cases passed in one invocation
 (Python 3.13, 15.290 s). PR CI is reported separately. No paid/live evaluation inference.
 

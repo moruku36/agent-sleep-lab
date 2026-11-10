@@ -75,7 +75,49 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-マージ済みPR #31を基点とする`feat/oss-adopted-reference-preparation`です。
+所有者がマージした[PR #32](https://github.com/moruku36/agent-sleep-lab/pull/32)を
+基点とする`feat/oss-paired-outcome-journal`です。merge
+`46a1e585e580275aef003c72bc74f08c9be09b52`、ソース
+`96ba94bb25d71089a5f6abdd8cd14926e42ddb97`。GitHubでMERGEDと
+PR CIのPython 3.11／3.13両check合格を確認しました。
+
+- 別の[対応結果journal](../src/agent_sleep_lab/oss_paired_outcome.py)を追加。
+  代替の課題promptではなく実OSSから捕捉した要求artifactを受け取ります。
+  登録時にcapture、source／task／referenceのhash、現在policyの文脈、
+  呼出し側指定のworker labelを照合し、要求2本の正確なbyte・元参考byte・
+  retrieval／bridge識別・両群共通byte上限を固定します。
+  artifactや呼出し側管理のstore／summary labelは認証された権限ではありません。
+- 各群の呼出し前にintentをcommitし、返答をcommitしてから次の群へ進みます。
+  close／reopenで未実行の次群だけを続行し、保存済み返答は再送せず再掲します。
+  結果不明なら計画を恒久停止。文脈変更・取得不能時は残りを実行せず、
+  返答後とreport時にも照合して失効後の返答本文を出しません。
+- 別application ID／schemaの非公開SQLite journalを使い、明示的なfull-sync、
+  別DBの拒否、保存返答の整合性検査を追加。計画のdriverは一つを前提とし、
+  採用storeとの横断的な原子transactionではありません。
+- **模擬実行専用：**明示したローカルfixture providerだけを受け付けます。
+  返答は合成byteであり、実targetの判定や実model受領ではありません。
+  使用量・費用は未取得のまま。byte上限は生成token／金額上限ではありません。
+  live provider、CLI、評価器は追加していません。
+- [新規回帰8件](../tests/test_oss_paired_outcome.py)でUnicode要求のbyte一致／来歴、
+  永続的な続行／再掲、結果不明、返答前後の除外、束縛／サイズ不正、
+  文脈取得不能、DB識別／同期、返答破損を確認。
+  **ローカル全317件が1回の実行で合格**（Python 3.13、17.497秒）。
+- 別受入では、日本語の非空参考を実際の固定OSS judge／promptへ通し、
+  その要求byteを模擬journalへ接続。片群実行→close／reopen→残り実行→
+  全再掲まで模擬呼出しは合計2回。現在policyの除外後は両返答本文を非表示と確認。
+  準備／模擬実行による採用store書込み、外部provider呼出し、実model判定は0件。
+  使用量／費用の実測なし。採用・検証／評価データは明示したテストfixtureです。
+- worker来歴：`claude-fable-5-2`を明示指定しましたが、本体と6件の保存後、
+  300秒でtimeout。正常完了／解決済みmodelの受領は未取得で、再試行・切替なし。
+  coordinatorが保存コードをレビュー・補強し、回帰2件を追加して検証しました。
+- 残り：現在文脈を照合する上限付きlive provider接続、実model識別／使用量受領、
+  targetの判定解析、固定した独立評価器、対応比較の費用記録と効果計測。
+  今回はoffline実行の接続であり、意味的な記憶利用／性能の証明ではありません。
+  既知のguardの穴は未完です。
+
+## PR #32でマージ済みの採用参考準備
+
+履歴：マージ済みPR #31を基点とした`feat/oss-adopted-reference-preparation`です。
 **ローカル検証済み：**全309件の重複なし回帰テストが1回の実行で合格しました
 （Python 3.13、15.290秒）。PR CIは別途報告します。有料／実モデルの評価推論は未実行です。
 
