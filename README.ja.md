@@ -14,9 +14,9 @@ AIエージェントが作業経験を振り返り、根拠付きの記憶へ整
 合成の記録→Light→Deep→独立受領→採用→取得と中断境界の重点受入により、
 Gate 4A受入時点の初期版見積りは**約35〜40%**。本番接続・比較評価・広い障害受入は未完。
 
-**現在：初期版全体は約40%。** [Gate 4A](docs/gate-4-light-deep.md)と[Gate 4B](docs/gate-4b-comparison.md)はマージ済み（PR #17／#19）。今回の[Gate 4C](docs/gate-4c-retrieval-comparison.md)は、採用済みstoreの取得を固定した出典一致比較へつなぐadapterと架空の論文fixtureです。この記述はCI前の時点：コードレビュー済み・Gate 4Cテスト未実行・未マージ。その後の結果はPR checksを参照してください。実モデルの性能実験ではありません。
+**現在：初期版全体は約40%。** Gate 4A〜4Cはマージ済み（PR #17／#19／#20）。今回の[Gate 4D](docs/gate-4d-raw-baseline.md)は、記憶の引用に依存せず未引用の原記録も選ぶ上限付きraw baselineと、各群の入力・状態監査です。この記述はCI前の時点：コードレビュー済み・Gate 4Dテスト未実行・未マージ。その後の結果はPR checksを参照。実モデルの性能実験ではありません。
 
-過去Gate 3は23項目／5回、Gate 4Bは二重CIを含む10項目／2回で枠終了済み。いずれも再実行しません。Gate 4Cは新しい取得接続5項目をPR CIで1回だけ選択し、ローカル二重実行はしません。完全な生取得baseline・実比較評価・既存agent一つの接続は未完、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
+過去Gate 3は23項目／5回、Gate 4Bは二重CIを含む10項目／2回で枠終了済み。いずれも再実行しません。Gate 4CはCI42781526252で5項目を1回・1.308秒で合格しwheel成功、`bd4d0f6ce898d95c4b0e9afb1372a8f61b8cd81b`でマージ済み。Gate 4Dは新しいraw baseline／監査5項目をPR CIで1回だけ選択し、ローカル二重実行はしません。関連度で順位付けする生取得・実比較評価・既存agent一つの接続は未完、性能改善は未測定。[現在表](docs/implementation-status.ja.md)。
 
 **設計の前提：対象エージェントは忘れるものと置きます。** 内部メモリは根拠にせず、正本はこのハーネスの外部記憶に置きます（[設計判断 0002](docs/decisions/0002-assume-agent-forgets.md)、[dots との接続設計](docs/dots-integration.ja.md)）。
 
@@ -96,8 +96,9 @@ sleepの開始契機は、明示的な指示、作業終了、経験の蓄積を
 - **PR #16でマージ済み**：[レビュー修正](docs/review-followup.ja.md)（文書は当時の記録）。
 - **マージ済み・重点CI合格**：[Gate 4A](docs/gate-4-light-deep.md)の最小合成Light／Deep。
 - **PR #19マージ済み・異なる5項目を2回合格（10実行／2回、枠終了）**：[Gate 4B](docs/gate-4b-comparison.md)のオフライン合成対応A/B比較ライブラリと評価接触記録。偽providerのみ、性能主張なし。
-- **feature branch・コードのみ（未テスト・未実行・未マージ）**：[Gate 4C](docs/gate-4c-retrieval-comparison.md)。採用済みstoreの取得を固定済みの出典一致比較へ接続するadapterと架空の論文fixture。完全な生取得baselineではなく、性能・公平性の主張なし。（Gate 4B自体はPR #19でマージ済み。）
-- **未実装**：削除・物理purge・cache掃除、完全な生取得baselineの固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。Gate 4Cが固定するのは出典一致の文脈のみ。
+- **PR #20マージ済み・5項目を1回／1.308秒で合格・wheel成功**：[Gate 4C](docs/gate-4c-retrieval-comparison.md)。出典一致の取得→固定比較adapterと架空fixture。完全な生取得baselineでも性能実験でもありません。
+- **feature branch・CI前（未テスト・未実行・未マージ）**：[Gate 4D](docs/gate-4d-raw-baseline.md)。記憶の引用に依存しない原証拠の選択・完全record予算・各群の入力／状態の読み取り監査。上限付き合成データのみで、公平性・配信／既読／利用は主張しません。
+- **未実装**：削除・物理purge・cache掃除、完全な生取得baselineの固定、渡したmemoryの記録、実環境の取込・取得adapter、本番sleep段階、出典の認証、認証付きrun統合・追加の障害受入、日記、スケジューラー。Gate 4Cは出典一致の文脈固定、Gate 4Dは独立選択した上限付きraw文脈を追加しますが、関連度順位付けや実接続ではありません。
 - **未実施**：対象エージェントとの接続、sleep providerの試行、A/B性能実験。Claude Codeでの開発セッションとは区別します。
 
 [手動実験](docs/manual-pilot.ja.md)から開始し、実運用前に[不足している契約](schemas/README.md#dreaming設計で追加が必要な契約未実装)を実装します。文書・合成例の検査は、性能改善の証明ではありません。
