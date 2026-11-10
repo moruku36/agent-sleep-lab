@@ -2,7 +2,8 @@
 
 Loads the same reviewed frozen sources as ``oss_offline_worker`` (same payload
 schema, same guards) and drives the real ``OpenAITriager.judge`` ->
-``triage_prompt`` path twice for the one built-in synthetic borderline issue:
+``triage_prompt`` path twice for the one built-in synthetic borderline issue
+(v1), or an explicitly selected built-in issue in forced-judge probe mode (v2):
 
 - ``baseline``: ``project_notes=""``
 - ``reference``: ``project_notes`` = a fixed untrusted-data frame around the
@@ -35,6 +36,14 @@ else:
     from agent_sleep_lab import oss_offline_worker as base
 
 OUTPUT_PROTOCOL = "agent-sleep-oss-prompt-capture-output/1"
+PROBE_OUTPUT_PROTOCOL = "agent-sleep-oss-prompt-capture-output/2"
+PROBE_INPUT_PROTOCOL = "agent-sleep-oss-prompt-capture-input/2"
+PROBE_PROTOCOL = "agent-sleep-oss-selected-issue-probe/1"
+PROBE_PROVENANCE = dict(
+    route="explicit_selected_issue_forced_judge_probe",
+    normal_automatic_triage=False,
+    scoring="pinned_score_issue_ref_with_default_Rules",
+    prompt="unchanged_pinned_prompt_including_borderline_wording")
 ARTIFACT_KIND = "request_preparation_only"
 MAX_CAPTURE_OUTPUT_BYTES = 262144
 # Inert fixture labels. None is a real credential, model or endpoint.
@@ -68,6 +77,51 @@ OUTPUT_KEYS = frozenset({
     "model_identity", "transport", "credentials", "arms", "comparability",
     "dispatch_authorization", "model_receipt", "verdict", "semantic_memory_use",
     "performance_improvement", "target_calls"})
+PROBE_OUTPUT_KEYS = OUTPUT_KEYS | {"selected_issue_probe", "probe_provenance"}
+
+
+def synthetic_issue(number):
+    if type(number) is not int or number not in range(1, 6):
+        raise ValueError("selected issue number must be an integer in 1..5")
+    item = base.synthetic_task()["issues"][number - 1]
+    return dict(item, repo=base.REPOSITORY, url="fixture://issue/%d" % number)
+
+
+def selected_issue_probe(number):
+    """Explicit opt-in, bound to the complete built-in issue and suite bytes."""
+    issue = synthetic_issue(number)
+    return dict(protocol=PROBE_PROTOCOL, issue_number=number,
+                issue_sha256=base.digest(base.encoded(issue)),
+                task_sha256=base.digest(base.encoded(base.synthetic_task())))
+
+
+def validate_probe(value):
+    if (type(value) is not dict or set(value) != {
+            "protocol", "issue_number", "issue_sha256", "task_sha256"}
+            or value != selected_issue_probe(value["issue_number"])):
+        raise ValueError("exact versioned selected issue identity/hash binding required")
+    return selected_issue_probe(value["issue_number"])
+
+
+def probe_metadata(doc):
+    """Version-dependent fields for already validated captures only."""
+    if doc["protocol"] == PROBE_OUTPUT_PROTOCOL:
+        return {key: doc[key] for key in (
+            "selected_issue_probe", "probe_provenance", "score", "band")}
+    return {}
+
+
+def validate_payload(payload):
+    """Keep the base worker's v1 input exact; unwrap only explicit v2 input."""
+    selection = None
+    if type(payload) is dict and "protocol" in payload:
+        if (set(payload) != {"protocol", "selected_issue_probe", "payload"}
+                or payload["protocol"] != PROBE_INPUT_PROTOCOL):
+            raise ValueError("exact v2 prompt capture input required")
+        selection = validate_probe(payload["selected_issue_probe"])
+        payload = payload["payload"]
+    sources, task, reference = base.validate_payload(payload)
+    return sources, task, reference, selection
 
 
 def reference_notes(reference):
@@ -179,8 +233,11 @@ class CaptureTransport:
         raise self.raised
 
 
-def capture(modules, task, reference):
+def capture(modules, task, reference, *, selected_issue_probe=None):
     """Drive the loaded triage path for both arms; return the output document."""
+    selection = None if selected_issue_probe is None else validate_probe(selected_issue_probe)
+    if task != base.encoded(base.synthetic_task()):
+        raise ValueError("only built-in synthetic task bytes accepted")
     notes = reference_notes(reference)
     config = modules["src.config"]
     github = modules["src.collector.github_client"]
@@ -205,20 +262,23 @@ def capture(modules, task, reference):
     arms = {}
     sys.setprofile(profile)
     try:
-        borderline = []
+        scored = []
         for item in base.synthetic_task()["issues"]:
             score, reasons = triager.score_issue_ref(issue_ref(item),
                                                      weights=rules.triage_scoring)
-            if triager.verdict(score, accept_threshold=accept,
-                               skip_threshold=skip) == "borderline":
-                borderline.append((item, score, reasons))
-        if len(borderline) != 1:
-            raise ValueError("exactly one built-in synthetic borderline issue required")
-        item, score, reasons = borderline[0]
-        if (type(score) is not float or not skip <= score < accept
+            band = triager.verdict(score, accept_threshold=accept, skip_threshold=skip)
+            if ((selection is None and band == "borderline")
+                    or (selection is not None and item["number"] == selection["issue_number"])):
+                scored.append((item, score, reasons, band))
+        if len(scored) != 1:
+            raise ValueError("exactly one selected or built-in borderline issue required")
+        item, score, reasons, band = scored[0]
+        if (type(score) is not float or not 0.0 <= score <= 1.0
+                or band not in {"skip", "borderline", "accept"}
+                or (selection is None and not skip <= score < accept)
                 or type(reasons) is not list or not 1 <= len(reasons) <= 32
                 or any(type(reason) is not str or not reason for reason in reasons)):
-            raise ValueError("unexpected borderline score or reasons")
+            raise ValueError("unexpected actual score, band or reasons")
         reasons = list(reasons)
         for name, arm_notes in (("baseline", ""), ("reference", notes)):
             transport = CaptureTransport(llm.LLMTriageError)
@@ -246,13 +306,14 @@ def capture(modules, task, reference):
                 name, arm_notes)
     finally:
         sys.setprofile(None)
-    return dict(
-        protocol=OUTPUT_PROTOCOL, synthetic_only=True, artifact_kind=ARTIFACT_KIND,
+    result = dict(
+        protocol=OUTPUT_PROTOCOL if selection is None else PROBE_OUTPUT_PROTOCOL,
+        synthetic_only=True, artifact_kind=ARTIFACT_KIND,
         agent_commit=base.AGENT_COMMIT, executed_source_sha256=dict(base.SOURCE_HASHES),
         task_sha256=base.digest(task), reference_sha256=base.digest(reference),
         reference_records=len(base.validate_reference(reference)["records"]),
         issue=dict(item, repo=base.REPOSITORY, url="fixture://issue/%d" % item["number"]),
-        score=score, reasons=reasons, band="borderline",
+        score=score, reasons=reasons, band=band,
         thresholds=dict(accept=accept, skip=skip), provider_class=PROVIDER_CLASS,
         model=MOCK_MODEL, model_identity=MODEL_IDENTITY, transport=TRANSPORT,
         credentials=CREDENTIALS, arms=arms,
@@ -261,6 +322,9 @@ def capture(modules, task, reference):
         dispatch_authorization=False, model_receipt=None, verdict=None,
         semantic_memory_use="not_evaluated", performance_improvement="not_evaluated",
         target_calls=trace)
+    if selection is not None:
+        result.update(selected_issue_probe=selection, probe_provenance=dict(PROBE_PROVENANCE))
+    return result
 
 
 def run(payload):
@@ -268,10 +332,10 @@ def run(payload):
     import sqlite3  # noqa: F401
     import urllib.request  # noqa: F401
 
-    sources, task, reference = base.validate_payload(payload)
+    sources, task, reference, selection = validate_payload(payload)
     reference_notes(reference)  # refuse before any reviewed source is compiled
     base.install_guards(Path.cwd().resolve())
-    return capture(base.load_sources(sources), task, reference)
+    return capture(base.load_sources(sources), task, reference, selected_issue_probe=selection)
 
 
 if __name__ == "__main__":

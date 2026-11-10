@@ -75,6 +75,46 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
+### 選択課題のoffline probe増分：ローカル検証済み、未マージ
+
+`feat/oss-selected-issue-capture`は所有者がマージした
+[PR #37](https://github.com/moruku36/agent-sleep-lab/pull/37)の
+`63ca34df000ad95cd279d7652f4c7669d19f0c34`を基点とします。
+GitHubでMERGEDと同じcommitの
+[main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42921165592)を確認しました。
+
+- [選択課題probe契約](oss-selected-issue-probe.md)を追加。capture入力・出力・summaryは
+  v2とし、版付き選択情報、組込み課題番号の厳密な型・範囲、課題／suite hashを
+  worker起動前に照合します。既定v1はborderlineのみ、保存済みv1 artifact／plan／cohortは
+  移行不要です。
+- 固定source・既定rule・実際の採点／bandとjudge／prompt経路を再利用します。
+  選択した#3も含め、全件を強制judge probeと明記。元promptのborderline表記は変更せず、
+  非borderline probeを通常の自動triageやtargetタスク実行として扱いません。
+- adapter受領・固定journal binding・cohort v2文書／reportに選択と来歴を保持。
+  同一の検証済みnotes blockだけを比較用に正規化し、課題ごとの全hashを固定します。
+  再試行禁止・現在policy・不正出力・全登録課題を分母に残す規則は維持します。
+- [新規回帰ソース](../tests/test_oss_selected_probe.py)に実固定workerの5課題captureと
+  模擬返答のみのjournal／cohort経路を追加。公開source 11個をローカル固定Git objectから
+  改変せずライセンス付きfixtureへ保存し、helperで実pinと照合します。
+  Git取得だけを注入し、capture・採点・judge・promptは代替しません。
+- coordinatorが残されたdraftをレビューし、**ローカル全363件／1起動が合格**
+  （Python 3.13.18、26.045秒）。選択probeの新規11件を含みます。feature CIは未実施。
+- 別オフライン受入ではソース取得を模擬せず、実ローカル固定Git objectから11個の
+  sourceを読み、5つのfresh guarded workerで全選択課題をcaptureしました。
+  実score／bandは#1／#4／#5が0.65／accept、#2が0.0／skip、#3が0.5／borderline。
+  実judge／promptと無通信capture transportを使用。模擬返答10回だけでjournal再開、
+  5課題集計、不正返答の失敗計上、再掲の呼出しゼロ、失効後の点数非表示が合格。
+  fixtureの対応差ゼロは実モデルの成績ではありません。
+- worker来歴：所有者の明示承認後、同一Codexコマンドをnative一回承認へ提出。
+  ローカルmetadataでprovider `openai`、model `gpt-6.1-sol`、effort `xhigh`を確認。
+  外側toolは600秒でtimeoutし、最終ファイル・正常完了受領なし。照合時の該当processなし。
+  再送・代替worker／model・API開発呼出しはせず、開発使用量／費用は不明です。
+- 実推論、有料runtime計測、独立holdout、記憶の意味的利用の証拠、採用、target変更、
+  default／認証／schedule変更、mergeは未実施。#1／#4／#5は同文で独立した問題ではありません。
+  parser／evaluatorとtarget実装bytesは未変更。初期版は暫定**30〜35%**のままです。
+
+### PR #37でマージ済みのcohort基準版（検証履歴）
+
 所有者がマージした[PR #36](https://github.com/moruku36/agent-sleep-lab/pull/36)の
 `6e4018c8393103c6f3da362fa409814a61571a3a`を基点とする
 `feat/oss-fixture-cohort`です。GitHubでMERGEDと同じcommitの
@@ -89,8 +129,8 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
   返答本文・理由文・正解labelは集計reportへ複写しません。
 - **ローカル全352件／1起動が合格**（Python 3.13.18、24.123秒）。
   cohortの新規13件を含みます。feature CIは未実施。
-  返答は模擬、複数課題のcaptureはstand-inです。実際の固定capture workerは
-  依然として課題#3だけを選ぶため、実targetの複数課題受入ではありません。
+  返答は模擬、複数課題のcaptureはstand-inでした。既定v1は課題#3だけを選び、
+  この履歴は新しい任意選択probeの複数課題経路を検証するものではありません。
 - 開発worker：自動レビュー拒否後の所有者の明示承認を受け、
   同一Codex CLIコマンドをnative一回承認へ提出。ローカル実行metadataで
   provider `openai`、model `gpt-6.1-sol`、effort `xhigh`を確認しました。

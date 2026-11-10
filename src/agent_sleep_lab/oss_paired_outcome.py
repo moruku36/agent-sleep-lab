@@ -29,6 +29,7 @@ import sqlite3
 from agent_sleep_lab import oss_offline_parent as parent
 from agent_sleep_lab import oss_offline_worker as worker
 from agent_sleep_lab import oss_prompt_capture as capture
+from agent_sleep_lab import oss_prompt_capture_worker as child
 from agent_sleep_lab.oss_bridge import CollectOnlyBridge
 from agent_sleep_lab.provenance import canonical_json, sha256_hex
 
@@ -132,13 +133,17 @@ def build_binding(plan_id, *, summary, capture_doc, reference, bridge, query,
         raw = worker.encoded(capture_doc)
     except (TypeError, ValueError, RecursionError):
         raise CheckError("capture document must be plain JSON data") from None
-    doc = capture.validate_output(raw, task=parent.builtin_task(), reference=reference)
+    doc = capture.validate_output(raw, task=parent.builtin_task(), reference=reference,
+        selected_issue_probe=(capture_doc.get("selected_issue_probe")
+                              if type(capture_doc) is dict else None))
+    probe = child.probe_metadata(doc)
     capture_sha256 = worker.digest(raw)
     if type(summary) is not dict:
         raise CheckError("prepare summary dictionary required")
     launch = summary.get("worker_launch")
     if launch == capture.BUILTIN_WORKER:
-        integration = "builtin_pinned_worker_label_from_unauthenticated_summary"
+        integration = ("forced_selected_issue_probe_not_normal_target_execution_unauthenticated_label"
+                       if probe else "builtin_pinned_worker_label_from_unauthenticated_summary")
         hashes = summary.get("worker_sha256")
         if (type(hashes) is not dict or set(hashes) != {"capture", "base"}
                 or any(type(v) is not str or not re.fullmatch(r"[0-9a-f]{64}", v)
@@ -150,7 +155,7 @@ def build_binding(plan_id, *, summary, capture_doc, reference, bridge, query,
             raise CheckError("stand-in worker must not carry builtin worker hashes")
     else:
         raise CheckError("unknown worker launch label")
-    if (summary.get("protocol") != capture.CHECK_PROTOCOL
+    if (summary.get("protocol") != (capture.PROBE_CHECK_PROTOCOL if probe else capture.CHECK_PROTOCOL)
             or summary.get("worker_output_sha256") != capture_sha256
             or summary.get("agent_commit") != doc["agent_commit"]
             or summary.get("source_sha256") != doc["executed_source_sha256"]
@@ -158,6 +163,12 @@ def build_binding(plan_id, *, summary, capture_doc, reference, bridge, query,
             or summary.get("reference_sha256") != doc["reference_sha256"]
             or summary.get("reference_records") != doc["reference_records"]):
         raise CheckError("prepare summary does not match the capture document")
+    if probe:
+        if any(worker.encoded(summary.get(key)) != worker.encoded(value)
+               for key, value in probe.items()):
+            raise CheckError("prepare summary selected-probe binding mismatch")
+    elif any(key in summary for key in ("selected_issue_probe", "probe_provenance")):
+        raise CheckError("v1 summary must not carry selected-probe fields")
     if summary.get("reference_origin") != capture.ORIGIN_BRIDGE:
         raise CheckError("capture must come from explicit bridge retrieval")
     if (summary.get("dispatch_authorization") is not False
@@ -178,7 +189,7 @@ def build_binding(plan_id, *, summary, capture_doc, reference, bridge, query,
         arms[name] = dict(request_hex=request.hex(), request_sha256=arm["request_sha256"],
                           request_bytes=len(request), prompt_sha256=arm["prompt_sha256"],
                           prompt_bytes=arm["prompt_bytes"])
-    return dict(
+    binding = dict(
         protocol=PROTOCOL, plan_id=plan_id, synthetic_only=True,
         capture=dict(document_sha256=capture_sha256, artifact_kind=doc["artifact_kind"],
                      protocol=doc["protocol"], dispatch_authorization=False,
@@ -204,6 +215,8 @@ def build_binding(plan_id, *, summary, capture_doc, reference, bridge, query,
                     max_calls_per_arm=CALLS_PER_ARM, kind=BOUND_KIND),
         provider=dict(provider_class=PROVIDER_CLASS, reply_kind=REPLY_KIND,
                       live_provider_support=False))
+    binding["capture"].update(probe)
+    return binding
 
 
 class PairedOutcomeJournal:
@@ -476,7 +489,7 @@ class PairedOutcomeJournal:
             plan_status, pair = "stopped", "incomplete_stopped_no_retry"
         else:
             plan_status, pair = "open", "incomplete_open"
-        return dict(
+        report = dict(
             protocol=PROTOCOL, plan_id=plan_id, synthetic_only=True,
             plan_status=plan_status, stop_reason=stopped, pair_outcome=pair,
             arm_statuses=dict(zip(ARMS, states)),
@@ -494,6 +507,9 @@ class PairedOutcomeJournal:
             model_receipt=None, verdict=None, evaluator="not_run", adoption="none",
             semantic_memory_use="not_evaluated", performance_improvement="not_evaluated",
             delivery_and_use_verified=False)
+        if binding["capture"]["protocol"] == child.PROBE_OUTPUT_PROTOCOL:
+            report.update(child.probe_metadata(binding["capture"]))
+        return report
 
     def frozen(self, plan_id, bridge):
         """Exact frozen bytes: both request payloads and the original reference."""

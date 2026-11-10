@@ -14,10 +14,12 @@ import sqlite3
 
 from agent_sleep_lab import oss_execution_journal as execution
 from agent_sleep_lab import oss_offline_worker as worker
+from agent_sleep_lab import oss_prompt_capture_worker as child
 from agent_sleep_lab import oss_verdict_evaluation as evaluation
 from agent_sleep_lab.strictjson import loads_strict_bytes
 
 PROTOCOL = "agent-sleep-oss-fixture-cohort/1"
+PROBE_PROTOCOL = "agent-sleep-oss-fixture-cohort/2"
 PARTITION = "synthetic_development_fixture"
 APPLICATION_ID = 0x41534C43
 SCHEMA_VERSION = 1
@@ -32,6 +34,7 @@ DDL = (
 MEMBER_KEYS = {"plan_id", "binding_sha256", "manifest_sha256", "task_sha256", "issue_number"}
 DOCUMENT_KEYS = {"protocol", "cohort_id", "partition", "registered_tasks", "members",
                  "comparison_sha256"}
+PROBE_DOCUMENT_KEYS = DOCUMENT_KEYS | {"selection_contract", "probe_provenance"}
 BINDING_KEYS = {"protocol", "plan_id", "synthetic_task_only", "capture", "source", "worker",
                 "reference", "retrieval", "bridge", "arms", "bounds", "capture_doc", "adapter",
                 "execution_kind", "evaluation_manifest"}
@@ -74,16 +77,22 @@ def _members(members):
 
 
 def _document(value):
-    if type(value) is not dict or set(value) != DOCUMENT_KEYS:
+    if type(value) is not dict:
+        raise CohortError("exact cohort document keys required")
+    probe = value.get("protocol") == PROBE_PROTOCOL
+    if set(value) != (PROBE_DOCUMENT_KEYS if probe else DOCUMENT_KEYS):
         raise CohortError("exact cohort document keys required")
     _id(value["cohort_id"])
     _hash(value["comparison_sha256"])
     members = _members(value["members"])
-    if (value["protocol"] != PROTOCOL or value["partition"] != PARTITION
+    if (value["protocol"] not in {PROTOCOL, PROBE_PROTOCOL} or value["partition"] != PARTITION
             or type(value["registered_tasks"]) is not int
             or value["registered_tasks"] != len(members) or members != value["members"]
             or len({item["task_sha256"] for item in members}) != 1):
         raise CohortError("unsupported cohort contract or denominator")
+    if probe and (value["selection_contract"] != child.PROBE_PROTOCOL
+                  or worker.encoded(value["probe_provenance"]) != worker.encoded(child.PROBE_PROVENANCE)):
+        raise CohortError("exact selected-probe cohort provenance required")
     return value
 
 
@@ -160,6 +169,22 @@ def _comparison(binding):
     settings.update(source=source, reference=reference, evaluation=manifest, requests=requests,
                     capture={key: binding["capture"][key] for key in (
                         "protocol", "artifact_kind", "model", "model_identity", "comparability")})
+    if binding["capture"]["protocol"] == child.PROBE_OUTPUT_PROTOCOL:
+        # Validate the complete new contract first. The old equality/hash rule
+        # remains byte-identical for saved v1 cohort documents.
+        execution.validate_capture_version(binding)
+        selection = binding["capture"]["selected_issue_probe"]
+        settings["capture"].update(
+            selection_contract=selection["protocol"],
+            probe_provenance=binding["capture"]["probe_provenance"])
+        # The pinned insertion is identical data across tasks, but the generic
+        # longest-prefix/suffix representation can rotate adjacent newlines.
+        # v2 validation requires exactly this block and no other prompt change.
+        notes = child.reference_notes(bytes.fromhex(binding["reference"]["hex"]))
+        block = ("\nProject notes:\n" + notes + "\n").encode("utf-8")
+        settings["capture"]["comparability"] = dict(
+            relation=child.RELATION, non_prompt_request_fields_equal=True,
+            pinned_notes_block_sha256=worker.digest(block), pinned_notes_block_bytes=len(block))
     return worker.digest(worker.encoded(settings))
 
 
@@ -257,10 +282,14 @@ class CohortRegistry:
                 plans.append(plan)
             if len(comparisons) != 1:
                 raise CohortError("incompatible comparison settings")
-            document = _document(dict(
+            document = dict(
                 protocol=PROTOCOL, cohort_id=cohort_id, partition=PARTITION,
                 registered_tasks=len(members), members=members,
-                comparison_sha256=comparisons.pop()))
+                comparison_sha256=comparisons.pop())
+            if plans[0][0]["capture"]["protocol"] == child.PROBE_OUTPUT_PROTOCOL:
+                document.update(protocol=PROBE_PROTOCOL, selection_contract=child.PROBE_PROTOCOL,
+                                probe_provenance=dict(child.PROBE_PROVENANCE))
+            document = _document(document)
             raw = worker.encoded(document)
             if len(raw) > MAX_DOCUMENT_BYTES:
                 raise CohortError("cohort document byte bound")
@@ -345,7 +374,7 @@ class CohortRegistry:
         if complete == count:
             difference = sum(task["arms"]["reference"]["score"] - task["arms"]["baseline"]["score"]
                              for task in tasks) / count
-        return dict(protocol=PROTOCOL, cohort_id=cohort_id,
+        report = dict(protocol=document["protocol"], cohort_id=cohort_id,
                     cohort_sha256=worker.digest(worker.encoded(document)), partition=PARTITION,
                     comparison_sha256=document["comparison_sha256"],
                     status="complete" if complete == count else "incomplete",
@@ -354,3 +383,7 @@ class CohortRegistry:
                     usage="unavailable", cost="unavailable", adoption="none",
                     scope="descriptive_synthetic_development_fixtures_not_independent_effect_evidence",
                     performance_improvement="not_evaluated", semantic_memory_use="not_evaluated")
+        if document["protocol"] == PROBE_PROTOCOL:
+            report.update(selection_contract=document["selection_contract"],
+                          probe_provenance=document["probe_provenance"])
+        return report

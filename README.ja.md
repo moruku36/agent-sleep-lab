@@ -13,6 +13,7 @@ AIエージェントの作業経験を、根拠付きの外部記憶に整理し
 能力・進捗・マージ状態・検証結果の正本は[実装状況](docs/implementation-status.ja.md)に集約します。Gate文書は日付付きの履歴で、現在の作業指示ではありません。実行入口は[ランタイム手順](docs/runtime-guide.ja.md)を参照してください。
 
 [合成fixture cohort契約](docs/oss-fixture-cohort.md)は事前登録した複数課題の集計用で、実モデル・独立holdoutの評価ではありません。
+[選択課題offline probe契約](docs/oss-selected-issue-probe.md)は既定v1と区別した明示的な課題選択と強制judgeの来歴を定義します。
 
 初期版の完成条件は、記録→採用→取得→Light／Deep→比較評価→既存agent一つの接続です。REM・日記・定期処理・横展開は後続の任意項目です。手動下書きの受け渡しは実agent接続ではなく、偽providerの採点は実モデルの改善証拠ではありません。
 

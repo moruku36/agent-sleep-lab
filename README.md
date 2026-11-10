@@ -13,6 +13,7 @@ Keeping a transcript is not the same as learning from it. This project studies w
 [Implementation status](docs/implementation-status.md) is the single authority for current capabilities, progress, merge state and verification evidence. Gate reports are dated history, not current operating instructions. Start with the [runtime guide](docs/runtime-guide.md) for explicit sleep, adoption, retrieval and comparison commands.
 
 The [synthetic fixture cohort contract](docs/oss-fixture-cohort.md) describes predeclared multi-task accounting; it is not a live-model or independent holdout evaluation.
+The [selected-issue offline probe contract](docs/oss-selected-issue-probe.md) defines explicit issue selection and forced-judge provenance alongside the default v1 route.
 
 The initial-version target is capture → adoption → retrieval → Light/Deep → comparative evaluation → one existing-agent integration. REM, diary, schedules and wider rollout are optional later work. A manual draft handoff is not a connected agent, and fake-provider scores are not evidence of model improvement.
 
