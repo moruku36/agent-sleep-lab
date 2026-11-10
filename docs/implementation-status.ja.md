@@ -75,7 +75,44 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-所有者がマージした[PR #33](https://github.com/moruku36/agent-sleep-lab/pull/33)を
+所有者がマージした[PR #34](https://github.com/moruku36/agent-sleep-lab/pull/34)を
+基点とする`feat/oss-durable-prompt-execution`です。merge
+`4492cb05a5aa057b1905753834bd0bcbb0d84f81`、ソース
+`c7071b43e30f95f0b3a7b59b9720f50048b0fbec`。GitHubでMERGEDと
+PR CIのPython 3.11／3.13両check合格を確認しました。
+
+- 検証済みcaptureとprompt本文adapterを接続する別の
+  [永続実行journal](../src/agent_sleep_lab/oss_execution_journal.py)を追加。
+  capture全体、source／task／reference／各群のhash、bridge、adapter／agent／
+  model／transportと上限を固定。同じIDで実行設定を変更することを拒否します。
+  合成課題の出典と模擬／CLIの実行来歴を区別します。
+- 呼出し前にintent、次群の前に返答・限定したhash付き受領をcommit。
+  close／reopen後は未実行群だけを続行し、完了した組は再送せず再掲します。
+  未完了intent、結果不明、不正返答、受領不一致では停止し、新adapterでも再送しません。
+- 呼出し前後とreportで現在文脈を照合。失効時の返答はhash／長さ／状態だけを保存。
+  保存済み本文・受領の詳細も、文脈変更／取得不能後はreportに出しません。
+  既存の非公開DB内本文の物理削除とは異なります。
+- 独自application ID／version／厳密schema、明示初期化、別DBの読取専用事前検査、
+  full-sync、短いimmediate transactionを使用。transport中はDB lockを保持しません。
+  planのdriverは一つが前提で、重なった場合は二重送信せず保守的に停止します。
+  store横断の原子性やstore／worker由来の認証は保証しません。
+- [模擬専用の新規8件](../tests/test_oss_execution_journal.py)を追加。
+  **ローカル全331件が1回の実行で合格**（Python 3.13、18.842秒）。
+  読取専用probeを明示closeする補修後、関連1件も合格（0.108秒）。
+  合計332ケース実行／2起動であり、重複なしの件数は331件です。
+  capture／採用はテスト作成fixtureで、CLI envelopeもすべて模擬です。
+- worker受領：`ok=true`、provider `meta`、model `muse-wonder-1.0`、
+  fallback試行なし。開発設計レビュー1回を受け、coordinatorが実装・検証しました。
+  workerの案は権限ではなく、live選択flagは所有者承認や外部制御を代替しません。
+- [APIと制限](oss-durable-execution.md)：旧模擬journal／型制限は変更なし。
+  実推論、今回の実target受入、有料効果計測、新CLI入口、認証、default、
+  schedule、mergeは未実施。使用量／費用は未取得、byte上限はtoken／金額上限ではありません。
+  残りは別途費用承認下の実接続確認、target判定解析、固定独立評価器、
+  対応比較の使用量／費用／効果計測です。初期版は引き続き暫定**30〜35%**です。
+
+## PR #34でマージ済みのprompt本文adapter
+
+履歴：所有者がマージした[PR #33](https://github.com/moruku36/agent-sleep-lab/pull/33)を
 基点とする`feat/oss-registered-mimo-adapter`です。merge
 `19c7e39440f4b938ba95250e212a5fce01d0f8c3`、ソース
 `76e5b026762c5cd646fe2c92630405e09e6d4a1a`。GitHubでMERGEDと

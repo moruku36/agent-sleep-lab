@@ -79,7 +79,49 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-`feat/oss-registered-mimo-adapter`, based on owner-merged
+`feat/oss-durable-prompt-execution`, based on owner-merged
+[PR #34](https://github.com/moruku36/agent-sleep-lab/pull/34) at
+`4492cb05a5aa057b1905753834bd0bcbb0d84f81` (source
+`c7071b43e30f95f0b3a7b59b9720f50048b0fbec`). GitHub confirmed MERGED and
+successful Python 3.11 / 3.13 PR checks.
+
+- Added a separate [durable execution journal](../src/agent_sleep_lab/oss_execution_journal.py)
+  connecting validated captures to the exact-prompt adapter. Full capture,
+  source/task/reference/arm hashes, bridge, adapter/agent/model/transport and
+  limits are frozen. Existing IDs cannot be rebound to changed execution settings.
+  Synthetic task provenance is distinct from injected/CLI execution provenance.
+- Intent commits before each call; response and sanitized hash-bound receipt
+  commit before the next arm. Close/reopen continues only unstarted arms and
+  replays complete pairs without dispatch. Unclosed intents, unknown outcomes,
+  invalid outputs or receipt mismatches halt the plan; fresh adapters cannot retry.
+- Current context is checked before/after calls and on report. Revoked replies
+  store only hash/length/status. Already saved bodies and receipt details are
+  withheld from reports after context changes/unavailability (not physically erased).
+- Own application ID/version/exact schema, explicit initialization, read-only
+  foreign-DB inspection, full-sync writes and short immediate transactions.
+  No DB lock spans transport. One driver per plan remains the contract;
+  overlapping drivers conservatively stop instead of duplicating a call.
+  There is no cross-store atomicity or authenticated store/worker origin.
+- [Eight new mock-only cases](../tests/test_oss_execution_journal.py). All
+  **331 unique local cases passed in one invocation** (Python 3.13, 18.842 s).
+  After explicitly closing the read-only probe, its one affected case passed
+  (0.108 s): 332 local case executions / two invocations, not 332 unique cases.
+  Tests use test-authored captures/adoptions and injected CLI envelopes only.
+- Worker receipt: `ok=true`, provider `meta`, model `muse-wonder-1.0`,
+  no fallback attempts; one development design review. Coordinator implemented
+  and verified the reviewed design. Worker suggestions are not authorization:
+  live selection flags do not supply owner approval or change external controls.
+- [API and limitations](oss-durable-execution.md): old fake journal/type restriction
+  unchanged; no live inference, actual target acceptance, paid effect measurement,
+  new CLI entry point, credentials, defaults, schedules or merge. Usage/cost remain
+  unavailable; byte bounds are not token/financial caps.
+  Remaining: live verification under separate spending approval, target verdict
+  parsing, frozen independent evaluator, paired usage/cost and effect comparison.
+  Provisional initial-version progress remains **30–35%**.
+
+## Merged PR #34 exact-prompt adapter
+
+Historical branch `feat/oss-registered-mimo-adapter`, based on owner-merged
 [PR #33](https://github.com/moruku36/agent-sleep-lab/pull/33) at
 `19c7e39440f4b938ba95250e212a5fce01d0f8c3` (source
 `76e5b026762c5cd646fe2c92630405e09e6d4a1a`). GitHub confirmed MERGED and
