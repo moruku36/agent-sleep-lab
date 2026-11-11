@@ -12,6 +12,16 @@ AIエージェントの作業経験を、根拠付きの外部記憶に整理し
 
 能力・進捗・マージ状態・検証結果の正本は[実装状況](docs/implementation-status.ja.md)に集約します。Gate文書は日付付きの履歴で、現在の作業指示ではありません。実行入口は[ランタイム手順](docs/runtime-guide.ja.md)を参照してください。
 
+組込み合成データによるオフラインの流れを試すコマンド：
+
+```sh
+agent-sleep-lab demo
+```
+
+データ・store・providerの指定を受け付けず、使い捨ての一時状態で動かしてJSONを出力します。
+[demo契約](docs/runtime-guide.ja.md#組込みオフラインdemo)にfixture受領、固定したraw／memory群、
+上限、解答分離を説明しています。検証結果は[実装状況](docs/implementation-status.ja.md)を参照してください。
+
 [合成fixture cohort契約](docs/oss-fixture-cohort.md)は事前登録した複数課題の集計用で、実モデル・独立holdoutの評価ではありません。
 [選択課題offline probe契約](docs/oss-selected-issue-probe.md)は既定v1と区別した明示的な課題選択と強制judgeの来歴を定義します。
 

@@ -2,7 +2,7 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
-## 現在の評価 — 2026-11-11
+## 現在の評価 — 2026-11-12
 
 **初期版は暫定30〜35%。従来の50%見積りは撤回します。**
 100%は記録→採用→取得→Light／Deep→比較評価→既存agent一つの接続です。
@@ -88,11 +88,57 @@ Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab
 `e2d525242511cd2c8b46626ce1ab96477a85dd2d`へ**マージ済み**です。
 今回の読取り専用GitHub照会で2026-11-11T03:57:26Zのマージと、同じcommitの
 Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42956077100)を確認。
-今回の読取り専用費用reportゲートはこの基点を使用します。
+当時の読取り専用費用reportゲートはこの基点を使用しました。
+
+[PR #42](https://github.com/moruku36/agent-sleep-lab/pull/42)は所有者により
+`791e8f540db0b4ca549ffec79a96925e907e804b`へ**マージ済み**で、demo draftの基点です。
+coordinatorのGitHub照会で2026-11-11T04:35:30ZのMERGEDと同一merge commitを確認しました。
+以下の費用reportの検証数値は履歴です。
 
 ## 今回のローカルゲート
 
-### OSS読取り専用offline費用CLI：ローカル検証済み・未マージ
+### 組込み合成オフラインdemo：ローカル検証済み・レビューゲート
+
+- `agent-sleep-lab demo`、[実行契約](runtime-guide.ja.md#組込みオフラインdemo)、
+  [重複なしの契約テスト8件](../tests/test_offline_demo.py)を保存しました。
+  呼出し側のデータ・store・provider指定を受け付けず、別々の使い捨て一時SQLite store 3つと
+  組込み合成データ、固定時刻、上限付き定型providerを使います。
+- 2 eventをcaptureし、Light／Deepを各1回呼び、pending candidateを1件生成します。
+  原文との完全一致検査後、通常APIで検証受領1件と4項目のsnapshot評価受領1件を登録し、
+  既存の原子的writerで1回採用、適格記憶1件を取得します。
+  providerから受領を発行せず、本番ゲートを迂回しません。
+- 対応2課題で採用snapshot・policy・独立raw 2件・記憶1件を固定。
+  Aは完全なraw prefix、Bは同じprefixと記憶を使います。定型タスク4呼出し・別評価器4呼出しを
+  AB→BA、同一上限で行い、要求byteは異なりrecordの脱落はありません。
+  解答はprovider要求から分離し、実際の段階・呼出し・byte数、固定context、
+  hash付きmembership auditを出力します。
+- 初回限定検証の記録は**8ケース実行／1起動：2合格・3失敗・3エラー**でした。
+  共通原因は`until_expiry`にnullの期限を与えた不正契約です。
+  fixtureに固定時刻より後の実際の期限を設定しました。snapshotの自己一致assertionは、
+  採用snapshot・policy・固定context／plan hash・完了した各群のmembership検査に置き換え、
+  assertionと本番ゲートを維持しています。
+- 修正後は**影響する全8 uniqueケース／1起動、0.919秒で合格**しました。
+  初回失敗を含むdemoゲートの累計は**16ケース実行／限定2起動**です。
+  合成契約のローカル検証で、独立受入ではありません。文書検査は1起動で
+  **相対ファイルリンク489件／Markdown 84ファイル合格**。anchor・外部URLは対象外です。
+  空白差分検査も合格しました。
+  続けてcoordinatorの**全411 unique回帰／1起動、33.853秒が合格**しました。
+  限定2回を含む累計は**427ケース実行／ローカル3起動**です。
+  合成の一連の接続を検証したもので、実agent受入ではありません。
+  Python 3.11／3.13 PR CIとwheel検証は別の未完checkです。
+  ローカルoffline wheel commandは実行前に承認bindingで拒否され、別経路は試していません。
+- 実推論・install・merge・外部の権限／設定変更は行っていません。
+  feature公開とレビュー用PRは承認済みで、公開commitの検証はGitHub PR checksを正本とします。
+  一時状態の削除、失敗処理、解答の除外、live／provider実行経路の拒否を限定テストで確認。
+  定型返答の完全一致点数は意味的な記憶利用・実agent接続・請求・holdout品質・改善の
+  証拠ではありません。実受入までは完成率を暫定**30〜35%**に維持します。
+
+## マージ済み開発ゲート（検証履歴）
+
+### PR #42のOSS読取り専用offline費用CLI：マージ前のローカル検証
+
+以下の数値は所有者がPR #42をマージする前の記録です。基点の履歴であり、
+demoの検証や新たな公開の承認ではありません。
 
 - `oss-cost-report`と[厳格なmanifest／API契約](oss-cost-accounting.md)を保存。
   pair／cohort ID、plan別bridge識別、既存file path、任意の正確なcanonical観測byteを明示します。
@@ -109,22 +155,14 @@ Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab
   **415 case executions／ローカル2起動**です。**相対リンク479件／Markdown 84ファイル合格**、
   anchor・外部URLは未検査で、空白差分も合格。今回ゲートの新CIやローカルPython 3.11の
   結果は主張しません。テストは合成storeと注入返答だけを使います。
-- 指定Codex CLIはexit 0・最終成果ファイルを伴って正常完了し、実行metadataで
-  `gpt-6.1-sol`／`xhigh`を確認。静的レビューとcoordinatorレビューで実装・契約の
-  ブロッカーはありません。テスト前にjournalの重複事前checkを除き、従来通り正確な型検査を
+- 当時の検証前にjournalの重複事前checkを除き、従来通り正確な型検査を
   foreign methodアクセスより先に維持しました。この境界も回帰assertionで確認しています。
-- 読取り専用GitHub照会とローカルfetch／worktree準備を使い、元checkoutと無関係な編集は保持。
-  live runtime／評価呼出し、有料効果計測、認証・sandbox・hook・approval設定変更、マージ・
-  scheduleはありません。所有者は今回のfeature branch公開とレビュー用PR作成を承認しました。
-  マージは別の承認が必要で、公開commitのCI結果はGitHubのPR checksを正本とします。
-  完全なagent接続、live／請求確認、性能の主張はなく、完成率は暫定**30〜35%**を維持します。
-
-## マージ済み開発ゲート（検証履歴）
+  これらの検証は完全なagent接続、live／請求確認、性能改善の証明ではありません。
 
 ### PR #41の独立raw比較query順位付け：マージ前のローカル検証
 
 以下はPR #41への所有者マージ前の順位付けゲートの記録です。
-当時の検証・公開承認は、今回の読取り専用ゲートには適用されません。
+当時の検証・公開承認は、今回のdemoゲートには適用されません。
 
 [順位付け契約](raw-query-ranking.md)と[実装](../src/agent_sleep_lab/raw_baseline.py)に
 `raw_order="query_overlap_descending"`の明示指定を追加しました。
@@ -620,8 +658,8 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
 3. 既存agent一つの実capture／取得利用を確認すること。オフラインadapter契約と
    手動handoffは準備です。実データ境界と実配信・利用検証は未完です。
    今回のローカルjournalは実行記録であり、認証済みの利用証明ではありません。
-4. 明示指定のlexical raw順位付けは所有者がPR #41でマージ済みです。
-   上記のローカル読取り専用費用reportゲートはcoordinatorの検証・公開待ちです。
+4. 明示指定のlexical raw順位付けと読取り専用費用reportは所有者がPR #41／#42でマージ済みです。
+   保存済みオフラインdemoはローカル全回帰合格で、レビュー・feature CI・実受入は別のゲートです。
    意味的関連度・公平性、物理purge、広い本番障害受入は未完で、
    オフラインテスト合格で完了とはしません。
 

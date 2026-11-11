@@ -2,7 +2,9 @@
 
 validate/schemas are offline read-only operations. Runtime commands may write
 private journals and adoption state; only explicit --provider mimo calls a paid
-registered model. Exit codes: 0 completed/inspected, 1 invalid or incomplete run,
+registered model. The input-free demo uses built-in synthetic fixtures and
+disposable temporary stores, including local fixture receipt registration.
+Exit codes: 0 completed/inspected, 1 invalid or incomplete run,
 2 usage/input/runtime error. JSON output is ASCII-escaped.
 """
 
@@ -56,6 +58,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     sub.add_parser("schemas", help="list the packaged local schemas")
+    sub.add_parser("demo", allow_abbrev=False,
+                   help="run the built-in synthetic offline chain in temporary state")
     report = sub.add_parser("oss-cost-report", allow_abbrev=False,
                             help="offline read-only accounting over existing OSS pairs/cohorts")
     report.add_argument("--manifest", required=True, help="strict bounded report input JSON")
@@ -163,8 +167,12 @@ def main(
             raise ValueError("--agent is required for MiMo")
         if args.command == "sleep" and args.provider == "script" and not args.replies:
             raise ValueError("--replies is required for script provider")
-        from agent_sleep_lab.runtime_cli import execute
-        result = execute(args)
+        if args.command == "demo":
+            from agent_sleep_lab.offline_demo import run_demo
+            result = run_demo()
+        else:
+            from agent_sleep_lab.runtime_cli import execute
+            result = execute(args)
         print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
         if args.command in ("sleep", "compare") and result.get("status") in ("failed", "incomplete", "invalidated"):
             return EXIT_INVALID

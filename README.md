@@ -12,6 +12,17 @@ Keeping a transcript is not the same as learning from it. This project studies w
 
 [Implementation status](docs/implementation-status.md) is the single authority for current capabilities, progress, merge state and verification evidence. Gate reports are dated history, not current operating instructions. Start with the [runtime guide](docs/runtime-guide.md) for explicit sleep, adoption, retrieval and comparison commands.
 
+For a built-in synthetic offline walkthrough, run:
+
+```sh
+agent-sleep-lab demo
+```
+
+It takes no data, store or provider options, uses disposable temporary state and
+prints a JSON report. The [demo contract](docs/runtime-guide.md#built-in-offline-demo)
+explains fixture receipts, frozen raw/memory arms, bounds and answer separation.
+Verification evidence belongs in [implementation status](docs/implementation-status.md).
+
 The [synthetic fixture cohort contract](docs/oss-fixture-cohort.md) describes predeclared multi-task accounting; it is not a live-model or independent holdout evaluation.
 The [selected-issue offline probe contract](docs/oss-selected-issue-probe.md) defines explicit issue selection and forced-judge provenance alongside the default v1 route.
 
