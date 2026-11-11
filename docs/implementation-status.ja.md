@@ -75,11 +75,40 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 ## 今回の開発branch
 
-### 選択課題のoffline probe増分：ローカル検証済み、未マージ
+### OSSのオフライン費用集計：ローカル実装済み、未マージ
+
+`feat/oss-usage-accounting`の基点は[PR #38](https://github.com/moruku36/agent-sleep-lab/pull/38)の
+merge commit `85b7dfceda509d0005295b3aa019dd7ae3dea147`です。
+最新のGitHub読取りでMERGEDを確認しました。以下にローカル検証結果を記録し、
+feature branchは本人レビュー用に公開済み・未マージです。feature CIの正本はGitHubの
+PR checksです。各ゲートを本人が確認してOKしてからマージします。
+
+- [オフライン費用集計契約](oss-cost-accounting.md)を追加。永続journalの対応比較と
+  固定cohortを対象に、呼出し側が保持する厳格なJSON artifactとreportを扱います。
+  固定binding／cohortと正確なreport snapshotに束縛し、cohortでは各memberの実行report
+  hashも含めます。再掲時には現在のpolicyと整合性を照合します。
+- 全登録課題の両armと全7費用段階をreportに保持します。使用量・費用の欠測はnullとし、
+  通貨を明示して厳密な十進演算で合計します。観測の根拠hashは呼出し側の申告で未検証です。
+  登録済みOpenClaw CLIの`model.run`出力から使用量・費用は取得できません。
+  請求実績・金額上限・性能改善の証明はありません。
+- [新規7件](../tests/test_oss_cost_accounting.py)と既存契約をcoordinatorが確認し、
+  Python 3.13.18で**全370 unique回帰／1 invocation、26.989秒合格**です。
+  先行の限定9件と修正後1件を含め、この増分は**計380 case executions／3 invocation**。
+  費用は合成値、保存先は一時領域、返答は注入fixtureです。
+  **相対文書リンク451件／Markdown 82ファイル合格**、anchor・外部URLは未検査です。
+  空白差分検査も合格しました。
+- 指定のCodex CLIを明示`gpt-6.1-sol`・`xhigh`で起動し、実行metadataで確認しました。
+  exit 0・最終成果ファイルを伴って正常完了し、coordinatorが実装をレビューしました。
+  実runtime推論・有料効果計測・新規認証・対象変更・マージはありません。
+  公開対象はこのfeature branchとレビュー用PRに限ります。
+  費用記録の境界を追加したもので、ゲート5全体や既存agent接続の完了ではありません。
+  初期版は暫定**30〜35%**のままです。
+
+### PR #38でマージ済みの選択課題offline probe（検証履歴）
 
 `feat/oss-selected-issue-capture`は所有者がマージした
 [PR #37](https://github.com/moruku36/agent-sleep-lab/pull/37)の
-`63ca34df000ad95cd279d7652f4c7669d19f0c34`を基点とします。
+`63ca34df000ad95cd279d7652f4c7669d19f0c34`を基点としていました。
 GitHubでMERGEDと同じcommitの
 [main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42921165592)を確認しました。
 
@@ -98,7 +127,7 @@ GitHubでMERGEDと同じcommitの
   改変せずライセンス付きfixtureへ保存し、helperで実pinと照合します。
   Git取得だけを注入し、capture・採点・judge・promptは代替しません。
 - coordinatorが残されたdraftをレビューし、**ローカル全363件／1起動が合格**
-  （Python 3.13.18、26.045秒）。選択probeの新規11件を含みます。feature CIは未実施。
+  （Python 3.13.18、26.045秒）。選択probeの新規11件を含むローカル検証の記録です。
 - 別オフライン受入ではソース取得を模擬せず、実ローカル固定Git objectから11個の
   sourceを読み、5つのfresh guarded workerで全選択課題をcaptureしました。
   実score／bandは#1／#4／#5が0.65／accept、#2が0.0／skip、#3が0.5／borderline。
@@ -109,8 +138,8 @@ GitHubでMERGEDと同じcommitの
   ローカルmetadataでprovider `openai`、model `gpt-6.1-sol`、effort `xhigh`を確認。
   外側toolは600秒でtimeoutし、最終ファイル・正常完了受領なし。照合時の該当processなし。
   再送・代替worker／model・API開発呼出しはせず、開発使用量／費用は不明です。
-- 実推論、有料runtime計測、独立holdout、記憶の意味的利用の証拠、採用、target変更、
-  default／認証／schedule変更、mergeは未実施。#1／#4／#5は同文で独立した問題ではありません。
+- 検証にはオフラインfixtureと模擬返答を使用しました。実推論、有料runtime計測、独立holdout、
+  記憶の意味的利用の証拠と採用は検証範囲外です。#1／#4／#5は同文です。
   parser／evaluatorとtarget実装bytesは未変更。初期版は暫定**30〜35%**のままです。
 
 ### PR #37でマージ済みのcohort基準版（検証履歴）
@@ -438,7 +467,7 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
   確認ではありません。実運用には非合成データの保持・利用許可契約が必要です。
   実ログを合成と偽って渡してはいけません。
 
-## 今回branchの検証
+## PR #31の検証とPR #32への引き継ぎ（履歴）
 
 - `feat/oss-adopted-reference-preparation`：**未実行です。** 新規3件、全回帰、
   文書検査、固定ソース受入はcoordinatorの作業待ち。以下の数値はPR #31の履歴です。
