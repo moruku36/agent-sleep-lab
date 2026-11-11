@@ -12,6 +12,8 @@ Keeping a transcript is not the same as learning from it. This project studies w
 
 [Implementation status](docs/implementation-status.md) is the single authority for current capabilities, progress, merge state and verification evidence. Gate reports are dated history, not current operating instructions. Start with the [runtime guide](docs/runtime-guide.md) for explicit sleep, adoption, retrieval and comparison commands.
 
+For existing adopted synthetic memories, use the explicit read-only [OSS request preparation](docs/oss-prepare.md) command. It constructs paired inputs offline, without sending them.
+
 For a built-in synthetic offline walkthrough, run:
 
 ```sh

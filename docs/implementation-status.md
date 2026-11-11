@@ -98,9 +98,49 @@ at `791e8f540db0b4ca549ffec79a96925e907e804b`, the baseline for this demo draft.
 A coordinator GitHub query confirmed MERGED at 2026-11-11T04:35:30Z with
 that exact merge commit. The cost-report checks below are historical.
 
-## Current local gate
+## Current local gate — read-only OSS preparation
 
-### Built-in synthetic offline demo — locally verified; review gate
+[PR #43](https://github.com/moruku36/agent-sleep-lab/pull/43) is owner-merged at
+`736988a0cb243da9c263ce28232ec5f44d0e3ea7` (2026-11-11T23:00:41Z),
+independently confirmed with GitHub metadata. Its
+[PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43116115784)
+and exact-merge [main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43116437958)
+succeeded. The demo figures below are historical, not this gate's checks.
+
+- Added [oss-prepare](oss-prepare.md), an explicit strict manifest/store-config
+  CLI. Existing adopted synthetic experience records are read under current policy
+  with read-only/query-only SQLite. Empty returned bundles refuse before target
+  execution; a post-worker fresh retrieval rejects changed or expired context.
+  Existing pinned source, byte-exact framing and output validation remain enforced.
+- Shared unchanged configuration validators were extracted to
+  `oss_read_config.py`, preserving cost-report imports while keeping execution
+  journal/provider/adapter imports out of preparation. No injected worker,
+  provider, transport, capture/adoption or dispatch options are exposed.
+- [Seven unique contract cases](../tests/test_oss_prepare_cli.py) passed in one
+  focused invocation (0.693 s), with real temporary adopted stores and explicitly
+  labelled stand-in workers. Full regression passed **418 unique cases / one
+  invocation, 34.432 s**: **425 case executions / two local regression invocations**.
+- Documentation: **503 relative file links / 86 Markdown files passed**;
+  anchors/external URLs excluded. Whitespace checks passed.
+- Separate coordinator acceptance passed **one case / one invocation** against
+  actual pinned OSS Contributor source at
+  `e40b39c6258ac5a4446c38246bdfd7f5dc5dbf7b`, with one test-authored adopted
+  synthetic memory, one built-in capture worker, two actual judge/prompt calls,
+  962-byte baseline and 3,047-byte reference prompts. Model calls and store
+  mutations were zero. This acceptance is separate from the regression counts.
+- The selected Codex `gpt-6.1-sol`/`xhigh` invocation timed out after 600 seconds,
+  saving the production draft but no tests/docs. Its process ended; no complete
+  resolved-model/completion receipt was returned, and it was not replayed.
+  The coordinator reviewed the draft, completed tests/docs and verified it.
+- Local checks establish usable offline request preparation, not real operational
+  capture, authenticated delivery, semantic memory use or improvement. Raw synthetic
+  memory/request payloads appear in output and are not a publication allowlist.
+  No paid inference, configuration/authentication changes or merge were performed.
+  Feature PR CI is a separate gate; completion remains provisional **30–35%**.
+
+## Historical PR #43 local gate
+
+### Built-in synthetic offline demo — prior local verification
 
 - Saved `agent-sleep-lab demo`, its [runtime contract](runtime-guide.md#built-in-offline-demo)
   and [eight unique contract cases](../tests/test_offline_demo.py). It accepts no
@@ -132,7 +172,8 @@ that exact merge commit. The cost-report checks below are historical.
   Coordinator full regression then passed **411 unique cases / one invocation,
   33.853 s**: **427 case executions / three local invocations** including both
   focused runs. This verifies the synthetic chain, not real-agent acceptance.
-  Python 3.11/3.13 PR CI and wheel verification remain separate pending checks.
+  At that local checkpoint Python 3.11/3.13 PR CI and wheel were pending;
+  both subsequently passed, as recorded above.
   The local offline wheel command was denied before execution by approval binding;
   no alternate local build route was attempted.
 - No live inference, install, merge or external permission/configuration change
@@ -769,8 +810,8 @@ Already merged in PR #24:
    boundaries and actual delivery/use verification remain open. The new local
    dispatch journal supplies accounting only, not authenticated use evidence.
 4. Opt-in lexical raw ranking and read-only cost reporting are owner-merged in
-   PR #41 and PR #42. The saved offline demo passed local full regression;
-   review, feature CI and real acceptance remain separate gates.
+   PR #41 and PR #42; the offline demo is owner-merged in PR #43 with green CI.
+   The read-only preparation gate above does not complete real acceptance.
    Semantic relevance/fairness, physical purge and broader production fault
    acceptance remain open; none is established by passing offline tests.
 
