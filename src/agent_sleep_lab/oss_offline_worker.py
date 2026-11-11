@@ -11,6 +11,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import stat
 import sys
 import types
 
@@ -187,18 +188,66 @@ def validate_payload(payload):
 def install_guards(directory):
     """Guard selected audited operations for reviewed code, not hostile Python.
 
-    Denies network/process events, write-open paths outside the temporary cwd
-    and SQLite destinations other than the temporary ledger. This is NOT full
-    filesystem write isolation: remove/rename/mkdir/link/symlink/chmod/truncate
-    events are not currently intercepted. Existing descriptors, native code and
-    complete syscall coverage are not controlled by this Python audit hook.
+    Mutations require unambiguous absolute paths below the temporary cwd, with
+    no symlink components (mkdir may target the existing root). Both paths of
+    rename/link/symlink are checked.
+    Descriptor paths and non-default audited dir_fd slots are refused; open's
+    event omits dir_fd, so relative write-open paths must also be refused.
+    SQLite connects only to the designated ledger. Existing descriptors, native
+    code, races and complete syscall coverage are NOT controlled by this hook.
     """
     import resource
 
+    directory = Path(directory).resolve(strict=True)
     resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
     resource.setrlimit(resource.RLIMIT_FSIZE, (1048576, 1048576))
     resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+
+    def mutation_path(value, *, allow_root=False):
+        # Do not infer descriptor authority or normalize away ambiguous spelling.
+        # Refuse symlinks even for operations that would mutate the link itself:
+        # their audit events do not consistently expose follow_symlinks flags.
+        try:
+            text = os.fsdecode(os.fspath(value))
+            path = Path(text)
+            if (not text or "\x00" in text or not path.is_absolute()
+                    or text.startswith("//") or text != str(path)
+                    or ".." in path.parts or (path == directory and not allow_root)
+                    or not path.is_relative_to(directory)):
+                raise ValueError("ambiguous or external mutation path")
+            cursor = directory
+            for part in path.relative_to(directory).parts:
+                cursor = cursor / part
+                try:
+                    mode = os.lstat(cursor).st_mode
+                except FileNotFoundError:
+                    break  # A not-yet-created suffix is valid for creation.
+                if stat.S_ISLNK(mode):
+                    raise ValueError("symlink mutation path")
+        except (TypeError, ValueError, OSError, RuntimeError):
+            raise PermissionError("offline worker mutation path denied") from None
+        return path
+
+    # CPython audit event shapes: (path slots, dir_fd slots, total arguments).
+    # unlink/replace and fd/l-prefixed metadata variants share these events.
+    mutations = {
+        "os.remove": ((0,), (1,), 2),
+        "os.rmdir": ((0,), (1,), 2),
+        "os.mkdir": ((0,), (2,), 3),
+        "os.rename": ((0, 1), (2, 3), 4),
+        "os.link": ((0, 1), (2, 3), 4),
+        "os.symlink": ((0, 1), (2,), 3),
+        "os.chmod": ((0,), (2,), 3),
+        "os.chown": ((0,), (3,), 4),
+        "os.truncate": ((0,), (), 2),
+        "os.utime": ((0,), (3,), 4),
+        "os.chflags": ((0,), (), 2),
+        "os.setxattr": ((0,), (), 4),
+        "os.removexattr": ((0,), (), 2),
+    }
+    write_flags = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
+    tmpfile_flag = getattr(os, "O_TMPFILE", 0)
 
     def audit(event, args):
         if (event.startswith(("socket.", "subprocess.", "ctypes.", "os.exec", "os.spawn"))
@@ -206,14 +255,26 @@ def install_guards(directory):
                              "os.chdir", "os.putenv", "os.unsetenv"}):
             raise PermissionError("offline worker action denied")
         if event == "open":
+            if (len(args) != 3 or (args[1] is not None and type(args[1]) is not str)
+                    or type(args[2]) is not int or args[2] < 0):
+                raise PermissionError("offline worker open authority denied")
             path, mode, flags = args
-            writing = (isinstance(mode, str) and any(c in mode for c in "wax+")) or (
-                isinstance(flags, int) and flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT))
-            if writing and (not isinstance(path, (str, bytes, os.PathLike))
-                            or not Path(os.fsdecode(path)).resolve().is_relative_to(directory)):
-                raise PermissionError("offline worker write outside temporary directory")
+            writing = (mode is not None and any(c in mode for c in "wax+")) or (
+                flags & write_flags) or (
+                tmpfile_flag and (flags & tmpfile_flag) == tmpfile_flag)
+            if writing:
+                mutation_path(path)
+        if event in mutations:
+            paths, dir_fds, count = mutations[event]
+            if (len(args) != count
+                    or any(type(args[index]) is not int or args[index] != -1
+                           for index in dir_fds)):
+                raise PermissionError("offline worker dir_fd authority denied")
+            for index in paths:
+                # Ledger's reviewed constructor mkdirs its existing parent.
+                mutation_path(args[index], allow_root=event == "os.mkdir")
         if event == "sqlite3.connect":
-            if Path(args[0]).resolve() != directory / "ledger.sqlite3":
+            if len(args) != 1 or mutation_path(args[0]) != directory / "ledger.sqlite3":
                 raise PermissionError("only temporary offline ledger allowed")
 
     sys.addaudithook(audit)
