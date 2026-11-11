@@ -2,8 +2,8 @@
 
 **English** | [日本語](runtime-guide.ja.md) | [Current status](implementation-status.md)
 
-These are implemented commands, not claims that paid inference or an existing
-agent integration has succeeded. Use an existing synthetic v3 adoption store
+Command contracts do not establish successful paid inference or an existing
+agent integration. Except for the self-contained `demo`, use an existing synthetic v3 adoption store
 with independently configured boundaries, policy and registered receipts. The
 CLI refuses missing stores and journal/store path collisions; it never initializes
 permissions or registers verification/evaluation receipts for a model.
@@ -11,6 +11,72 @@ permissions or registers verification/evaluation receipts for a model.
 For existing OSS durable pairs/cohorts, `oss-cost-report --manifest local/report.json`
 is an explicit offline reader with no execution options. See the
 [read-only CLI, manifest and SQLite limits](oss-cost-accounting.md#read-only-cli-and-input-manifest).
+
+## Built-in offline demo
+
+```sh
+agent-sleep-lab demo
+```
+
+The command accepts only `--help`; caller data, file paths, stores, output paths,
+manifests and provider/live options are rejected before execution. It uses only
+built-in synthetic catalog observations and scripted replies. No network,
+subprocess, live provider, credential lookup, fallback, schedule or existing-agent
+execution is part of this route. Current verification is recorded only in
+[implementation status](implementation-status.md).
+
+Each invocation creates a fresh temporary directory containing three separate
+SQLite stores for evidence/adoption, sleep and comparison. Its capture boundaries
+and policy are local fixtures; existing stores and permissions are not inputs.
+Connections close and temporary state is removed on success or failure. A fixed
+fixture clock (`2026-11-12T00:00:00Z`) precedes the evidence authorization expiry
+(`2026-11-13T00:00:00Z`); these dates do not grant real-world permission. The JSON
+report is printed only after successful completion and cleanup, with
+`temporary_state_removed:true`. Errors return exit 2 without a success report.
+
+The successful path has the following counts. They describe fixture operations,
+not live-model calls or independently accepted performance results.
+
+| Operation | Count |
+|---|---:|
+| Captured experience events | 2 |
+| Scripted Light / Deep calls | 1 / 1 |
+| Materialized pending candidates | 1 |
+| Local source-equality verification / registered verification receipt | 1 / 1 |
+| Local snapshot evaluation / checks / registered evaluation receipt | 1 / 4 / 1 |
+| Normal atomic adoption | 1 |
+| Eligible memories in retrieval | 1 |
+| Paired tasks / scripted task calls / separate evaluator calls | 2 / 4 / 4 |
+
+Deep emits an unverified candidate with its generated claim. A separate trusted
+fixture preparer checks exact equality to captured source text, unchanged evidence
+binding, the generated claim and the candidate snapshot. It registers receipts
+through the normal verifier/evaluator APIs; providers never issue them. The normal
+atomic writer rechecks parent, policy, evidence and receipt hashes before adoption.
+This local fixture check is distinct from independent scientific verification.
+
+Comparison freezes the adopted snapshot, policy and exact context. A contains both
+independently selected raw events, including the event not cited by the memory;
+B contains the identical whole raw prefix plus the one adopted memory. Both pairs
+must have distinct request bytes and no dropped records. Task order is AB then BA,
+with equal per-arm limits and no reply-history sharing. `comparison.frozen_context`,
+the frozen membership lists, report and audit expose context/plan hashes, packed
+request hashes and per-arm membership/status for inspection.
+
+Sleep is bounded to 2 calls, 32,768 cumulative input bytes, 4,096 reserved output
+bytes, 2,048 output bytes per stage and 2 candidates. Each comparison arm has
+2 calls, 16,384 request bytes per call and 128 reply bytes per call. Retrieval is
+bounded to 16,384 bytes and 1 memory; raw selection scans at most 2 events and
+selects at most 2. The report records actual sleep stages/calls and input/output
+bytes, plus comparison calls/input bytes and evaluator calls. Byte bounds are not
+token or monetary caps.
+
+The evaluator-only answer mapping is separate from sleep evidence, tasks, caller
+config and provider requests. Both arms receive the same fixed scripted reply;
+exact-match scores test wiring rather than semantic memory use. Reported costs
+retain synthetic-zero or unavailable labels, with no measured savings. REM,
+diary, real-agent delivery/use, live-model verification, independent holdout and
+performance improvement are outside this demo.
 
 ## Explicit store configuration
 

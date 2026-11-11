@@ -2,7 +2,7 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-## Current assessment — 2026-11-11
+## Current assessment — 2026-11-12
 
 **Provisional initial-version completion: 30–35%. The former 50% estimate is withdrawn.**
 100% means capture → adoption → retrieval → Light/Deep → comparison evaluation →
@@ -91,11 +91,64 @@ for that exact commit. That was the raw-ranking gate's baseline.
 at `e2d525242511cd2c8b46626ce1ab96477a85dd2d`. Fresh read-only GitHub queries
 confirmed its merge at 2026-11-11T03:57:26Z and successful Python 3.11/3.13
 [main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42956077100)
-for that exact commit. This read-only cost-report gate uses that baseline.
+for that exact commit. That was the read-only cost-report gate's baseline.
+
+[PR #42](https://github.com/moruku36/agent-sleep-lab/pull/42) is **owner-merged**
+at `791e8f540db0b4ca549ffec79a96925e907e804b`, the baseline for this demo draft.
+A coordinator GitHub query confirmed MERGED at 2026-11-11T04:35:30Z with
+that exact merge commit. The cost-report checks below are historical.
 
 ## Current local gate
 
-### Offline read-only OSS cost-report CLI — locally verified, unmerged
+### Built-in synthetic offline demo — locally verified; review gate
+
+- Saved `agent-sleep-lab demo`, its [runtime contract](runtime-guide.md#built-in-offline-demo)
+  and [eight unique contract cases](../tests/test_offline_demo.py). It accepts no
+  caller data/store/provider options and uses three disposable temporary SQLite
+  stores with built-in synthetic data, fixed clocks and bounded scripted providers.
+- The chain captures two events, calls Light and Deep once each, materializes one
+  pending candidate, checks exact source equality and registers one verification
+  receipt plus one four-check snapshot evaluation receipt through normal APIs.
+  The existing atomic writer performs one adoption, and retrieval returns one
+  eligible memory. No provider issues receipts or bypasses production gates.
+- Two paired tasks freeze the adopted snapshot/policy, both independent raw
+  events and one memory. A contains the whole raw prefix; B adds the memory.
+  Four scripted task calls and four separate evaluator calls use AB then BA
+  order, equal per-arm limits and distinct requests without dropped records.
+  Expected answers stay outside provider requests. Output exposes actual
+  stage/call/byte counts, frozen context and hash-bound membership audits.
+- Initial focused verification reported **8 case executions / one invocation:
+  2 passed, 3 failed, 3 errored**. The shared blocker was the invalid
+  `until_expiry` authorization with a null expiry. The fixture now supplies a
+  real expiry after its fixed clock. The tautological snapshot assertion was
+  replaced by adopted-snapshot, policy, frozen-context/plan hash and completed
+  per-arm membership checks; assertions and production gates remain enforced.
+- Repair verification passed **all 8 unique affected cases / one invocation,
+  0.919 s**. Including the initial failed run, the demo gate has **16 case
+  executions / two focused invocations** so far. This is local synthetic contract
+  verification, not independent acceptance. Documentation validation passed
+  **489 relative file links / 84 Markdown files** in one checker invocation;
+  anchors and external URLs were excluded. Whitespace checks passed.
+  Coordinator full regression then passed **411 unique cases / one invocation,
+  33.853 s**: **427 case executions / three local invocations** including both
+  focused runs. This verifies the synthetic chain, not real-agent acceptance.
+  Python 3.11/3.13 PR CI and wheel verification remain separate pending checks.
+  The local offline wheel command was denied before execution by approval binding;
+  no alternate local build route was attempted.
+- No live inference, install, merge or external permission/configuration change
+  was used. Feature publication and a review PR are authorized; GitHub PR checks
+  remain the authority for the published commit. Temporary-state cleanup, failure
+  handling, answer exclusion and refusal of live/provider dispatch are covered
+  by the affected cases. Scripted exact-match scores do not establish semantic
+  memory use, real-agent integration, billing, holdout quality or improvement.
+  Current completion remains provisional **30–35%** pending real acceptance.
+
+## Merged development gates (historical checks)
+
+### PR #42 offline read-only OSS cost-report CLI — prior local verification
+
+The following figures predate the owner merge in PR #42. They are baseline
+history, not demo verification or authorization for new publication.
 
 - Saved `oss-cost-report` and its [strict manifest/API contract](oss-cost-accounting.md),
   with explicit pair/cohort IDs, per-plan bridge identities, existing file paths
@@ -116,26 +169,15 @@ for that exact commit. This read-only cost-report gate uses that baseline.
   **479 relative file links / 84 Markdown files passed**; anchors and external
   URLs were excluded. Whitespace checks passed. No new gate CI or local Python
   3.11 result is claimed. Tests use synthetic stores and injected replies only.
-- The requested Codex CLI completed normally with exit 0 and a final-message
-  artifact; execution metadata confirms `gpt-6.1-sol` / `xhigh`. Static review and
-  coordinator review found no remaining source/contract blocker. The duplicate
-  journal precheck was removed before testing so exact-type validation still
-  precedes foreign-method access; a regression assertion covers that boundary.
-- Read-only GitHub queries and local fetch/worktree preparation were used; original
-  checkouts and unrelated edits were preserved. No live runtime/evaluation calls,
-  paid effect measurement, authentication/sandbox/hook/approval changes, merge or
-  schedules occurred. The owner authorized this feature branch and review PR
-  publication; merge requires separate approval. GitHub PR checks are the authority
-  for the published commit. No full agent integration, live/billing verification
-  or performance claim.
-  Completion remains provisional **30–35%**.
-
-## Merged development gates (historical checks)
+- Before that historical verification, the duplicate journal precheck was removed
+  so exact-type validation still precedes foreign-method access; a regression
+  assertion covers that boundary. These checks established neither a full agent
+  integration nor live/billing verification or performance improvement.
 
 ### PR #41 opt-in independent raw query ranking — prior local verification
 
 The following records the raw-ranking gate before its owner merge in PR #41.
-Its verification/publication authorization does not apply to the new reader gate.
+Its verification/publication authorization does not apply to the demo gate.
 
 The [ranking contract](raw-query-ranking.md) and
 [implementation](../src/agent_sleep_lab/raw_baseline.py) add explicit
@@ -726,8 +768,9 @@ Already merged in PR #24:
    bridge contracts and manual handoff drafts are preparation only. Real-data
    boundaries and actual delivery/use verification remain open. The new local
    dispatch journal supplies accounting only, not authenticated use evidence.
-4. Opt-in lexical raw ranking is owner-merged in PR #41. The local read-only
-   cost-report gate above still awaits coordinator verification and publication.
+4. Opt-in lexical raw ranking and read-only cost reporting are owner-merged in
+   PR #41 and PR #42. The saved offline demo passed local full regression;
+   review, feature CI and real acceptance remain separate gates.
    Semantic relevance/fairness, physical purge and broader production fault
    acceptance remain open; none is established by passing offline tests.
 
