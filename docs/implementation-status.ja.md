@@ -76,17 +76,55 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 [PR #39](https://github.com/moruku36/agent-sleep-lab/pull/39)は
 `5cea9e224f8bfc306735c400b9cd358db7c0ac9f`で**マージ済み**です。
 今回の読取り専用GitHub照会で2026-11-11T01:59:18Zのマージを確認しました。
-今回の独立worktreeの基点は下記PR #40です。
+これは過去の基点に関する確認記録です。
 
 [PR #40](https://github.com/moruku36/agent-sleep-lab/pull/40)は所有者が
 `29fef5ad19239e53ce3e07684b2c30e0cc2d1623`で**マージ済み**です。
 今回の読取り専用GitHub照会で2026-11-11T03:04:33Zのマージと、同じcommitの
 Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42950289146)を確認。
-今回のraw順位付け用独立worktreeは、このmain commitを基点とします。
+当時のraw順位付け用worktreeは、このmain commitを基点としました。
 
-## 今回の開発branch
+[PR #41](https://github.com/moruku36/agent-sleep-lab/pull/41)は所有者により
+`e2d525242511cd2c8b46626ce1ab96477a85dd2d`へ**マージ済み**です。
+今回の読取り専用GitHub照会で2026-11-11T03:57:26Zのマージと、同じcommitの
+Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42956077100)を確認。
+今回の読取り専用費用reportゲートはこの基点を使用します。
 
-### 独立raw比較の明示query順位付け：ローカル検証済み・未マージ
+## 今回のローカルゲート
+
+### OSS読取り専用offline費用CLI：ローカル検証済み・未マージ
+
+- `oss-cost-report`と[厳格なmanifest／API契約](oss-cost-accounting.md)を保存。
+  pair／cohort ID、plan別bridge識別、既存file path、任意の正確なcanonical観測byteを明示します。
+  出力は既存の費用集計allowlistのみで、現在policy・整合性を再確認し、provider／write optionはありません。
+- AdoptionStore／ExecutionJournal／CohortRegistryに明示的なSQLite read-only／query-only modeを保存。
+  書込みmethodを早期拒否し、初期化・移行を行わず、path aliasを拒否します。
+  既定writer・保存契約は維持。SQLiteのlock・sidecarはあり得るためfilesystem隔離や認証とは呼びません。
+- [合成回帰ソース](../tests/test_oss_cost_report_cli.py)を保存。pair／cohort出力、登録済み全分母、
+  unknown／invalid／withheld、canonical／古い観測、未存在・空・foreign・alias DB、
+  実行／採用副作用0、早期拒否、WAL上の現在policy、writer互換性を対象とします。
+  fixture helperを再利用し、継承・importによるTestCase重複は追加していません。
+- coordinatorがPython 3.13.18で**新規12 uniqueケース／限定1起動、2.399秒**、続けて
+  **全403 unique回帰／1起動、30.601秒の合格**を確認しました。今回の合計は
+  **415 case executions／ローカル2起動**です。**相対リンク479件／Markdown 84ファイル合格**、
+  anchor・外部URLは未検査で、空白差分も合格。今回ゲートの新CIやローカルPython 3.11の
+  結果は主張しません。テストは合成storeと注入返答だけを使います。
+- 指定Codex CLIはexit 0・最終成果ファイルを伴って正常完了し、実行metadataで
+  `gpt-6.1-sol`／`xhigh`を確認。静的レビューとcoordinatorレビューで実装・契約の
+  ブロッカーはありません。テスト前にjournalの重複事前checkを除き、従来通り正確な型検査を
+  foreign methodアクセスより先に維持しました。この境界も回帰assertionで確認しています。
+- 読取り専用GitHub照会とローカルfetch／worktree準備を使い、元checkoutと無関係な編集は保持。
+  live runtime／評価呼出し、有料効果計測、認証・sandbox・hook・approval設定変更、マージ・
+  scheduleはありません。所有者は今回のfeature branch公開とレビュー用PR作成を承認しました。
+  マージは別の承認が必要で、公開commitのCI結果はGitHubのPR checksを正本とします。
+  完全なagent接続、live／請求確認、性能の主張はなく、完成率は暫定**30〜35%**を維持します。
+
+## マージ済み開発ゲート（検証履歴）
+
+### PR #41の独立raw比較query順位付け：マージ前のローカル検証
+
+以下はPR #41への所有者マージ前の順位付けゲートの記録です。
+当時の検証・公開承認は、今回の読取り専用ゲートには適用されません。
 
 [順位付け契約](raw-query-ranking.md)と[実装](../src/agent_sleep_lab/raw_baseline.py)に
 `raw_order="query_overlap_descending"`の明示指定を追加しました。
@@ -121,8 +159,6 @@ Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab
   行っていません。所有者は今回のfeature branch公開とレビュー用PR作成を承認しました。
   マージは別の承認が必要で、公開commitのCI結果はGitHubのPR checksを正本とします。
   公平性・意味的関連度・改善の証拠はなく、初期版は引き続き暫定**30〜35%**です。
-
-## マージ済み開発ゲート（検証履歴）
 
 ### PR #40でマージ済みのOffline worker filesystem audit補強
 
@@ -584,7 +620,8 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
 3. 既存agent一つの実capture／取得利用を確認すること。オフラインadapter契約と
    手動handoffは準備です。実データ境界と実配信・利用検証は未完です。
    今回のローカルjournalは実行記録であり、認証済みの利用証明ではありません。
-4. 明示指定のlexical raw順位付けはローカル検証済みで、上記の通りPRレビューへの公開承認済みです。
+4. 明示指定のlexical raw順位付けは所有者がPR #41でマージ済みです。
+   上記のローカル読取り専用費用reportゲートはcoordinatorの検証・公開待ちです。
    意味的関連度・公平性、物理purge、広い本番障害受入は未完で、
    オフラインテスト合格で完了とはしません。
 

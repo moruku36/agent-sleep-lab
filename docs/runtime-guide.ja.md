@@ -4,6 +4,10 @@
 
 以下は実装した入口です。実API成功・既存agent接続の完了とは区別してください。既存の合成限定v3採用storeと、独立した境界・policy・登録済み受領が必要です。CLIはstore未存在やjournalとの同一パスを拒否し、権限・検証受領を自動作成しません。
 
+既存のOSS対応比較／cohortには、実行optionを持たない明示的offline reader
+`oss-cost-report --manifest local/report.json`を使います。
+[読取り専用CLI・manifest・SQLiteの制限](oss-cost-accounting.md#read-only-cli-and-input-manifest)を参照してください。
+
 ## 設定
 
 [store設定例](../configs/runtime-store.example.json)を非公開ファイルへコピーし、既存のSQLiteパス、capture／verifier／evaluator境界、許可手順・protocol・hashを合わせます。これはローカル模擬境界の設定であり認証情報ではありません。APIキーは書きません。設定をPythonとして実行せず、パスは作業ディレクトリ基準です。

@@ -247,6 +247,7 @@ class RuntimeStore(EvidenceStore):
         The boundary stamps identity/time; the receipt's evidence hashes and scope are rechecked
         against the stored evidence in the registering transaction.
         """
+        self._require_writable()
         if not isinstance(boundary, VerifierBoundary):
             raise TypeError("boundary must be a VerifierBoundary")
         now = self._now()
@@ -264,6 +265,7 @@ class RuntimeStore(EvidenceStore):
 
         Binding to a candidate snapshot is checked by the (pending) adoption writer.
         """
+        self._require_writable()
         if not isinstance(boundary, EvaluatorBoundary):
             raise TypeError("boundary must be an EvaluatorBoundary")
         now = self._now()
@@ -415,6 +417,7 @@ class RuntimeStore(EvidenceStore):
         ``0`` means "no policy yet". The store, not the caller, assigns ``expected + 1``. Exclusions
         can only grow (non-resurrection); a revision that drops one is refused.
         """
+        self._require_writable()
         if not isinstance(boundary, ControlBoundary):
             raise TypeError("boundary must be a ControlBoundary")
         if type(expected_revision) is not int or expected_revision < 0:

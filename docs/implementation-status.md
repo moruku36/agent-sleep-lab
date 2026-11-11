@@ -79,18 +79,63 @@ documentation, not guard behavior hardening.
 
 [PR #39](https://github.com/moruku36/agent-sleep-lab/pull/39) is **MERGED** at
 `5cea9e224f8bfc306735c400b9cd358db7c0ac9f`. A fresh read-only GitHub query
-confirmed the merge at 2026-11-11T01:59:18Z. This independent worktree starts
-at the later PR #40 baseline below.
+confirmed the merge at 2026-11-11T01:59:18Z. This is historical baseline evidence.
 
 [PR #40](https://github.com/moruku36/agent-sleep-lab/pull/40) is **owner-merged** at
 `29fef5ad19239e53ce3e07684b2c30e0cc2d1623`. A fresh read-only GitHub query
 confirmed the merge at 2026-11-11T03:04:33Z and successful Python 3.11/3.13
 [main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42950289146)
-for that exact commit. This independent raw-ranking worktree uses that baseline.
+for that exact commit. That was the raw-ranking gate's baseline.
 
-## Current development branch
+[PR #41](https://github.com/moruku36/agent-sleep-lab/pull/41) is **owner-merged**
+at `e2d525242511cd2c8b46626ce1ab96477a85dd2d`. Fresh read-only GitHub queries
+confirmed its merge at 2026-11-11T03:57:26Z and successful Python 3.11/3.13
+[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42956077100)
+for that exact commit. This read-only cost-report gate uses that baseline.
 
-### Opt-in independent raw query ranking — locally verified, unmerged
+## Current local gate
+
+### Offline read-only OSS cost-report CLI — locally verified, unmerged
+
+- Saved `oss-cost-report` and its [strict manifest/API contract](oss-cost-accounting.md),
+  with explicit pair/cohort IDs, per-plan bridge identities, existing file paths
+  and optional exact canonical observation bytes. Output reuses only the existing
+  accounting allowlist and current-policy/integrity checks; no provider or write options.
+- Saved opt-in SQLite read-only/query-only modes for AdoptionStore, ExecutionJournal
+  and CohortRegistry, with early write-method refusal, no initialization/migration,
+  path-alias refusal and unchanged default writer/saved contracts. SQLite locking
+  and sidecars remain possible; this is not filesystem isolation or authentication.
+- Saved [synthetic regression sources](../tests/test_oss_cost_report_cli.py) for
+  pair/cohort output, full denominator and unknown/invalid/withheld outcomes,
+  canonical/stale observations, missing/empty/foreign/aliased databases, zero
+  execution/adoption effects, early refusal, WAL policy visibility and writer compatibility.
+  Fixture helpers are reused without inherited/imported test-case duplication.
+- Coordinator verification passed **12 new unique cases / one focused invocation,
+  2.399 s**, then **403 unique regression cases / one invocation, 30.601 s** on
+  Python 3.13.18: **415 case executions / two local invocations** in this gate.
+  **479 relative file links / 84 Markdown files passed**; anchors and external
+  URLs were excluded. Whitespace checks passed. No new gate CI or local Python
+  3.11 result is claimed. Tests use synthetic stores and injected replies only.
+- The requested Codex CLI completed normally with exit 0 and a final-message
+  artifact; execution metadata confirms `gpt-6.1-sol` / `xhigh`. Static review and
+  coordinator review found no remaining source/contract blocker. The duplicate
+  journal precheck was removed before testing so exact-type validation still
+  precedes foreign-method access; a regression assertion covers that boundary.
+- Read-only GitHub queries and local fetch/worktree preparation were used; original
+  checkouts and unrelated edits were preserved. No live runtime/evaluation calls,
+  paid effect measurement, authentication/sandbox/hook/approval changes, merge or
+  schedules occurred. The owner authorized this feature branch and review PR
+  publication; merge requires separate approval. GitHub PR checks are the authority
+  for the published commit. No full agent integration, live/billing verification
+  or performance claim.
+  Completion remains provisional **30–35%**.
+
+## Merged development gates (historical checks)
+
+### PR #41 opt-in independent raw query ranking — prior local verification
+
+The following records the raw-ranking gate before its owner merge in PR #41.
+Its verification/publication authorization does not apply to the new reader gate.
 
 The [ranking contract](raw-query-ranking.md) and
 [implementation](../src/agent_sleep_lab/raw_baseline.py) add explicit
@@ -135,8 +180,6 @@ saved context/plan bytes and replay behavior; there is no migration or new dispa
   merge requires separate approval. GitHub PR checks are the authority for the
   published commit. No fairness, semantic relevance or improvement evidence is claimed;
   overall completion remains provisional **30–35%**.
-
-## Merged development gates (historical checks)
 
 ### Merged PR #40 offline-worker filesystem audit hardening
 
@@ -683,7 +726,8 @@ Already merged in PR #24:
    bridge contracts and manual handoff drafts are preparation only. Real-data
    boundaries and actual delivery/use verification remain open. The new local
    dispatch journal supplies accounting only, not authenticated use evidence.
-4. Opt-in lexical raw ranking is locally verified and authorized for PR review above.
+4. Opt-in lexical raw ranking is owner-merged in PR #41. The local read-only
+   cost-report gate above still awaits coordinator verification and publication.
    Semantic relevance/fairness, physical purge and broader production fault
    acceptance remain open; none is established by passing offline tests.
 

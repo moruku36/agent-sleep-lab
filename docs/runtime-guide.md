@@ -8,6 +8,10 @@ with independently configured boundaries, policy and registered receipts. The
 CLI refuses missing stores and journal/store path collisions; it never initializes
 permissions or registers verification/evaluation receipts for a model.
 
+For existing OSS durable pairs/cohorts, `oss-cost-report --manifest local/report.json`
+is an explicit offline reader with no execution options. See the
+[read-only CLI, manifest and SQLite limits](oss-cost-accounting.md#read-only-cli-and-input-manifest).
+
 ## Explicit store configuration
 
 Copy [runtime-store.example.json](../configs/runtime-store.example.json) to a
