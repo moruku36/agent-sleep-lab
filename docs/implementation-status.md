@@ -77,16 +77,68 @@ and captured five synthetic outcomes; it did not exercise the dispatch journal.
 passed. It merged six selected guard acceptance cases and accurate limitation
 documentation, not guard behavior hardening.
 
+[PR #39](https://github.com/moruku36/agent-sleep-lab/pull/39) is **MERGED** at
+`5cea9e224f8bfc306735c400b9cd358db7c0ac9f`. A fresh read-only GitHub query
+confirmed the merge at 2026-11-11T01:59:18Z. This independent worktree starts
+at that fetched main baseline. PR/main CI was not rechecked for this local gate.
+
 ## Current development branch
 
-### Offline OSS cost accounting — implemented locally, unmerged
+### Offline-worker filesystem audit hardening — locally verified, unmerged
+
+The local `feat/offline-filesystem-guards` worktree starts at main `5cea9e2` above.
+The owner authorized feature-branch publication and a draft review PR after the
+local gate review. Merge remains subject to separate approval. GitHub PR checks
+are the authority for the published commit; local results are recorded below.
+
+- The [filesystem audit contract](oss-offline-filesystem-guards.md) describes
+  shared `install_guards` hardening: remove/rmdir/mkdir, rename/replace, hardlink,
+  symlink target/destination, chmod/chown/utime/truncate/flags/xattrs, write-open
+  flags and the designated SQLite connection path. Both affected endpoints are
+  checked. Descriptor paths and non-default audited directory descriptors are
+  refused, along with relative/ambiguous mutation paths and symlink components.
+- Absolute in-temp scratch and the ledger remain allowed by contract, including
+  the reviewed ledger's existing-parent mkdir attempt. Prompt capture reuses the
+  same guards before loading sources. The stdlib-only worker, target pin,
+  payloads and source/task/reference hash contracts are unchanged.
+- Added [disposable-child regression sources](../tests/test_oss_offline_guards.py)
+  with temporary synthetic sentinels, outside content/metadata preservation,
+  both endpoints, bytes/path-like paths, relative/ambiguous paths, symlinks,
+  descriptors/dir-fd, write flags, scratch/ledger and prompt-capture reuse.
+  Platform-specific metadata and malformed-event checks are side-effect-free
+  audit probes; the capture reuse case uses a stand-in payload/loader.
+- Coordinator verification passed **17 focused unique cases / one invocation,
+  0.408 s**, then **381 unique regression cases / one invocation, 27.043 s** on
+  Python 3.13.18. This increment adds eleven cases and totals **398 case
+  executions / two local invocations**. No Python 3.11 or new CI result is claimed.
+  The full run includes existing pinned synthetic captures with injected replies;
+  these are not live-model or production evaluations. **459 relative file links /
+  83 Markdown files passed**; anchors and external URLs were excluded.
+  Whitespace validation passed.
+- The requested Codex CLI completed normally with exit 0 and a final-message
+  artifact. Execution metadata confirms `gpt-6.1-sol` / `xhigh`. Independent static
+  review and coordinator review confirmed the narrow existing-root mkdir exception
+  needed by the pinned ledger, while other root mutations remain denied.
+- No runtime/evaluation provider calls, paid effect measurement, target changes,
+  settings or credential changes, merge or schedules occurred. Read-only
+  GitHub queries and local fetch/worktree preparation were used; original checkouts
+  and unrelated dependency edits were left untouched. Publication is limited to
+  this feature branch and its review PR. This is reviewed-code guard
+  hardening, not full isolation of hostile Python, native code, inherited descriptors,
+  unaudited syscalls, hardlink aliases or filesystem races. Initial completion stays
+  provisional **30–35%**.
+
+## Merged development gates (historical checks)
+
+### Merged PR #39 offline OSS cost accounting
 
 `feat/oss-usage-accounting` starts at the local merge commit for
 [PR #38](https://github.com/moruku36/agent-sleep-lab/pull/38),
-`85b7dfceda509d0005295b3aa019dd7ae3dea147`; a fresh GitHub read confirms
-that merge. Local verification is recorded below. The feature branch is published
-for owner review and remains unmerged. GitHub PR checks are the authority for
-feature CI. The owner reviews each gate before approving a merge.
+`85b7dfceda509d0005295b3aa019dd7ae3dea147`; that gate recorded a GitHub read
+confirming the merge. The following local verification and worker results were
+recorded before PR #39 merged at `5cea9e224f8bfc306735c400b9cd358db7c0ac9f`.
+These dated counts and timings are historical; current-gate verification is above.
+GitHub PR checks remain the authority for feature CI.
 
 - The [offline accounting contract](oss-cost-accounting.md) adds a strict
   caller-owned JSON artifact and a report for durable pairs and frozen cohorts.
@@ -451,14 +503,15 @@ measurement. **No paid or live measurement has been run.**
   the ASCII-canonical bundle subset (addressed and locally verified on the current branch).
   Prompt framing is not proof of prompt-injection immunity or authenticated origin.
 
-## Merged guard-verification baseline
+## Merged guard-verification baseline (historical checks)
 
 The six guard cases cover selected socket/process/environment/cwd/write-open/
 SQLite/resource checks in fresh children. They do **not** establish a hostile-code
 sandbox. The separate side-effect-free event probe found `os.remove`, `os.rename`,
 `os.mkdir`, `os.link`, `os.symlink`, `os.chmod`, `os.truncate` unhandled.
-No corresponding external mutation was executed. These gaps and path/dir-fd
-hardening remain open; this branch does not change runtime guard behavior.
+No corresponding external mutation was executed. That baseline did not harden
+these events. The current local, unmerged strengthening is described above;
+these six historical cases do not verify its additional boundaries.
 
 ## Merged PR #29 pipeline
 

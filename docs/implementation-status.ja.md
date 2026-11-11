@@ -73,15 +73,59 @@ GitHubで2026-11-10T18:11:11Zのマージを確認。
 PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42872601554)合格。
 選択したguard受入6件と正確な制限文書であり、guard挙動の補強ではありません。
 
+[PR #39](https://github.com/moruku36/agent-sleep-lab/pull/39)は
+`5cea9e224f8bfc306735c400b9cd358db7c0ac9f`で**マージ済み**です。
+今回の読取り専用GitHub照会で2026-11-11T01:59:18Zのマージを確認しました。
+独立worktreeはfetch済みの同じmainを基点とします。PR／main CIは今回は再確認していません。
+
 ## 今回の開発branch
 
-### OSSのオフライン費用集計：ローカル実装済み、未マージ
+### Offline workerのfilesystem audit補強：ローカル検証済み・未マージ
+
+ローカルの`feat/offline-filesystem-guards` worktreeは上記main `5cea9e2`を基点とします。
+ローカルゲート確認後、所有者がfeature branchの公開とdraftレビュー用PRを承認しました。
+マージは別の承認が必要です。公開commitのCI結果はGitHubのPR checksを正本とし、
+ローカル検証結果は以下に記録します。
+
+- [Filesystem audit契約](oss-offline-filesystem-guards.md)に共有`install_guards`の
+  補強を記載。remove／rmdir／mkdir、rename／replace、hardlink、symlinkのtargetと宛先、
+  chmod／chown／utime／truncate／flags／xattr、write-open flagと指定SQLite接続先を扱い、
+  影響する両側のpathを照合します。descriptor path、既定以外の監査dir-fd、
+  相対・曖昧な変更pathとsymlink componentを拒否します。
+- 契約上、一時領域内の絶対pathによるscratchとledger、実際の固定ledgerによる
+  既存親directoryへのmkdir試行を維持します。prompt捕捉もsource読込み前に同じguardを使用。
+  stdlib-only worker、target pin、payloadとsource／task／reference hash契約は未変更です。
+- [使い捨てchild回帰ソース](../tests/test_oss_offline_guards.py)を追加。
+  一時的な合成sentinelだけを使い、外側の内容・metadata保持、両端path、bytes／path-like、
+  相対・曖昧path、symlink、descriptor／dir-fd、write flag、scratch／ledger、
+  prompt捕捉での共有guard導入を扱います。環境固有metadataと不正event形は副作用なしの
+  audit probe、捕捉再利用のcaseは代替payload／loaderを使います。
+- coordinator確認では、Python 3.13.18で**限定17 uniqueケース／1起動、0.408秒**、
+  続けて**全381 unique回帰／1起動、27.043秒が合格**しました。
+  今回の新規は11件、合計**398 case executions／ローカル2起動**です。
+  Python 3.11や新たなCI結果は主張しません。全回帰は固定合成captureと注入返答を含みますが、
+  実model・本番の評価ではありません。**相対文書リンク459件／Markdown 83ファイル合格**、
+  anchor・外部URLは未検査で、空白差分検査も合格しました。
+- 指定Codex CLIはexit 0・最終成果ファイルを伴って正常完了しました。
+  実行metadataで`gpt-6.1-sol`／`xhigh`を確認。独立した静的レビューとcoordinatorレビューで、
+  固定ledgerに必要な既存rootへのmkdirだけの例外と、他のroot変更の拒否を確認しました。
+- runtime／評価provider呼出し、有料効果計測、対象変更、設定・認証情報変更、マージ、scheduleは
+  行っていません。読取り専用GitHub照会とローカルfetch／worktree準備を使い、元checkoutと
+  無関係な依存設定の編集は保持しました。公開はこのfeature branchとレビュー用PRに限ります。
+  レビュー済みcode用のguard補強であり、敵対的Python、
+  native code、継承descriptor、未監査syscall、既存hardlink alias、filesystem raceの
+  完全隔離ではありません。初期版は引き続き暫定**30〜35%**です。
+
+## マージ済み開発ゲート（検証履歴）
+
+### PR #39でマージ済みのOSSオフライン費用集計
 
 `feat/oss-usage-accounting`の基点は[PR #38](https://github.com/moruku36/agent-sleep-lab/pull/38)の
 merge commit `85b7dfceda509d0005295b3aa019dd7ae3dea147`です。
-最新のGitHub読取りでMERGEDを確認しました。以下にローカル検証結果を記録し、
-feature branchは本人レビュー用に公開済み・未マージです。feature CIの正本はGitHubの
-PR checksです。各ゲートを本人が確認してOKしてからマージします。
+当時のGitHub読取りでMERGEDを確認しました。以下のローカル検証とworker来歴は、
+PR #39が`5cea9e224f8bfc306735c400b9cd358db7c0ac9f`でマージする前の記録です。
+当時の件数・時間は履歴で、今回の検証は上記に記載します。
+feature CIの正本は引き続きGitHubのPR checksです。
 
 - [オフライン費用集計契約](oss-cost-accounting.md)を追加。永続journalの対応比較と
   固定cohortを対象に、呼出し側が保持する厳格なJSON artifactとreportを扱います。
@@ -396,14 +440,14 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
   PR #31時点の捕捉経路はASCII正規形bundleのみ対応でした（今回branchで対応し、ローカル検証済み）。
   frameはprompt injection耐性や認証済み由来の証明ではありません。
 
-## マージ済みguard検証の基点
+## マージ済みguard検証の基点（検証履歴）
 
 6件はfresh childでsocket／process／環境／cwd／write-open／SQLite／資源の
 選択した制限を確認したものです。敵対コード用sandboxではありません。
 別の副作用なしevent probeでは`os.remove`、`os.rename`、`os.mkdir`、
 `os.link`、`os.symlink`、`os.chmod`、`os.truncate`が未捕捉でした。
-実外部変更は行っていません。この穴とpath／dir-fd補強は未完で、
-今回branchもguardの実挙動は変更しません。
+実外部変更は行っていません。当時の基点はこれらのeventを補強していませんでした。
+今回のローカル・未マージの補強は上記に記載し、この過去6件を追加境界の検証とはしません。
 
 ## PR #29でマージ済みのpipeline
 
