@@ -34,7 +34,7 @@ from agent_sleep_lab.adoption_candidates import (
 from agent_sleep_lab.validation import validate_bytes
 from agent_sleep_lab.strictjson import StrictJSONError, loads_strict_bytes
 from agent_sleep_lab.evidence_store import (
-    APPLICATION_ID, _DDL, _Reader, _as_bytes, _connect, _header, _rollback,
+    APPLICATION_ID, _DDL, _Reader, _as_bytes, _check_path, _connect, _header, _rollback,
 )
 from agent_sleep_lab.provenance import (
     CaptureBoundary, ConflictError, ContractViolation, StorageError,
@@ -174,14 +174,21 @@ class ForgetImpact:
 
 
 class AdoptionStore(RuntimeStore):
-    """v3 extension; configured boundaries are trusted local simulations, not credentials."""
+    """v3 store; boundaries are local simulations, not credentials.
+
+    ``read_only=True`` opens only an existing exact v3 file using SQLite ro and
+    query-only controls. The default writer still initializes as before.
+    """
 
     def __init__(
         self, path: str | os.PathLike[str], boundary: CaptureBoundary, *,
         verifier: VerifierBoundary, evaluator: EvaluatorBoundary,
         evaluation_protocol: tuple[str, str, str],
         clock: Callable[[], datetime] | None = None, busy_timeout: float = 5.0,
+        read_only: bool = False,
     ):
+        if type(read_only) is not bool:
+            raise TypeError("read_only must be boolean")
         if not isinstance(boundary, CaptureBoundary):
             raise TypeError("boundary must be a CaptureBoundary")
         if not isinstance(verifier, VerifierBoundary) or not isinstance(evaluator, EvaluatorBoundary):
@@ -192,13 +199,24 @@ class AdoptionStore(RuntimeStore):
                 or len(evaluation_protocol[2]) != 64
                 or any(c not in "0123456789abcdef" for c in evaluation_protocol[2])):
             raise ValueError("evaluation_protocol must be an accepted name/version and exact config hash")
-        conn = _connect(path, readonly=False, timeout=busy_timeout)
+        if read_only:
+            target = _check_path(path)
+            if not target.is_file() or not target.stat().st_size:
+                raise StorageError("storage.open_failed", "existing nonempty adoption store required")
+        conn = _connect(path, readonly=read_only, timeout=busy_timeout)
         try:
-            _initialize_v3(conn)
+            if read_only:
+                app, version, _ = _header(conn)
+                if app != APPLICATION_ID or version != 3:
+                    raise StorageError("storage.unknown_database", "existing v3 adoption store required")
+                _check_v3(conn)
+            else:
+                _initialize_v3(conn)
         except BaseException:
             conn.close()
             raise
         _Reader.__init__(self, conn, clock)
+        self.read_only = read_only
         self._boundary = boundary
         self._verifier = verifier
         self._evaluator = evaluator
@@ -482,6 +500,7 @@ class AdoptionStore(RuntimeStore):
         source_manifest_bytes: object, memory_bytes: Mapping[str, object],
     ) -> AdoptionResult:
         """Commit once, or return original receipt on exact replay. No automatic retry."""
+        self._require_writable()
         # Freeze mutable caller bytes before comparing or entering the transaction.
         req = parse_canonical("adoption_request", request_bytes)
         req_data = bytes(request_bytes)
@@ -573,6 +592,7 @@ class AdoptionStore(RuntimeStore):
         row (request digest + receipt) and the head move together. Original snapshots, memories
         and receipts are never modified, and old authorization is never regained.
         """
+        self._require_writable()
         req = parse_canonical("rollback_request", request_bytes)
         req_data = bytes(request_bytes)
         req_sha = sha256_hex(req_data)
@@ -804,6 +824,7 @@ class AdoptionStore(RuntimeStore):
         ``control`` boundary) -> immutable request/receipt journal row. Any failure leaves no
         policy revision and no journal row. Head and history are never rewritten; the new
         exclusions apply to retrieval, adoption and rollback at once. NOT physical deletion."""
+        self._require_writable()
         if not isinstance(control, ControlBoundary):
             raise TypeError("control must be a ControlBoundary")
         req = parse_canonical("forget_request", request_bytes)

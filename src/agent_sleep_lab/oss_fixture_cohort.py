@@ -17,6 +17,7 @@ from agent_sleep_lab import oss_offline_worker as worker
 from agent_sleep_lab import oss_prompt_capture_worker as child
 from agent_sleep_lab import oss_verdict_evaluation as evaluation
 from agent_sleep_lab.strictjson import loads_strict_bytes
+from agent_sleep_lab.evidence_store import _connect
 
 PROTOCOL = "agent-sleep-oss-fixture-cohort/1"
 PROBE_PROTOCOL = "agent-sleep-oss-fixture-cohort/2"
@@ -100,6 +101,8 @@ def _document(value):
 def _journal_view(journal, *, reserve=False):
     if type(journal) is not execution.ExecutionJournal:
         raise CohortError("exact ExecutionJournal required")
+    if reserve:
+        journal._require_writable()
     db = journal._db
     if db.in_transaction:
         raise CohortError("journal transaction already open")
@@ -201,12 +204,29 @@ class CohortRegistry:
     New registration requires ALL existing plans to be current, unstopped and
     without ANY arm row. Exact replay of an already frozen cohort is allowed.
     Membership cannot be added, removed, relabelled or rebound by this API.
+    ``read_only=True`` opens an existing registry with SQLite ro/query-only
+    controls and refuses registration and initialization.
     """
 
-    def __init__(self, path, *, initialize=False):
+    def __init__(self, path, *, initialize=False, read_only=False):
+        if type(read_only) is not bool:
+            raise TypeError("read_only must be boolean")
+        if read_only and initialize:
+            raise CohortError("read-only registry cannot initialize")
+        self.read_only = read_only
         if not isinstance(path, (str, Path)) or not Path(path).is_absolute():
             raise CohortError("explicit absolute private registry path required")
         path = Path(path)
+        if read_only:
+            if not path.is_file() or not path.stat().st_size:
+                raise CohortError("existing nonempty cohort registry required")
+            self._db = _connect(path, readonly=True, timeout=5.0)
+            try:
+                self._check_schema(self._db)
+            except BaseException:
+                self._db.close()
+                raise
+            return
         if path.exists() and path.stat().st_size:
             probe = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)
             try:
@@ -268,6 +288,8 @@ class CohortRegistry:
         return value
 
     def register(self, cohort_id, *, journal, members, bridges):
+        if self.read_only:
+            raise CohortError("cohort registry opened read-only")
         _id(cohort_id)
         members = _members(members)
         _bridges(bridges, members, complete=True)

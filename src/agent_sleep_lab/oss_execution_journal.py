@@ -19,6 +19,7 @@ from agent_sleep_lab import oss_prompt_capture as capture
 from agent_sleep_lab import oss_prompt_capture_worker as child
 from agent_sleep_lab import oss_verdict_evaluation as evaluation
 from agent_sleep_lab.oss_mimo_adapter import OSSMimoAdapter, TRANSPORT_CLI, MODEL
+from agent_sleep_lab.evidence_store import _connect
 
 PROTOCOL = "agent-sleep-oss-execution/1"
 APPLICATION_ID = 0x41534C45
@@ -110,10 +111,32 @@ def validate_capture_version(binding):
 
 
 class ExecutionJournal:
-    def __init__(self, path, *, initialize=False):
+    """Durable driver, or existing-file reader with ``read_only=True``.
+
+    Reader handles cannot initialize, register, run or persist recovery.
+    SQLite may still require locking and WAL/SHM sidecars.
+    """
+
+    def __init__(self, path, *, initialize=False, read_only=False):
+        if type(read_only) is not bool:
+            raise TypeError("read_only must be boolean")
+        if read_only and initialize:
+            raise JournalError("read-only journal cannot initialize")
+        self.read_only = read_only
         if not isinstance(path, (str, Path)) or not Path(path).is_absolute():
             raise JournalError("explicit absolute private journal path required")
         path = Path(path)
+        if read_only:
+            if not path.is_file() or not path.stat().st_size:
+                raise JournalError("existing nonempty execution journal required")
+            self._db = _connect(path, readonly=True, timeout=5.0)
+            self._db.row_factory = sqlite3.Row
+            try:
+                self._check_schema(self._db)
+            except BaseException:
+                self._db.close()
+                raise
+            return
         # Existing databases are inspected read-only BEFORE any write or pragma.
         if path.exists() and path.stat().st_size:
             probe = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True)
@@ -154,8 +177,13 @@ class ExecutionJournal:
     def close(self):
         self._db.close()
 
+    def _require_writable(self):
+        if self.read_only:
+            raise JournalError("execution journal opened read-only")
+
     @contextmanager
     def _tx(self):
+        self._require_writable()
         self._db.execute("BEGIN IMMEDIATE")
         try:
             yield
@@ -209,6 +237,7 @@ class ExecutionJournal:
 
     def register(self, plan_id, *, adapter, live_transport=False,
                  evaluation_manifest=None, **options):
+        self._require_writable()
         binding = paired.build_binding(plan_id, **options)
         binding["protocol"] = PROTOCOL
         # The task/reference remains synthetic; execution provenance is distinct.
@@ -262,6 +291,7 @@ class ExecutionJournal:
                                  (stop, plan_id))
 
     def run(self, plan_id, bridge, adapter, *, live_transport=False, limit=2):
+        self._require_writable()
         if type(limit) is not int or not 1 <= limit <= 2:
             raise JournalError("limit must be 1 or 2")
         binding, _, stopped = self._binding(plan_id, bridge)

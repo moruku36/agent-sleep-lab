@@ -490,8 +490,13 @@ class EvidenceStore(_Reader):
         super().__init__(conn, clock)
         self._boundary = boundary
 
+    def _require_writable(self) -> None:
+        if getattr(self, "read_only", False):
+            raise StorageError("storage.read_only", "store opened read-only")
+
     @contextmanager
     def _immediate(self) -> Iterator[None]:
+        self._require_writable()
         db = self._db()
         try:
             db.execute("BEGIN IMMEDIATE")
@@ -517,6 +522,7 @@ class EvidenceStore(_Reader):
         Returns ``created`` for new evidence or ``replayed`` when byte-identical
         content (including the boundary's adapter identity) is already stored.
         """
+        self._require_writable()
         self._db()
         event_data = _require_bytes("event", event_bytes, MAX_EVENT_BYTES)
         source_data = _require_bytes("source", source_bytes, MAX_SOURCE_BYTES)

@@ -29,6 +29,93 @@ assert report["totals"]["cost"] is None  # One of fourteen cost slots is known.
 snapshot = cohort_report(registry, "synthetic-cohort", journal=journal, bridges=bridges)
 ```
 
+## Read-only CLI and input manifest
+
+```sh
+agent-sleep-lab oss-cost-report --manifest local/report.json
+agent-sleep-lab oss-cost-report --manifest local/report.json --observations local/cost-observations.json
+```
+
+The command opens existing databases only, calls `pair_report` or `cohort_report`
+directly, and prints only that accounting report as JSON. Exit 0 means a report
+was read, including incomplete/stopped/withheld reports; refusal is exit 2 with
+a fixed diagnostic that includes no input or database excerpts. There are no
+provider, agent, initialize, run, adopt, plugin or write options, and no fallback.
+
+The input is strict UTF-8 JSON, at most 32,768 bytes, with these exact fields:
+
+```json
+{
+  "protocol": "agent-sleep-oss-cost-report-input/1",
+  "target": {"kind": "pair", "id": "synthetic-plan"},
+  "store_config": "local/store.json",
+  "journal": "local/execution.sqlite",
+  "bridges": {
+    "synthetic-plan": {
+      "scope": {"project": "p", "task_family": "t"},
+      "repository": "example/synthetic-agent",
+      "agent_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  }
+}
+```
+
+For a cohort, use `"target":{"kind":"cohort","id":"synthetic-cohort"}` and
+add the required `"cohort_registry":"local/cohorts.sqlite"` field. A pair
+forbids that field and requires exactly its target plan's bridge. A cohort
+accepts zero to five explicit bridges belonging to its registered members:
+omitted bridges remain unavailable rows in the full frozen denominator. Extra
+plan IDs are refused; no plan is inferred from the target ID. Each supplied
+bridge requires exactly scope, repository and immutable 40-lowercase-hex commit.
+Scope and target/plan IDs are bounded ASCII IDs of up to 128 characters.
+The bridge must match the saved binding; a configuration file grants no authority.
+
+`store_config` uses the [existing boundary configuration](../configs/runtime-store.example.json),
+with exactly `path`, `capture`, `verifier`, `evaluator`, `evaluation_protocol`.
+Each boundary object also requires exactly the example's fields. Explicit
+`allowed_scopes`, origins, authorizations, methods and protocols are required;
+no implicit defaults or Python code loading applies. Lists/maps are bounded to
+64 entries and the file to 32,768 bytes. Paths are local existing regular files,
+at most 4,096 characters, resolved from the **current working directory**,
+including paths inside either JSON file. Evidence/adoption, journal and registry
+paths must be distinct, including resolved symlinks and same-file hard links;
+aliases are refused before any store constructor. Local boundary configuration
+is not caller authentication or proof of store origin.
+
+The optional observations file has the existing 32,768-byte bound and canonical
+artifact contract below. Its original bytes pass unchanged to accounting;
+whitespace, a trailing newline or duplicate keys are refused, never normalized.
+Its exact current target/report binding is required. A changed outcome, binding
+or current-policy result can make it stale; reread without observations to see
+the current statuses. Reporting never retries or persists intent recovery.
+
+## Read-only Python handles and compatibility
+
+Pass `read_only=True` to `AdoptionStore`, `ExecutionJournal` or `CohortRegistry`
+when constructing reader handles. Existing boundaries remain mandatory for the
+adoption store; journals and registries retain their absolute-path requirement.
+Only existing nonempty supported schemas are accepted. Read-only journal and
+registry handles reject `initialize=True`; `AdoptionStore` continues to have no
+`initialize` keyword (passing one is an error). No reader creates a database,
+initializes a schema, migrates, dispatches, adopts or writes recovery state.
+Journal `register`/`run`, cohort registration and adoption-store mutators refuse
+read-only handles before reservation, adapter budget use or transport. Registering
+through a writer registry also refuses a read-only journal before reserving it.
+
+All three reader connections use SQLite `mode=ro` and `PRAGMA query_only=ON`
+through the existing connection helper. They do **not** use `immutable=1`, so
+committed WAL changes and current policy remain visible between read snapshots.
+SQLite may acquire locks, read WAL/SHM sidecars, or require/create sidecars where
+SQLite and filesystem permissions allow; read-only SQL is not filesystem isolation.
+A reader may fail on locking/sidecar availability. Controlled stable local paths
+are assumed: alias preflight is not protection against hostile concurrent path
+replacement. Current-policy retrieval and journal/registry reads are not one
+cross-store policy transaction. Existing withholding and integrity limits apply.
+
+The default `read_only=False` writer behavior, application IDs, schema versions,
+saved bindings, cohort documents and observation/report protocols are unchanged.
+The new input-manifest protocol is separate from those saved contracts.
+
 ## Identity and trust
 
 - The artifact protocol is `agent-sleep-oss-cost-observations/1`. Its exact

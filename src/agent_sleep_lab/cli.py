@@ -56,6 +56,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     sub.add_parser("schemas", help="list the packaged local schemas")
+    report = sub.add_parser("oss-cost-report", allow_abbrev=False,
+                            help="offline read-only accounting over existing OSS pairs/cohorts")
+    report.add_argument("--manifest", required=True, help="strict bounded report input JSON")
+    report.add_argument("--observations", help="exact canonical bounded cost-observations file")
     for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
         cmd = sub.add_parser(name, help="explicit runtime " + name)
         if name != "sleep-status":
@@ -142,6 +146,18 @@ def main(
         return _cmd_validate(args, out, err)
     if args.command == "schemas":
         return _cmd_schemas(out, err)
+    if args.command == "oss-cost-report":
+        try:
+            from agent_sleep_lab.oss_cost_report_cli import execute as report
+            result = report(args.manifest, observations_path=args.observations)
+            print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+            return EXIT_OK
+        except Exception:
+            # Untrusted JSON/database diagnostics can contain private field/body
+            # excerpts. Never copy them into this command's output.
+            print("error[oss-cost-report]: report refused; check input contract, existing "
+                  "distinct databases, integrity, current policy and exact observations", file=err)
+            return EXIT_ERROR
     try:
         if getattr(args, "provider", None) == "mimo" and not args.agent:
             raise ValueError("--agent is required for MiMo")
