@@ -95,9 +95,45 @@ Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab
 coordinatorのGitHub照会で2026-11-11T04:35:30ZのMERGEDと同一merge commitを確認しました。
 以下の費用reportの検証数値は履歴です。
 
-## 今回のローカルゲート
+## 今回のローカルゲート：読み取り専用OSS準備
 
-### 組込み合成オフラインdemo：ローカル検証済み・レビューゲート
+[PR #43](https://github.com/moruku36/agent-sleep-lab/pull/43)は所有者により
+`736988a0cb243da9c263ce28232ec5f44d0e3ea7`へマージ済み
+（2026-11-11T23:00:41Z）。GitHubで独立確認しました。
+[PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43116115784)と
+同一mergeの[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43116437958)
+は成功です。以下のdemo数値は履歴で、今回の検証ではありません。
+
+- 厳密なmanifestとstore設定を明示する[oss-prepare](oss-prepare.ja.md)を追加。
+  採用済み合成・経験用記憶を現在policyでread-only／query-only取得し、
+  空なら対象起動前に拒否。worker後の新transactionで変更・失効を再確認します。
+  固定source・正確なframe・出力検証の既存ゲートを維持しました。
+- 既存の設定検証を変更せず`oss_read_config.py`へ共通化。
+  費用CLIの互換性を保ち、準備経路から実行journal／provider／adapterのimportを分離。
+  注入worker・provider・transport・capture／採用・dispatch指定は受け付けません。
+- [新規7 unique契約ケース](../tests/test_oss_prepare_cli.py)が限定1起動・0.693秒で合格。
+  実際の一時採用storeと明記したstand-in workerによる検証です。
+  全回帰も**418 uniqueケース／1起動・34.432秒で合格**。
+  累計は**425ケース実行／ローカル回帰2起動**です。
+- 文書は**相対ファイルリンク503件／Markdown 86ファイル合格**。
+  anchor・外部URLは対象外。空白差分検査も合格です。
+- 別のcoordinator受入は**1ケース／1起動で合格**。実際の固定OSS Contributor source
+  `e40b39c6258ac5a4446c38246bdfd7f5dc5dbf7b`とテスト作成の採用済み合成記憶1件を使い、
+  組込みcapture worker 1回、実judge／prompt各2呼出しを確認。
+  baseline 962 bytes、reference 3,047 bytes、モデル呼出し・store変更は0です。
+  回帰件数とは別に数えています。
+- 選択したCodex `gpt-6.1-sol`／`xhigh`の呼出しは600秒でtimeoutし、
+  本体draftのみ保存、テスト・文書は未作成でした。process終了を確認し再実行なし。
+  完全なresolved-model／正常完了受領は得ていません。
+  coordinatorが差分をレビューし、テスト・文書を完成して検証しました。
+- オフラインで利用できる入力準備の確認であり、実運用capture・認証付き配送・意味的利用・
+  改善の証明ではありません。出力には合成記憶／request本文を含み、公開許可一覧ではありません。
+  有料推論・設定／認証変更・mergeは実施していません。feature PR CIは別ゲートです。
+  完成率は暫定**30〜35%**を維持します。
+
+## PR #43のローカルゲート履歴
+
+### 組込み合成オフラインdemo：マージ前のローカル検証
 
 - `agent-sleep-lab demo`、[実行契約](runtime-guide.ja.md#組込みオフラインdemo)、
   [重複なしの契約テスト8件](../tests/test_offline_demo.py)を保存しました。
@@ -125,7 +161,7 @@ coordinatorのGitHub照会で2026-11-11T04:35:30ZのMERGEDと同一merge commit�
   続けてcoordinatorの**全411 unique回帰／1起動、33.853秒が合格**しました。
   限定2回を含む累計は**427ケース実行／ローカル3起動**です。
   合成の一連の接続を検証したもので、実agent受入ではありません。
-  Python 3.11／3.13 PR CIとwheel検証は別の未完checkです。
+  当時はPython 3.11／3.13 PR CIとwheelが未完でしたが、後に両方合格しています（上記）。
   ローカルoffline wheel commandは実行前に承認bindingで拒否され、別経路は試していません。
 - 実推論・install・merge・外部の権限／設定変更は行っていません。
   feature公開とレビュー用PRは承認済みで、公開commitの検証はGitHub PR checksを正本とします。
@@ -659,7 +695,8 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
    手動handoffは準備です。実データ境界と実配信・利用検証は未完です。
    今回のローカルjournalは実行記録であり、認証済みの利用証明ではありません。
 4. 明示指定のlexical raw順位付けと読取り専用費用reportは所有者がPR #41／#42でマージ済みです。
-   保存済みオフラインdemoはローカル全回帰合格で、レビュー・feature CI・実受入は別のゲートです。
+   offline demoもPR #43で所有者マージ済み・CI成功です。
+   上記の読み取り専用準備ゲートは実運用受入の完了ではありません。
    意味的関連度・公平性、物理purge、広い本番障害受入は未完で、
    オフラインテスト合格で完了とはしません。
 

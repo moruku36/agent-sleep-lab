@@ -11,7 +11,9 @@ Exit codes: 0 completed/inspected, 1 invalid or incomplete run,
 from __future__ import annotations
 
 import argparse
+from contextlib import redirect_stderr
 import hashlib
+import io
 import json
 import sys
 from typing import Sequence, TextIO
@@ -64,6 +66,10 @@ def build_parser() -> argparse.ArgumentParser:
                             help="offline read-only accounting over existing OSS pairs/cohorts")
     report.add_argument("--manifest", required=True, help="strict bounded report input JSON")
     report.add_argument("--observations", help="exact canonical bounded cost-observations file")
+    prepare = sub.add_parser("oss-prepare", allow_abbrev=False,
+                             help="offline read-only pinned synthetic request preparation")
+    prepare.add_argument("--manifest", required=True, help="strict bounded preparation JSON")
+    prepare.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
     for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
         cmd = sub.add_parser(name, help="explicit runtime " + name)
         if name != "sleep-status":
@@ -142,14 +148,33 @@ def main(
     out = stdout if stdout is not None else sys.stdout
     err = stderr if stderr is not None else sys.stderr
     parser = build_parser()
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    preparing = arguments[:1] == ["oss-prepare"]
     try:
-        args = parser.parse_args(argv)
+        # argparse otherwise echoes unknown options/values from untrusted input.
+        if preparing:
+            with redirect_stderr(io.StringIO()):
+                args = parser.parse_args(arguments)
+        else:
+            args = parser.parse_args(arguments)
     except SystemExit as exc:  # argparse exits 0 for --help/--version, 2 for usage errors
+        if preparing and exc.code != 0:
+            print("error[oss-prepare]: invalid command arguments", file=err)
         return int(exc.code) if isinstance(exc.code, int) else EXIT_ERROR
     if args.command == "validate":
         return _cmd_validate(args, out, err)
     if args.command == "schemas":
         return _cmd_schemas(out, err)
+    if args.command == "oss-prepare":
+        try:
+            from agent_sleep_lab.oss_prepare_cli import execute as prepare
+            result = prepare(args.manifest, store_config_path=args.store_config)
+            print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+            return EXIT_OK
+        except Exception:
+            print("error[oss-prepare]: preparation refused; check strict inputs, existing "
+                  "store, pinned repository and nonempty current-policy context", file=err)
+            return EXIT_ERROR
     if args.command == "oss-cost-report":
         try:
             from agent_sleep_lab.oss_cost_report_cli import execute as report
