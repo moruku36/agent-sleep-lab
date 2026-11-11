@@ -76,16 +76,60 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 [PR #39](https://github.com/moruku36/agent-sleep-lab/pull/39)は
 `5cea9e224f8bfc306735c400b9cd358db7c0ac9f`で**マージ済み**です。
 今回の読取り専用GitHub照会で2026-11-11T01:59:18Zのマージを確認しました。
-独立worktreeはfetch済みの同じmainを基点とします。PR／main CIは今回は再確認していません。
+今回の独立worktreeの基点は下記PR #40です。
+
+[PR #40](https://github.com/moruku36/agent-sleep-lab/pull/40)は所有者が
+`29fef5ad19239e53ce3e07684b2c30e0cc2d1623`で**マージ済み**です。
+今回の読取り専用GitHub照会で2026-11-11T03:04:33Zのマージと、同じcommitの
+Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab/actions/runs/42950289146)を確認。
+今回のraw順位付け用独立worktreeは、このmain commitを基点とします。
 
 ## 今回の開発branch
 
-### Offline workerのfilesystem audit補強：ローカル検証済み・未マージ
+### 独立raw比較の明示query順位付け：ローカル検証済み・未マージ
 
-ローカルの`feat/offline-filesystem-guards` worktreeは上記main `5cea9e2`を基点とします。
-ローカルゲート確認後、所有者がfeature branchの公開とdraftレビュー用PRを承認しました。
-マージは別の承認が必要です。公開commitのCI結果はGitHubのPR checksを正本とし、
-ローカル検証結果は以下に記録します。
+[順位付け契約](raw-query-ranking.md)と[実装](../src/agent_sleep_lab/raw_baseline.py)に
+`raw_order="query_overlap_descending"`の明示指定を追加しました。
+独立raw比較APIと既存のファイル形式compare manifestから選べます。
+既定のevent ID順、rules、保存context／planのbyteと再掲互換性を維持し、
+移行や新しいdispatch経路は追加していません。
+
+- 既存の上限付き日英NFKC／casefold／日本語語抽出で、保存source本文とeventのsummary値だけを
+  採点します。独立に適格な全行を`max_raw`・byte packingより前に重なり降順、同点はevent ID順へ
+  並べます。重なり0の行も適格分母に残し、scope・partition・origin・policy・期限・整合性・
+  全祖先検査とscan上限を変えず、不正時は閉じて拒否します。
+- 順位方式／版、Unicode database版、正確なquery／hash、抽出語、採点fieldを既存設定と共に固定。
+  order・query・順位設定の変更は再利用時に競合します。上限で落ちた行も含む全適格source hashを
+  束縛し、現在文脈の変化で再送せず失効させます。両群は同一raw完全record prefixと同一byte／
+  呼出し上限を使い、Bだけ適格記憶を後ろへ追加できます。reportと順位付きauditにrulesを保持します。
+- [raw比較](../tests/test_raw_baseline.py)と[CLI](../tests/test_runtime_cli.py)に合成テスト10件の
+  ソースを保存。fixtureメソッドを再利用し、importによるcase重複はありません。
+  順位・同点・0点、Unicode／日本語、cap選択、不正入力、metadata／解答除外、適格性・破損・
+  scan拒否、固定再掲／競合、上限外source変更の失効、A/B／audit membershipを扱います。
+- coordinatorがPython 3.13.18で**新規10 uniqueケース／限定1起動、1.354秒**、続けて
+  **全391 unique回帰／1起動、28.049秒の合格**を確認しました。今回の合計は
+  **401 case executions／ローカル2起動**です。**相対リンク472件／Markdown 84ファイル合格**、
+  anchor・外部URLは未検査で、空白差分も合格。今回ゲートの新CIやローカルPython 3.11の
+  結果は主張しません。テストは合成store・rubric・模擬返答を使います。
+- 指定Codex CLIはexit 0・最終成果ファイルを伴って正常完了し、実行metadataで
+  `gpt-6.1-sol`／`xhigh`を確認。静的レビューとcoordinatorレビューで実装・契約の
+  ブロッカーはありません。実行前に、不正入力時の未作成tableを直接照会するテストを、
+  table未作成そのものの確認へ修正しました。既定pathの従来の保存fieldは維持し、
+  テストは既定／明示ID順の再掲を確認しますが、別保存の変更前binary artifactとの比較ではありません。
+- 読取り専用GitHub照会とローカルfetch／worktree準備を使い、元checkoutと無関係な編集は保持。
+  live runtime／評価provider呼出し、有料効果計測、設定・認証変更、マージ、scheduleは
+  行っていません。所有者は今回のfeature branch公開とレビュー用PR作成を承認しました。
+  マージは別の承認が必要で、公開commitのCI結果はGitHubのPR checksを正本とします。
+  公平性・意味的関連度・改善の証拠はなく、初期版は引き続き暫定**30〜35%**です。
+
+## マージ済み開発ゲート（検証履歴）
+
+### PR #40でマージ済みのOffline worker filesystem audit補強
+
+以下は所有者による`29fef5ad19239e53ce3e07684b2c30e0cc2d1623`へのマージ前の
+ローカル検証・実装来歴です。当時のworktreeはmain `5cea9e2`を基点としました。
+当時の公開承認はfilesystem guardゲートに限定され、今回のraw順位付けの公開承認ではありません。
+これらは履歴であり、新しい順位付けコードの検証結果ではありません。
 
 - [Filesystem audit契約](oss-offline-filesystem-guards.md)に共有`install_guards`の
   補強を記載。remove／rmdir／mkdir、rename／replace、hardlink、symlinkのtargetと宛先、
@@ -115,8 +159,6 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
   レビュー済みcode用のguard補強であり、敵対的Python、
   native code、継承descriptor、未監査syscall、既存hardlink alias、filesystem raceの
   完全隔離ではありません。初期版は引き続き暫定**30〜35%**です。
-
-## マージ済み開発ゲート（検証履歴）
 
 ### PR #39でマージ済みのOSSオフライン費用集計
 
@@ -542,7 +584,8 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
 3. 既存agent一つの実capture／取得利用を確認すること。オフラインadapter契約と
    手動handoffは準備です。実データ境界と実配信・利用検証は未完です。
    今回のローカルjournalは実行記録であり、認証済みの利用証明ではありません。
-4. raw関連度順位付け、物理purge、広い本番障害受入も未完です。
+4. 明示指定のlexical raw順位付けはローカル検証済みで、上記の通りPRレビューへの公開承認済みです。
+   意味的関連度・公平性、物理purge、広い本番障害受入は未完で、
    オフラインテスト合格で完了とはしません。
 
 入口と契約は[ランタイム手順](runtime-guide.ja.md)を参照してください。
