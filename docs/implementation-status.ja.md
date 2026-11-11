@@ -79,8 +79,9 @@ PR両checkと[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/
 
 `feat/oss-usage-accounting`の基点は[PR #38](https://github.com/moruku36/agent-sleep-lab/pull/38)の
 merge commit `85b7dfceda509d0005295b3aa019dd7ae3dea147`です。
-最新のGitHub読取りでMERGEDを確認しました。このbranchは以下のローカル検証済みで、
-未公開・未マージ、feature CIは未実行です。各ゲートを本人が確認してOKしてからマージします。
+最新のGitHub読取りでMERGEDを確認しました。以下にローカル検証結果を記録し、
+feature branchは本人レビュー用に公開済み・未マージです。feature CIの正本はGitHubの
+PR checksです。各ゲートを本人が確認してOKしてからマージします。
 
 - [オフライン費用集計契約](oss-cost-accounting.md)を追加。永続journalの対応比較と
   固定cohortを対象に、呼出し側が保持する厳格なJSON artifactとreportを扱います。
@@ -98,7 +99,8 @@ merge commit `85b7dfceda509d0005295b3aa019dd7ae3dea147`です。
   空白差分検査も合格しました。
 - 指定のCodex CLIを明示`gpt-6.1-sol`・`xhigh`で起動し、実行metadataで確認しました。
   exit 0・最終成果ファイルを伴って正常完了し、coordinatorが実装をレビューしました。
-  実runtime推論・有料効果計測・新規認証・対象変更・公開・マージはありません。
+  実runtime推論・有料効果計測・新規認証・対象変更・マージはありません。
+  公開対象はこのfeature branchとレビュー用PRに限ります。
   費用記録の境界を追加したもので、ゲート5全体や既存agent接続の完了ではありません。
   初期版は暫定**30〜35%**のままです。
 

@@ -84,8 +84,9 @@ documentation, not guard behavior hardening.
 `feat/oss-usage-accounting` starts at the local merge commit for
 [PR #38](https://github.com/moruku36/agent-sleep-lab/pull/38),
 `85b7dfceda509d0005295b3aa019dd7ae3dea147`; a fresh GitHub read confirms
-that merge. This branch is locally verified below, unpublished and unmerged.
-No feature CI has run. The owner reviews each gate before approving a merge.
+that merge. Local verification is recorded below. The feature branch is published
+for owner review and remains unmerged. GitHub PR checks are the authority for
+feature CI. The owner reviews each gate before approving a merge.
 
 - The [offline accounting contract](oss-cost-accounting.md) adds a strict
   caller-owned JSON artifact and a report for durable pairs and frozen cohorts.
@@ -107,7 +108,8 @@ No feature CI has run. The owner reviews each gate before approving a merge.
   overrides, confirmed in execution metadata, and completed normally with exit 0
   and a final-message artifact. The coordinator reviewed the implementation.
   No live runtime inference, paid effect measurement, new credentials, target
-  mutation, publication or merge occurred. This is a cost-recording boundary,
+  mutation or merge occurred. Publication is limited to this feature branch and
+  its review PR. This is a cost-recording boundary,
   not completion of Gate 5 or the existing-agent integration. Initial completion
   remains **30–35%**.
 
