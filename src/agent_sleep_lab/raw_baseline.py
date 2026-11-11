@@ -5,6 +5,9 @@ one exact scope and partition, INDEPENDENTLY of which memories cite it (Gate 4C
 ``source_matched_fixture`` is unchanged in ``retrieval_comparison``). Both arms
 get the same frozen whole raw prefix under the same ``ArmBudget``; arm B may add
 currently eligible consolidated records returned by the existing retrieval.
+Default order remains event ID. Explicit ``raw_order=RANKED_ORDER`` uses the
+bounded memory query and shared bilingual terms to rank all eligible source and
+event-summary prose by distinct overlap, retaining zeros with event-ID ties.
 
 Eligibility reuses trusted existing checks: ``RuntimeStore._evidence_failures``
 (integrity, expiry, authorization, purpose, partition acceptance, exclusions,
@@ -20,23 +23,53 @@ dispatch that follows it is not excluded.
 """
 from __future__ import annotations
 
+import unicodedata
+
 from agent_sleep_lab.ab_comparison import ArmBudget, _encode
 from agent_sleep_lab.adoption_store import _check_v3
 from agent_sleep_lab.provenance import INDEPENDENT_ORIGINS, ContractViolation, sha256_hex
-from agent_sleep_lab.retrieval import SERVED_PARTITIONS, _check_scope, _closure
+from agent_sleep_lab.retrieval import (
+    MAX_QUERY_CHARS, SERVED_PARTITIONS, _check_scope, _closure, _terms,
+)
 from agent_sleep_lab.retrieval_comparison import RetrievalComparison, _fail
 from agent_sleep_lab.strictjson import loads_strict_bytes
 
 REPRESENTATION = "independent_raw_baseline"
 ORDER = "event_id_ascending"
+RANKED_ORDER = "query_overlap_descending"
+RANKING_ALGORITHM = "raw_source_summary_bilingual_overlap"
+RANKING_VERSION = 1  # Changes to terms, scored fields or ordering require a new version.
 # ComparisonStore binds a 64-hex snapshot value; a scope with no adopted head binds this label.
 NO_SNAPSHOT = sha256_hex(b"agent-sleep-lab:no-adopted-snapshot")
 _INELIGIBLE = frozenset({"evidence.authorization.expired", "evidence.not_synthetic"})
 AUDIT_STATUS = {None: "planned_not_dispatched", "intent": "dispatch_intent_outcome_unknown"}
 
 
-def select_raw_evidence(store, *, scope, partition="experience", scan_limit=256, max_raw=16):
+def _ranking_settings(raw_order, query):
+    """Validate the opt-in before any selection; legacy rules/bytes stay unchanged."""
+    if type(raw_order) is not str or raw_order not in (ORDER, RANKED_ORDER):
+        raise ValueError("invalid raw_order")
+    if raw_order == ORDER:
+        return None  # query still belongs to memory retrieval on the default path
+    if type(query) is not str or not 1 <= len(query) <= MAX_QUERY_CHARS:
+        raise ValueError("ranked raw order requires a bounded non-empty query")
+    try:
+        query_bytes = query.encode("utf-8")
+    except UnicodeEncodeError:
+        raise ValueError("ranked raw query must be valid UTF-8 text") from None
+    terms = _terms(query)
+    if not terms:
+        raise ValueError("ranked raw query must contain lexical terms")
+    return dict(algorithm=RANKING_ALGORITHM, version=RANKING_VERSION,
+                query=query, query_sha256=sha256_hex(query_bytes), query_terms=sorted(terms),
+                unicode_version=unicodedata.unidata_version, fields=["source", "event.summary"])
+
+
+def select_raw_evidence(store, *, scope, partition="experience", scan_limit=256, max_raw=16,
+                        raw_order=ORDER, query=None):
     """One read transaction: policy, head and every evidence row of the exact scope."""
+    ranking = _ranking_settings(raw_order, query)
+    terms = frozenset(ranking["query_terms"]) if ranking else frozenset()
     if partition not in SERVED_PARTITIONS:
         raise ContractViolation("retrieval.partition_not_served", "partition is not served")
     if (type(scan_limit) is not int or not 1 <= scan_limit <= 1024
@@ -44,7 +77,7 @@ def select_raw_evidence(store, *, scope, partition="experience", scan_limit=256,
         raise ValueError("invalid bounded raw selection limits")
     counts = dict(scanned=0, eligible=0, selected=0, dropped_by_cap=0, other_partition=0,
                   non_evidence_origin=0, policy_excluded=0, ineligible=0)
-    eligible = []
+    eligible, scores = [], {}
     with store._read_transaction():
         _check_v3(store._db())
         now, policy = store._now(), store.current_policy()  # missing/corrupt raises
@@ -94,8 +127,19 @@ def select_raw_evidence(store, *, scope, partition="experience", scan_limit=256,
                 source = stored.source_bytes.decode("utf-8")
             except UnicodeDecodeError:
                 _fail("evidence_not_text", "only UTF-8 synthetic evidence can be frozen")
+            if ranking:
+                # Integrity/contract checks above establish the stored event shape.
+                # Only prose values participate: IDs, hashes, provenance and JSON keys
+                # cannot earn overlap. Text remains data, never operating policy.
+                summary = loads_strict_bytes(stored.event_bytes)["summary"]
+                if type(summary) is not str:
+                    _fail("evidence_mismatch", "stored event summary is not text")
+                scores[event_id] = len(terms & (_terms(source) | _terms(summary)))
             eligible.append((hashes, _encode(dict(
                 hashes, kind="raw_source", event=event, source=source)).decode("ascii")))
+    if ranking:
+        # Rank ALL eligible rows, including zeros, before either cap or byte packing.
+        eligible.sort(key=lambda item: (-scores[item[0]["event_id"]], item[0]["event_id"]))
     counts["eligible"] = len(eligible)
     selected = eligible[:max_raw]
     counts["selected"] = len(selected)
@@ -105,21 +149,25 @@ def select_raw_evidence(store, *, scope, partition="experience", scan_limit=256,
 
 class RawBaselineComparison(RetrievalComparison):
     def __init__(self, store, comparisons, *, scope, max_bytes, partition="experience",
-                 query=None, max_records=16, scan_limit=256, max_raw=16):
+                 query=None, max_records=16, scan_limit=256, max_raw=16, raw_order=ORDER):
+        ranking = _ranking_settings(raw_order, query)
         super().__init__(store, comparisons, scope=_check_scope(scope), max_bytes=max_bytes,
                          partition=partition, query=query, max_records=max_records)
         for name, value, ceiling in (("scan_limit", scan_limit, 4096), ("max_raw", max_raw, 64)):
             if type(value) is not int or not 1 <= value <= ceiling:
                 raise ValueError("invalid cap: " + name)
-        self.rules = dict(order=ORDER, scan_limit=scan_limit, max_raw=max_raw,
+        self.rules = dict(order=raw_order, scan_limit=scan_limit, max_raw=max_raw,
                           origins=sorted(INDEPENDENT_ORIGINS), partition=partition,
                           memory_retrieval=self.params)
+        if ranking:
+            self.rules["ranking"] = ranking
 
     # ---- live read-only observation -----------------------------------------
     def _scan(self):
         return select_raw_evidence(self.store, scope=self.scope,
                                    partition=self.params["partition"],
-                                   scan_limit=self.rules["scan_limit"], max_raw=self.rules["max_raw"])
+                                   scan_limit=self.rules["scan_limit"], max_raw=self.rules["max_raw"],
+                                   raw_order=self.rules["order"], query=self.params["query"])
 
     def _observe(self):
         policy, head, eligible, selected, counts = self._scan()
@@ -171,7 +219,8 @@ class RawBaselineComparison(RetrievalComparison):
             created = True
         context = loads_strict_bytes(data)
         try:
-            if context.get("representation") != REPRESENTATION:
+            if (context.get("representation") != REPRESENTATION
+                    or context["scope"] != self.scope or context["rules"] != self.rules):
                 raise ValueError("plan binding conflict")  # e.g. a Gate 4C context
             return self.comparisons.plan(
                 plan_id=plan_id, tasks=tasks, raw_references=context["raw"],
@@ -279,7 +328,10 @@ class RawBaselineComparison(RetrievalComparison):
                     "raw_dropped": [raw[i] for i in offered if i in raw and i not in items],
                     "memories_dropped": [memo[i] for i in offered if i in memo and i not in items],
                 })
-        return {"plan_id": plan_id, "plan_sha256": digest, "status": status, "reason": reason,
-                "representation": REPRESENTATION,
-                "context_sha256": sha256_hex(self._saved(plan_id)),
-                "delivery_claim": None, "arms": arms}
+        document = {"plan_id": plan_id, "plan_sha256": digest, "status": status, "reason": reason,
+                    "representation": REPRESENTATION,
+                    "context_sha256": sha256_hex(self._saved(plan_id)),
+                    "delivery_claim": None, "arms": arms}
+        if "ranking" in context["rules"]:
+            document["rules"] = context["rules"]
+        return document

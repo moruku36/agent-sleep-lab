@@ -46,6 +46,13 @@ agent-sleep-lab compare --store-config private/store.json --manifest private/com
 
 manifestはplan_id、1〜5件のtasks（task_id／prompt）、retrieval（scope／max_bytesなど）、budget（各群calls／request_bytes／reply_bytes）、config、evaluator_identity（name／version／protocol_sha256）を持ちます。解答は別の非公開rubricファイルでtask ID→期待文字列として与え、canonical JSON hashをprotocol_sha256へ固定します。解答はprovider依頼へ入れません。完全一致の機械的fixture採点は、独立した論文品質評価ではありません。実応答でも合成rubricであることを表示します。
 
+原証拠は`retrieval.query`を指定しても既定ではevent ID順です。
+`retrieval.raw_order: "query_overlap_descending"`の明示指定で、既存の上限付きqueryと
+日英の語抽出を使い、raw件数上限・byte packingより先に全適格原証拠を順位付けします。
+重なり0の行も分母に残します。[API／manifest契約](raw-query-ranking.md)に検証、
+順位方式・queryの固定と旧planの互換性を記載しています。両群のraw prefixは同一で、
+公平性・改善の証拠にはなりません。
+
 各群の予算は同一で実行順を交互にします。詰めたA/Bが一つでも同じなら、登録・呼出し前に拒否します。原ログを減らすか上限を増やしてください。ライブラリのdiagnostic_only=Trueは入力監査だけに使え、comparable:false／comparison:nullとなります。原ログの完全record・prefix監査を維持します。受領・結果不明状態は非公開journalへ残し、不明intentを再送しません。実API費用は不明のまま保持し、合成0費用や節約実績としません。
 
 [5課題fixture](../examples/paper-pilot/README.md)は実応答試行の準備であり、実施済み・独立holdoutではありません。研究ノートhandoffの対象はrepo名と40桁commitを呼出し側が明示し、libraryへ固定しません。

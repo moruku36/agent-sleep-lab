@@ -80,16 +80,71 @@ documentation, not guard behavior hardening.
 [PR #39](https://github.com/moruku36/agent-sleep-lab/pull/39) is **MERGED** at
 `5cea9e224f8bfc306735c400b9cd358db7c0ac9f`. A fresh read-only GitHub query
 confirmed the merge at 2026-11-11T01:59:18Z. This independent worktree starts
-at that fetched main baseline. PR/main CI was not rechecked for this local gate.
+at the later PR #40 baseline below.
+
+[PR #40](https://github.com/moruku36/agent-sleep-lab/pull/40) is **owner-merged** at
+`29fef5ad19239e53ce3e07684b2c30e0cc2d1623`. A fresh read-only GitHub query
+confirmed the merge at 2026-11-11T03:04:33Z and successful Python 3.11/3.13
+[main CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/42950289146)
+for that exact commit. This independent raw-ranking worktree uses that baseline.
 
 ## Current development branch
 
-### Offline-worker filesystem audit hardening — locally verified, unmerged
+### Opt-in independent raw query ranking — locally verified, unmerged
 
-The local `feat/offline-filesystem-guards` worktree starts at main `5cea9e2` above.
-The owner authorized feature-branch publication and a draft review PR after the
-local gate review. Merge remains subject to separate approval. GitHub PR checks
-are the authority for the published commit; local results are recorded below.
+The [ranking contract](raw-query-ranking.md) and
+[implementation](../src/agent_sleep_lab/raw_baseline.py) add explicit
+`raw_order="query_overlap_descending"` to the independent raw comparison API and
+existing file-based compare manifest. The default event-ID path retains its rules,
+saved context/plan bytes and replay behavior; there is no migration or new dispatch route.
+
+- The existing bounded bilingual NFKC/casefold/Japanese terms score stored source
+  text and event summary values only. All independently eligible rows are ranked
+  before `max_raw` and byte packing, by overlap descending with event-ID ties.
+  Zero-overlap rows remain in the eligible denominator. Scope, partition, origin,
+  policy, expiry, integrity, ancestry and scan bounds remain unchanged and fail closed.
+- Ranked rules freeze algorithm/version, Unicode database version, exact query/hash,
+  normalized terms and scored fields alongside existing settings. Order/query or
+  ranking-setting changes conflict on reuse. All eligible source hashes, including
+  capped-out rows, remain bound; current-context changes invalidate without redispatch.
+  A/B retain the same raw whole-record prefix and equal byte/call limits; B may
+  append eligible memories. Report and ranked audit retain the frozen rules.
+- Ten new synthetic test case sources are saved across
+  [raw baseline tests](../tests/test_raw_baseline.py) and
+  [runtime CLI tests](../tests/test_runtime_cli.py), reusing fixture methods without
+  imported-case duplication. They cover ordering/ties/zeros, Unicode/Japanese,
+  cap selection, validation, metadata/answer exclusion, eligibility/corruption/scan
+  refusal, frozen replay/conflicts, capped-out change invalidation and A/B/audit membership.
+- Coordinator verification passed **10 new unique cases / one focused invocation,
+  1.354 s**, then **391 unique regression cases / one invocation, 28.049 s** on
+  Python 3.13.18: **401 case executions / two local invocations** in this gate.
+  **472 relative file links / 84 Markdown files passed**; anchors/external URLs
+  were excluded. Whitespace checks passed. This gate has no new CI or local
+  Python 3.11 result. The tests use synthetic stores, rubric data and fake replies.
+- The requested Codex CLI completed normally with exit 0 and a final-message
+  artifact; execution metadata confirms `gpt-6.1-sol` / `xhigh`. Static review and
+  coordinator review found no remaining source/contract blocker. Before execution,
+  one test initialization assertion was corrected to inspect the absence of an
+  adapter table rather than query that nonexistent table. The default path retains
+  its previous serialized fields; tests cover default/explicit-order replay, not
+  a separately retained pre-change binary artifact.
+- Read-only GitHub queries and local fetch/worktree preparation were used. Original
+  checkouts and unrelated edits were preserved. No live runtime/evaluation provider
+  calls, paid effect measurement, settings/credential changes, merge or schedules
+  occurred. The owner authorized this feature branch and review PR publication;
+  merge requires separate approval. GitHub PR checks are the authority for the
+  published commit. No fairness, semantic relevance or improvement evidence is claimed;
+  overall completion remains provisional **30–35%**.
+
+## Merged development gates (historical checks)
+
+### Merged PR #40 offline-worker filesystem audit hardening
+
+The following local checks and implementation provenance predate owner merge
+at `29fef5ad19239e53ce3e07684b2c30e0cc2d1623`. That filesystem-guard worktree
+started at main `5cea9e2`; its publication authorization was specific to that
+gate and does not authorize publication of this raw-ranking gate. These results
+are historical evidence, not verification of the new ranking code.
 
 - The [filesystem audit contract](oss-offline-filesystem-guards.md) describes
   shared `install_guards` hardening: remove/rmdir/mkdir, rename/replace, hardlink,
@@ -127,8 +182,6 @@ are the authority for the published commit; local results are recorded below.
   hardening, not full isolation of hostile Python, native code, inherited descriptors,
   unaudited syscalls, hardlink aliases or filesystem races. Initial completion stays
   provisional **30–35%**.
-
-## Merged development gates (historical checks)
 
 ### Merged PR #39 offline OSS cost accounting
 
@@ -630,8 +683,9 @@ Already merged in PR #24:
    bridge contracts and manual handoff drafts are preparation only. Real-data
    boundaries and actual delivery/use verification remain open. The new local
    dispatch journal supplies accounting only, not authenticated use evidence.
-4. Relevant raw ranking, physical purge and broader production fault acceptance
-   remain open; none is established by passing offline tests.
+4. Opt-in lexical raw ranking is locally verified and authorized for PR review above.
+   Semantic relevance/fairness, physical purge and broader production fault
+   acceptance remain open; none is established by passing offline tests.
 
 Runtime contracts and commands: [English](runtime-guide.md) / [日本語](runtime-guide.ja.md).
 The MiMo CLI lacks per-call max-token control: post-generation byte rejection

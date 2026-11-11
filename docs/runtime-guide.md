@@ -85,6 +85,13 @@ answers are never placed in provider requests. A mechanical exact-match fixture
 score is not independent paper-quality assessment. Synthetic rubric results are
 labelled as such even when responses come from a real provider.
 
+Raw evidence defaults to event-ID order even when `retrieval.query` is set.
+Explicit `retrieval.raw_order: "query_overlap_descending"` opts into bounded
+bilingual query ranking before raw caps and byte packing, retaining zero-overlap
+rows. See the [API and manifest contract](raw-query-ranking.md) for validation,
+frozen ranking identity and saved-plan compatibility. Both arms share the same
+raw prefix; this does not establish fairness or improvement.
+
 A/B use identical per-arm limits and alternating order. If any packed A/B inputs
 are identical, planning FAILS before registration/dispatch. Reduce raw context
 or increase the request cap. Library `diagnostic_only=True` permits byte/audit
