@@ -322,7 +322,7 @@ class CohortRegistry:
         return document
 
     @staticmethod
-    def _task(member, document, journal, bridges):
+    def _task(member, document, journal, bridges, execution_reports):
         result = dict(member, status="incomplete", arms={
             arm: dict(status="unresolved", execution_status="unavailable", score=None) for arm in ARMS})
         plan_id = member["plan_id"]
@@ -344,6 +344,8 @@ class CohortRegistry:
         except (execution.JournalError, CohortError, ValueError, KeyError, TypeError, UnicodeError):
             result["status"] = "unavailable_journal_integrity"
             return result
+        if execution_reports is not None:
+            execution_reports[plan_id] = report
         scored = report["verdict_evaluation"]
         result["status"] = scored["status"]
         # Allowlist numeric/status fields only. Never copy verdicts, bodies,
@@ -353,13 +355,19 @@ class CohortRegistry:
         return result
 
     def report(self, cohort_id, *, journal, bridges):
+        return self._report(cohort_id, journal=journal, bridges=bridges)
+
+    def _report(self, cohort_id, *, journal, bridges, execution_reports=None):
+        # Accounting can pin exact member reports from the same journal read
+        # snapshot. The public cohort report keeps its existing allowlist.
         _id(cohort_id)
         document = self._load(cohort_id)
         if document is None:
             raise CohortError("unknown cohort")
         _bridges(bridges, document["members"], complete=False)
         with _journal_view(journal):
-            tasks = [self._task(member, document, journal, bridges) for member in document["members"]]
+            tasks = [self._task(member, document, journal, bridges, execution_reports)
+                     for member in document["members"]]
         count = document["registered_tasks"]
         complete = sum(task["status"] in {"complete", "complete_with_invalid_verdict"} for task in tasks)
         arms = {}

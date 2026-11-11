@@ -79,9 +79,41 @@ documentation, not guard behavior hardening.
 
 ## Current development branch
 
-### Selected-issue offline probe increment — locally verified, unmerged
+### Offline OSS cost accounting — implemented locally, unmerged
 
-`feat/oss-selected-issue-capture` starts from owner-merged
+`feat/oss-usage-accounting` starts at the local merge commit for
+[PR #38](https://github.com/moruku36/agent-sleep-lab/pull/38),
+`85b7dfceda509d0005295b3aa019dd7ae3dea147`; a fresh GitHub read confirms
+that merge. This branch is locally verified below, unpublished and unmerged.
+No feature CI has run. The owner reviews each gate before approving a merge.
+
+- The [offline accounting contract](oss-cost-accounting.md) adds a strict
+  caller-owned JSON artifact and a report for durable pairs and frozen cohorts.
+  Artifacts pin the frozen binding or cohort and exact report snapshot, including
+  cohort member execution hashes. Replay checks current policy and integrity.
+- Reports retain both arms of all registered tasks and all seven cost stages.
+  Missing usage and cost remain null. Currency is explicit and sums use exact
+  decimal arithmetic. Observation evidence hashes are caller-supplied and
+  unverified. The registered OpenClaw CLI still supplies no usage or cost in
+  `model.run`. No measured billing, monetary cap or performance claim follows.
+- [Seven new cases](../tests/test_oss_cost_accounting.py) and existing contracts
+  passed independent coordinator verification: **370 unique regression cases /
+  one invocation**, Python 3.13.18, 26.989 s. Earlier focused verification passed
+  nine cases, then one affected case: **380 case executions / three invocations**
+  in this increment. Tests use synthetic accounting, temporary stores and injected
+  replies. **451 relative file links / 82 Markdown files passed**; anchors and
+  external URLs were not checked. Whitespace validation passed.
+- The requested Codex CLI worker ran with explicit `gpt-6.1-sol` and `xhigh`
+  overrides, confirmed in execution metadata, and completed normally with exit 0
+  and a final-message artifact. The coordinator reviewed the implementation.
+  No live runtime inference, paid effect measurement, new credentials, target
+  mutation, publication or merge occurred. This is a cost-recording boundary,
+  not completion of Gate 5 or the existing-agent integration. Initial completion
+  remains **30–35%**.
+
+### Merged PR #38 selected-issue offline probe (historical checks)
+
+`feat/oss-selected-issue-capture` started from owner-merged
 [PR #37](https://github.com/moruku36/agent-sleep-lab/pull/37) at
 `63ca34df000ad95cd279d7652f4c7669d19f0c34`; GitHub verified MERGED and
 [main CI success](https://github.com/moruku36/agent-sleep-lab/actions/runs/42921165592)
@@ -106,7 +138,7 @@ at that exact commit.
   Git acquisition is injected in these cases; capture/scoring/judge/prompt are not.
 - Coordinator reviewed the preserved draft. **All 363 unique regression cases /
   one invocation passed** on Python 3.13.18 (26.045 s), including 11 new
-  selected-probe cases. Feature CI is pending.
+  selected-probe cases. This record covers local verification.
 - Separate offline acceptance read all eleven source blobs from actual local
   pinned Git objects (no source-acquisition mock), launched five fresh guarded
   workers, and captured all five selected issues. Actual scores/bands were
@@ -121,9 +153,9 @@ at that exact commit.
   600 s; no final-message file or normal-completion receipt, no matching process
   on reconciliation. No retry, substitute worker/model or API development call.
   Development usage/cost are unknown.
-- No live inference, paid runtime measurement, independent holdout, semantic
-  memory-use evidence, adoption, target mutation, default/auth/schedule change
-  or merge. #1/#4/#5 repeat issue text and are not independent problems.
+- The checks used offline fixtures and injected replies. Live inference, paid
+  runtime measurement, independent holdout, semantic memory-use evidence and
+  adoption were outside their scope. #1/#4/#5 repeat issue text.
   Parser/evaluator and target implementation bytes are unchanged.
   Initial completion remains provisional **30–35%**.
 
@@ -501,7 +533,7 @@ Already merged in PR #24:
   delivery/use by the existing agent. Real operational capture needs a separate
   non-synthetic retention/authorization contract; do not relabel real logs.
 
-## Current branch verification
+## PR #31 verification and PR #32 handoff (historical checks)
 
 - `feat/oss-adopted-reference-preparation`: **nothing executed yet.** The three
   new cases, full regression, documentation check and pinned-source acceptance

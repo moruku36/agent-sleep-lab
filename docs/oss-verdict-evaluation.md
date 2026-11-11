@@ -83,4 +83,6 @@ difference is not a model result. No live model/effect measurement was run.
 
 Remaining: live verification under applicable spending controls, a meaningful
 independently justified evaluation dataset, broader multi-task aggregation,
-rationale quality verification and paired usage/cost accounting.
+rationale quality verification and provider-supported usage/cost measurement.
+Caller-supplied observations use the separate
+[offline accounting artifact](oss-cost-accounting.md).
