@@ -12,9 +12,12 @@ prepared interfaces are not completed acceptance.
 This page and its Japanese translation are the ONLY current status authority;
 dated gate reports are historical evidence.
 
-Fresh GitHub reads confirmed main `8321996c112bc61154ad84f7ed2aaf3c69d2d768`
-and merged PR #44. This independent branch starts there. Prior
-`feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
+Fresh GitHub reads for this documentation update confirmed main
+`9b6ecb59e266f157789af87d0b3ce5203fb32072` and merged
+[PR #45](https://github.com/moruku36/agent-sleep-lab/pull/45).
+The table below describes that merged runtime baseline. A separate local public-source
+trial is recorded afterward; its implementation is not included in this documentation update.
+Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
 
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
@@ -28,7 +31,36 @@ Paid-use consent was already received; missing generic consent is not the blocke
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
 
-## Current change: predispatch comparison preparation
+## Local public-source trial — 2026-11-12
+
+The [dated trial report](public-source-trial-2026-11-12.md) records one completed
+public-document capture → actual model generation → separate source-grounding
+review → atomic adoption → retrieval → use on a different task. This used the
+merged baseline plus a **local, uncommitted/unmerged extension**, not the merged
+synthetic CLI. No runtime implementation is published by this documentation change.
+
+One predeclared paired example scored raw-only 7/8 and raw-plus-memory 8/8.
+Input increased by 4,072 bytes; usage and cost were unavailable. One pair is not
+general performance evidence. The extension passed 436 local regression cases,
+not the documentation branch's test count. Exact version, artifact hashes,
+comparison limits and test accounting are in the report.
+
+Current acceptance remains limited: no automated Light/Deep provider run, permanent
+agent connection, paid MiMo execution or five-task acceptance was completed.
+Publication/review of the local implementation and a supported agent connection
+remain separate next steps. The historical host-binding blockers below were not
+resolved or retried by this trial.
+
+### Documentation-only update checks
+
+This change touches six Markdown files and publishes no runtime code or private
+trial artifacts. Its local regression passed **425 unique cases in one invocation**
+(13.517s, Python 3.12.14); 521 relative file links across 88 Markdown files passed.
+Existing README destinations were retained. These counts are separate from the
+436-case local-extension trial above. GitHub checks for this documentation commit
+remain a separate CI record.
+
+## PR #45: predispatch comparison preparation (history)
 
 - Added explicit [compare-prepare](runtime-guide.md#offline-comparison-preparation):
   same bounded comparison manifest, separate journal and finite model choice;
