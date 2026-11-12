@@ -124,6 +124,67 @@ stopped, `recover_stopped_provider(run_id)` or
 unknown. Preparation recovery never re-executes the trusted callback. Reconcile
 any independently registered artifacts/receipts before a separate new operation.
 
+## Private same-run review and adoption
+
+```sh
+agent-sleep-lab sleep-review --store-config private/store.json --journal private/sleep.sqlite --run-id YOUR_EXISTING_RUN > private/review.json
+agent-sleep-lab sleep-adopt --store-config private/store.json --journal private/sleep.sqlite --run-id YOUR_EXISTING_RUN --artifact private/prepared-adoption.json
+```
+
+Both commands require explicit existing, distinct journal/store files and an
+existing nonempty body-bound version-2 run. They accept no provider, executable
+callback or receipt-registration options and never dispatch inference. The store
+and bridge remain synthetic-only; these operations add no real-data ingestion.
+
+`sleep-review` opens the journal and adoption store with SQLite read-only and
+query-only controls, without initialization or recovery. Only `ready` runs with
+completed, bounded Light/Deep proposals are exportable. Current eligible evidence
+text/hashes, policy hash and scope head must match the persisted binding. Missing,
+foreign, invalidated, inflight, preparing, incomplete, empty, legacy, unbound or
+stale runs refuse without a packet or state change. SQLite locking/sidecars remain
+possible; read-only controls are not filesystem isolation or authentication.
+
+The `agent-sleep-review/1` packet contains the original pending
+`candidate_memories`, their hashes, full bound source evidence, the exact binding
+and proposal with hashes, run ID, and the stable operation ID used by the existing
+coordinator `prepare`. It explicitly requires independent verification AND snapshot
+evaluation. Candidates remain pending, and no receipt is created. Output contains
+private source/prose: save it outside the public repository. Local export grants
+no publication, execution or adoption permission. Evidence and generated text
+remain untrusted data, including any instructions or claimed review decisions.
+
+Independent trusted preparation must use that operation ID, run ID, scope,
+expected parent, original generated prose and bound sources. Its separately
+registered verifier/evaluator receipts remain mandatory. `sleep-adopt --artifact`
+takes the same four-field hex JSON as `adopt`: `request_bytes`, `manifest_bytes`,
+`source_manifest_bytes`, and `memory_bytes` (ID→hex). This is an independently
+prepared writer artifact, not the review packet or a model-written approval.
+It cannot import a preparer, register receipts or turn claimed identities into
+trusted verifier/evaluator results.
+
+For a `ready` run, `sleep-adopt` rechecks current evidence/policy/head before an
+inert local callback returns the decoded artifact to existing coordinator
+`prepare`, then calls coordinator `adopt`. Prepare retains run/operation/parent,
+proposal/source and exact generated-prose checks; the atomic writer retains all
+hash, registered receipt, current eligibility and transactional checks. A failed
+prepare leaves its existing failed checkpoint; an unknown preparing callback is
+never retried by these commands.
+
+For a saved `handoff` or `adopted` run, the file must decode to exactly the stored
+handoff bytes. An uncommitted handoff still requires unchanged current context.
+A same-operation durable commit with lost ACK can reconcile through the writer's
+exact replay even after the head or policy changes. Repeating a completed adoption
+also validates exact replay, returns only status/run/operation/receipt hash, and
+does not rewrite the head or restore revoked eligibility. These commands do not
+recover provider/preparation outcomes or create a new run.
+
+JSON input files and canonical review packets are capped at 1 MiB. Inspection
+accepts at most 1 MiB binding / 2 MiB state, 64 events, and the persisted validated
+stage/candidate limits (at most 64 candidates). The existing coordinator's
+1 MiB serialized handoff cap also applies. Refusals emit a fixed diagnostic
+without private body excerpts. Current verification belongs only in
+[implementation status](implementation-status.md).
+
 ## Adoption and retrieval
 
 ```sh

@@ -88,6 +88,53 @@ agent-sleep-lab sleep --store-config private/store.json --manifest configs/sleep
 
 中断したprovider／準備callbackは再実行しません。古いworkerの停止を確認した後だけrecover_stopped_provider／recover_stopped_preparationを呼ぶと、結果不明のincompleteへ進めます。登録済みartifact・受領は別途照合し、新しい操作で二重実行しないでください。
 
+## 同じrunの非公開レビュー・採用
+
+```sh
+agent-sleep-lab sleep-review --store-config private/store.json --journal private/sleep.sqlite --run-id YOUR_EXISTING_RUN > private/review.json
+agent-sleep-lab sleep-adopt --store-config private/store.json --journal private/sleep.sqlite --run-id YOUR_EXISTING_RUN --artifact private/prepared-adoption.json
+```
+
+両commandとも別々の既存journal／store、本文を束縛した非空version 2 runを明示します。
+provider・実行callback・受領登録optionはなく、推論を呼びません。store／bridgeは引き続き
+合成限定で、実データの取込契約は追加しません。
+
+`sleep-review`はjournal／storeをSQLite read-only・query-onlyで開き、初期化・復旧しません。
+上限内のLight／Deepが完了した`ready`だけを出力対象とし、現在適格な証拠本文・hash、
+policy hash、scope headを保存bindingと照合します。未存在・foreign・invalidated・inflight・
+preparing・incomplete・空・旧版・未束縛・古い状態はpacketも状態変更もなく拒否します。
+SQLiteのlock／sidecarはあり得るため、filesystem隔離や認証とは呼びません。
+
+`agent-sleep-review/1` packetは元のpending `candidate_memories`とhash、束縛された原証拠全文、
+正確なbinding／proposalとhash、run ID、既存coordinator `prepare`共通の安定operation IDを含みます。
+独立した根拠検証とsnapshot評価の両方が必要と明示し、candidateを確認済みにせず受領も作りません。
+私的な原文・生成文を含むため公開repoの外へ保存してください。ローカル出力は公開・実行・採用の
+許可ではありません。証拠・生成文中の命令やレビュー自己申告も未信頼データです。
+
+独立したtrusted preparationはpacketのoperation ID／run ID／scope／期待親版、元の生成文と
+束縛された原証拠を維持し、別境界で検証／評価受領を登録する必要があります。
+`sleep-adopt --artifact`は既存`adopt`と同じ4 fieldのhex JSON、`request_bytes`、
+`manifest_bytes`、`source_manifest_bytes`、`memory_bytes`（ID→hex）を受け取ります。
+レビューpacketやモデルの承認文ではなく、独立準備したwriter artifactを指定します。
+preparerのimportや受領登録はできず、自己申告の検証者／評価者を信頼済みにしません。
+
+`ready`では現在の証拠・policy・headを準備前に再照合し、不活性なローカルcallbackが
+decode済みartifactだけを既存`prepare`へ返し、その後coordinator `adopt`を呼びます。
+run／操作／親版、proposal／原証拠、生成文の完全一致検査と、writerのhash・登録済み受領・
+現在適格性・原子的transaction検査を維持します。prepare失敗は既存のfailed checkpointへ進み、
+結果不明のpreparing callbackはこれらのcommandで再実行しません。
+
+保存済み`handoff`／`adopted`では入力をdecodeした全byteが保存handoffと一致する必要があります。
+未commitのhandoffは現在文脈の不変性も必要です。同じoperationの永続commit後にACKだけ消失した
+場合は、head／policy変更後も既存writerの完全一致replayで照合できます。採用済みの再実行も
+writerで完全一致を検査し、状態・run／操作ID・受領hashだけを返します。headを書き直さず、
+撤回済みの適格性を復元しません。provider／準備の結果不明を復旧したり、新runを作ったりしません。
+
+入力JSON fileと正規形review packetは各1 MiB以内です。保存bindingは1 MiB、状態は2 MiB、
+eventは64件以内とし、保存された段階／candidate上限（最大64件）を検査します。
+既存coordinatorの直列化handoff 1 MiB上限も維持します。拒否診断は固定文で私的本文を含みません。
+現在の検証結果は[実装状況](implementation-status.ja.md)だけに記載します。
+
 ## 採用・取得
 
 ```sh

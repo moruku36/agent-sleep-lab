@@ -70,6 +70,13 @@ def build_parser() -> argparse.ArgumentParser:
                              help="offline read-only pinned synthetic request preparation")
     prepare.add_argument("--manifest", required=True, help="strict bounded preparation JSON")
     prepare.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
+    for name in ("sleep-review", "sleep-adopt"):
+        cmd = sub.add_parser(name, allow_abbrev=False, help="private same-run " + name)
+        cmd.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
+        cmd.add_argument("--journal", required=True, help="existing separate private sleep journal")
+        cmd.add_argument("--run-id", required=True, help="existing completed version 2 run")
+        if name == "sleep-adopt":
+            cmd.add_argument("--artifact", required=True, help="bounded exact independently prepared adoption JSON")
     for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
         cmd = sub.add_parser(name, help="explicit runtime " + name)
         if name != "sleep-status":
@@ -149,17 +156,18 @@ def main(
     err = stderr if stderr is not None else sys.stderr
     parser = build_parser()
     arguments = list(sys.argv[1:] if argv is None else argv)
-    preparing = arguments[:1] == ["oss-prepare"]
+    private_command = arguments[0] if arguments[:1] in (
+        ["oss-prepare"], ["sleep-review"], ["sleep-adopt"]) else None
     try:
         # argparse otherwise echoes unknown options/values from untrusted input.
-        if preparing:
+        if private_command:
             with redirect_stderr(io.StringIO()):
                 args = parser.parse_args(arguments)
         else:
             args = parser.parse_args(arguments)
     except SystemExit as exc:  # argparse exits 0 for --help/--version, 2 for usage errors
-        if preparing and exc.code != 0:
-            print("error[oss-prepare]: invalid command arguments", file=err)
+        if private_command and exc.code != 0:
+            print(f"error[{private_command}]: invalid command arguments", file=err)
         return int(exc.code) if isinstance(exc.code, int) else EXIT_ERROR
     if args.command == "validate":
         return _cmd_validate(args, out, err)
@@ -198,11 +206,18 @@ def main(
         else:
             from agent_sleep_lab.runtime_cli import execute
             result = execute(args)
-        print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+        print(json.dumps(result, ensure_ascii=True, sort_keys=True,
+                         separators=(",", ":") if args.command in ("sleep-review", "sleep-adopt") else None),
+              file=out)
         if args.command in ("sleep", "compare") and result.get("status") in ("failed", "incomplete", "invalidated"):
             return EXIT_INVALID
         return EXIT_OK
     except Exception as exc:
+        if args.command in ("sleep-review", "sleep-adopt"):
+            print(f"error[{args.command}]: refused; check existing distinct databases, "
+                  "completed bound run, current evidence/policy/head and exact independent artifacts",
+                  file=err)
+            return EXIT_ERROR
         print("error[runtime]: " + ascii_safe(str(exc))[:512], file=err)
         return EXIT_ERROR
 

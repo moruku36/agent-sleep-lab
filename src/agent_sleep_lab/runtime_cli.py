@@ -1,6 +1,7 @@
 """Explicit file-based runtime commands. No dynamic Python plugins or credentials."""
 from __future__ import annotations
 from dataclasses import asdict
+from contextlib import closing
 from pathlib import Path
 
 from agent_sleep_lab.strictjson import loads_strict_bytes
@@ -9,7 +10,6 @@ from agent_sleep_lab.provenance import CaptureBoundary
 from agent_sleep_lab.runtime_artifacts import VerifierBoundary, EvaluatorBoundary
 from agent_sleep_lab.sleep_coordinator import SleepCoordinator, Limits, FakeProvider
 from agent_sleep_lab.sleep_evidence import bind_from_store, current_store
-from agent_sleep_lab.mimo_provider import OpenClawMimoProvider, MODEL
 from agent_sleep_lab.retrieval import retrieve_reference_bundle
 from agent_sleep_lab.ab_comparison import ComparisonStore, ArmBudget, SyntheticEvaluator, FakeTaskProvider
 from agent_sleep_lab.raw_baseline import RawBaselineComparison
@@ -23,7 +23,7 @@ def read_json(path):
     return loads_strict_bytes(data)
 
 
-def open_store(config):
+def open_store(config, *, read_only=False):
     # This is explicit LOCAL boundary configuration, not proof of caller identity.
     if not Path(config["path"]).is_file():
         raise ValueError("existing adoption-store path required; no implicit initialization")
@@ -35,10 +35,32 @@ def open_store(config):
     evaluator["protocols"] = frozenset(tuple(v) for v in evaluator["protocols"])
     return AdoptionStore(config["path"], CaptureBoundary(**capture),
                          verifier=VerifierBoundary(**verifier), evaluator=EvaluatorBoundary(**evaluator),
-                         evaluation_protocol=tuple(config["evaluation_protocol"]))
+                         evaluation_protocol=tuple(config["evaluation_protocol"]), read_only=read_only)
+
+
+def _sleep_file_operation(args):
+    from agent_sleep_lab.sleep_review import adopt_prepared, decode_artifact, load_run, review_packet
+    config = read_json(args.store_config)
+    journal, source = Path(args.journal), Path(config["path"])
+    if not journal.is_file():
+        raise ValueError("existing sleep journal required")
+    if journal.resolve() == source.resolve() or (source.exists() and journal.samefile(source)):
+        raise ValueError("journal must be separate from evidence/adoption store")
+    payload = decode_artifact(read_json(args.artifact)) if args.command == "sleep-adopt" else None
+    # Validate existing databases without initializing an empty or foreign file.
+    with closing(SleepCoordinator(journal, read_only=True)) as coordinator:
+        with closing(open_store(config, read_only=True)) as store:
+            if args.command == "sleep-review":
+                return review_packet(coordinator, args.run_id, store)
+            load_run(coordinator, args.run_id, statuses=("ready", "handoff", "adopted"))
+    with closing(SleepCoordinator(journal)) as coordinator:
+        with closing(open_store(config)) as store:
+            return adopt_prepared(coordinator, args.run_id, store, payload)
 
 
 def execute(args):
+    if args.command in ("sleep-review", "sleep-adopt"):
+        return _sleep_file_operation(args)
     if args.command == "sleep-status":
         if not Path(args.journal).is_file():
             raise ValueError("existing journal required")
@@ -75,6 +97,7 @@ def execute(args):
                 bind_from_store(c, store, **identity, limits=Limits(**manifest.get("limits", {})))
                 current = current_store(store, scope=identity["scope"], event_ids=identity["event_ids"])
                 if args.provider == "mimo":
+                    from agent_sleep_lab.mimo_provider import OpenClawMimoProvider
                     provider = OpenClawMimoProvider(agent=args.agent, max_calls=2)
                 else:
                     from agent_sleep_lab.sleep_coordinator import _encode
@@ -93,6 +116,7 @@ def execute(args):
             finally:
                 c.close()
         if args.command == "compare":
+            from agent_sleep_lab.mimo_provider import OpenClawMimoProvider, MODEL
             comparison = ComparisonStore(args.journal)
             try:
                 baseline = RawBaselineComparison(store, comparison, **manifest["retrieval"])

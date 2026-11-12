@@ -4,14 +4,66 @@
 
 ## Current assessment — 2026-11-12
 
-**Provisional initial-version completion: 30–35%. The former 50% estimate is withdrawn.**
-100% means capture → adoption → retrieval → Light/Deep → comparison evaluation →
-one existing-agent integration. REM, diary and wider rollout are excluded.
-File/test counts and prepared interfaces do not increase this estimate.
-This page and its Japanese translation are the ONLY current status authority;
-dated gate reports are historical evidence.
+| Capability | Code state | Offline verification | Environment acceptance | Gap | Next single action | Evidence |
+|---|---|---|---|---|---|---|
+| Record / independent verification / atomic adoption / retrieval / revoke-restore | Implemented for synthetic stores | 425/426 full-regression cases passed; dependency-pin failure passed in the pinned environment | Not performed | Operational data/environment acceptance | Define one real-data boundary | Checks below; existing writer/retrieval/policy tests |
+| Actual-model Light/Deep → independent adoption → retrieval | Existing generation joined to same-run review/adopt | Eight new contracts passed, including in the pinned environment | Not performed | Live receipt and independent candidate verification/evaluation; execution binding and budget | After resolving binding/budget, confirm one minimal call within the total allowance | [Runtime contract](runtime-guide.md#private-same-run-review-and-adoption), [eight contracts](../tests/test_sleep_review_cli.py) |
+| Five fixed paper fixtures: real A/B replies, missingness and cost | Existing comparison/journals available | Synthetic comparison contracts passed regression | Not performed | All ten outcomes and measured total costs; cost receipt contract not accepted | Freeze one budgeted five-task protocol | [Five-task fixtures](../examples/paper-pilot/README.md), existing raw comparison |
+| One real agent: capture → retrieval/input/execution on a distinct task | Synthetic-only store/bridge and offline handoff only | Synthetic integration regression passed | Not performed | Real-data permission/storage/retention/deletion/scope/secret contract and traced real work | Define the acceptance boundary for OSS Contributor only | [Bridge](../src/agent_sleep_lab/oss_bridge.py), existing journal; no real-agent receipt |
 
-## Verified merged baseline
+Implementation completion, environment acceptance and research effect are separate.
+**The initial version is not complete.** Statistically significant improvement is not a software completion condition:
+a correctly measured no-improvement result can accept the comparison feature.
+Unsupported percentages are withdrawn, not recalculated. This page and its Japanese translation are the only status authority.
+The initial scope is these four capabilities; REM, diary, schedules, wider rollout and a new runtime remain later work.
+Current stores/bridges remain synthetic-only; real data must not be relabelled synthetic.
+
+## Current connection: independent same-run review and adoption
+
+The coordinator fetched latest main `8321996c112bc61154ad84f7ed2aaf3c69d2d768`,
+independently verified [PR #44](https://github.com/moruku36/agent-sleep-lab/pull/44) MERGED and zero open PRs at task start,
+and created `feat/live-acceptance-path` from the clean dedicated worktree.
+Unrelated edits in the original checkout were preserved.
+
+- **New usable operation:** export pending generated prose, original evidence, hashes and a stable operation ID from an
+  existing ready v2 run using `sleep-review`; resume that run using an independently prepared artifact with
+  `sleep-adopt`, then retrieve through existing APIs. Independent verifier/evaluator receipt issuance remains outside
+  these commands. Product code does not import fixture receipts or accept model self-verification.
+- **Boundaries:** review opens existing store/journal read-only and rechecks current evidence/policy/head.
+  Existing prepare/adopt prose/source/parent/receipt checks and atomic writer remain authoritative.
+  A concurrent prepare transition also requires exact input-to-persisted-handoff equality before adoption.
+  Exact same-operation replay reconciles commit/ACK loss after revocation without restoring old permissions.
+- **Local verification:** default Python stopped during import because dependencies were missing (zero cases).
+  Existing development venv: eight new cases / one invocation **8 passed, 1.137s**.
+  Full unique regression: **425 passed / 1 failed of 426, one invocation, 35.212s**.
+  The failure was installed jsonschema 4.26.0 versus repository pin 4.23.0.
+  Without modifying the original environment or dependency files, the existing pinned Python 3.13 environment ran
+  the failed pin check plus eight new contracts: **9 passed / one invocation, 1.138s**.
+  Total: 443 case executions / three case-executing invocations plus one import-failed invocation.
+  This is not a single all-green full-suite invocation. Documentation: 513 relative links / 86 Markdown files passed;
+  anchors and external URLs are not checked.
+- **Worker/review:** one direct Codex invocation requested `gpt-6.1-sol` / `xhigh` and timed out after 600s.
+  No matching process remained afterward. A complete resolved-model/normal-completion receipt was not recovered;
+  the worker was not replayed. The coordinator reviewed the saved draft, completed the concurrent-handoff check
+  and contract case, and ran the checks above. Coordinator review is not independent external approval.
+- **Publication/remaining:** this is a feature-branch review change, not a main merge, paid runtime execution,
+  real-data ingestion or real-agent delivery. Live-model, five-task, real-agent acceptance and research effects
+  remain unverified. Published-commit CI checks are separate evidence.
+
+### External conditions for the next live-model acceptance
+
+The saved MiMo command was refused even after owner approval and unchanged `ask=always` submission:
+approval could not safely bind the command. Do not repeat it or change routes.
+Supported host binding repair and reconciliation of the original operation are required.
+Current `openclaw infer model run --help` confirms no strict per-call generation-token or money cap.
+Existing controls reserve calls before dispatch, bound input bytes, wait at most 120s and validate output bytes
+after generation; these are not financial caps.
+Before execution, freeze the registered agent/model, permitted input, total calls/time, available usage/cost
+receipt and accepted budget conditions. Include the first minimal one-call receipt check in the total budget;
+never resend an unknown outcome or turn unknown cost into zero.
+Prior review-call approval does not authorize the whole five-task experiment.
+
+## Historical merged baselines
 
 [PR #23](https://github.com/moruku36/agent-sleep-lab/pull/23) is **MERGED** at
 `025e32314efd246dd5b04b3476fa5b2865287a3c`; source
@@ -98,7 +150,7 @@ at `791e8f540db0b4ca549ffec79a96925e907e804b`, the baseline for this demo draft.
 A coordinator GitHub query confirmed MERGED at 2026-11-11T04:35:30Z with
 that exact merge commit. The cost-report checks below are historical.
 
-## Current local gate — read-only OSS preparation
+## Historical PR #44 local gate — read-only OSS preparation
 
 [PR #43](https://github.com/moruku36/agent-sleep-lab/pull/43) is owner-merged at
 `736988a0cb243da9c263ce28232ec5f44d0e3ea7` (2026-11-11T23:00:41Z),
@@ -136,7 +188,7 @@ succeeded. The demo figures below are historical, not this gate's checks.
   capture, authenticated delivery, semantic memory use or improvement. Raw synthetic
   memory/request payloads appear in output and are not a publication allowlist.
   No paid inference, configuration/authentication changes or merge were performed.
-  Feature PR CI is a separate gate; completion remains provisional **30–35%**.
+  Feature PR CI was a separate gate at that checkpoint.
 
 ## Historical PR #43 local gate
 
@@ -182,7 +234,6 @@ succeeded. The demo figures below are historical, not this gate's checks.
   handling, answer exclusion and refusal of live/provider dispatch are covered
   by the affected cases. Scripted exact-match scores do not establish semantic
   memory use, real-agent integration, billing, holdout quality or improvement.
-  Current completion remains provisional **30–35%** pending real acceptance.
 
 ## Merged development gates (historical checks)
 
@@ -261,8 +312,7 @@ saved context/plan bytes and replay behavior; there is no migration or new dispa
   calls, paid effect measurement, settings/credential changes, merge or schedules
   occurred. The owner authorized this feature branch and review PR publication;
   merge requires separate approval. GitHub PR checks are the authority for the
-  published commit. No fairness, semantic relevance or improvement evidence is claimed;
-  overall completion remains provisional **30–35%**.
+  published commit. No fairness, semantic relevance or improvement evidence is claimed.
 
 ### Merged PR #40 offline-worker filesystem audit hardening
 
@@ -306,8 +356,7 @@ are historical evidence, not verification of the new ranking code.
   and unrelated dependency edits were left untouched. Publication is limited to
   this feature branch and its review PR. This is reviewed-code guard
   hardening, not full isolation of hostile Python, native code, inherited descriptors,
-  unaudited syscalls, hardlink aliases or filesystem races. Initial completion stays
-  provisional **30–35%**.
+  unaudited syscalls, hardlink aliases or filesystem races.
 
 ### Merged PR #39 offline OSS cost accounting
 
@@ -341,8 +390,7 @@ GitHub PR checks remain the authority for feature CI.
   No live runtime inference, paid effect measurement, new credentials, target
   mutation or merge occurred. Publication is limited to this feature branch and
   its review PR. This is a cost-recording boundary,
-  not completion of Gate 5 or the existing-agent integration. Initial completion
-  remains **30–35%**.
+  not completion of Gate 5 or the existing-agent integration.
 
 ### Merged PR #38 selected-issue offline probe (historical checks)
 
@@ -390,7 +438,6 @@ at that exact commit.
   runtime measurement, independent holdout, semantic memory-use evidence and
   adoption were outside their scope. #1/#4/#5 repeat issue text.
   Parser/evaluator and target implementation bytes are unchanged.
-  Initial completion remains provisional **30–35%**.
 
 ### Merged PR #37 cohort baseline evidence (historical checks)
 
@@ -424,7 +471,6 @@ at that exact commit.
   evaluation dataset, confidence interval, rationale-quality scoring, cost
   schema, adoption, target changes or merge. This is descriptive synthetic
   development-fixture accounting, not performance evidence.
-  Initial-version completion remains provisional **30–35%**.
 
 ## Merged PR #36 strict fixture evaluation
 
@@ -472,7 +518,6 @@ successful Python 3.11 / 3.13 PR checks.
   Labels are unauthenticated synthetic fixtures; rationale quality is not verified.
   Remaining: justified independent dataset, broader aggregation, live verification
   under spending controls, usage/cost schema and actual paired effect measurement.
-  Provisional initial-version completion remains **30–35%**.
 
 ## Merged PR #35 durable execution journal
 
@@ -514,7 +559,6 @@ successful Python 3.11 / 3.13 PR checks.
   unavailable; byte bounds are not token/financial caps.
   Remaining: live verification under separate spending approval, target verdict
   parsing, frozen independent evaluator, paired usage/cost and effect comparison.
-  Provisional initial-version progress remains **30–35%**.
 
 ## Merged PR #34 exact-prompt adapter
 
@@ -549,7 +593,7 @@ successful Python 3.11 / 3.13 PR checks.
   been run for this change. All runtime adapter calls were injected mocks.
   The prior paired journal remains fake-only with unchanged schema/type restrictions.
   Next: durable context-aware live execution, target verdict parsing, frozen
-  evaluator and paired usage/cost/effect measurement. Initial progress stays 30–35%.
+  evaluator and paired usage/cost/effect measurement.
 
 ## Merged PR #33 offline paired-outcome journal
 
@@ -811,7 +855,8 @@ Already merged in PR #24:
    dispatch journal supplies accounting only, not authenticated use evidence.
 4. Opt-in lexical raw ranking and read-only cost reporting are owner-merged in
    PR #41 and PR #42; the offline demo is owner-merged in PR #43 with green CI.
-   The read-only preparation gate above does not complete real acceptance.
+   Read-only OSS preparation is owner-merged in PR #44 at main `8321996` per the
+   supplied baseline. These historical gates do not complete real acceptance.
    Semantic relevance/fairness, physical purge and broader production fault
    acceptance remain open; none is established by passing offline tests.
 

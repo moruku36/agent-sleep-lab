@@ -10,6 +10,7 @@ import json
 import re
 import sqlite3
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from agent_sleep_lab.adoption_candidates import parse_canonical
 from agent_sleep_lab.provenance import sha256_hex
@@ -25,6 +26,12 @@ def _encode(value):
 
 def _id(value):
     return type(value) is str and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,95}", value)
+
+
+def preparation_operation_id(run_id, raw_binding, proposal):
+    """The same identity for private review and the existing prepare boundary."""
+    return "sleep-" + sha256_hex(_encode(
+        dict(run_id=run_id, binding=sha256_hex(raw_binding), proposal=proposal)))
 
 
 @dataclass(frozen=True)
@@ -56,14 +63,21 @@ class FakeProvider:
 
 
 class SleepCoordinator:
-    def __init__(self, path):
-        self.db = sqlite3.connect(path, isolation_level=None, timeout=5)
+    def __init__(self, path, *, read_only=False):
+        target = Path(path).resolve().as_uri() + "?mode=ro" if read_only else path
+        self.db = sqlite3.connect(target, uri=read_only, isolation_level=None, timeout=5)
+        if read_only:
+            self.db.execute("PRAGMA query_only=ON")
+        tables = [row[0] for row in self.db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'")]
         if (self.db.execute("PRAGMA application_id").fetchone()[0] != 0
                 or self.db.execute("PRAGMA user_version").fetchone()[0] != 0
-                or any(row[0] != "sleep_runs" for row in self.db.execute(
-                    "SELECT name FROM sqlite_master WHERE type=\'table\'"))):
+                or any(table != "sleep_runs" for table in tables)
+                or (read_only and tables != ["sleep_runs"])):
             self.db.close()
             raise ValueError("separate sleep journal required; foreign database refused")
+        if read_only:
+            return  # existing journal only; no DDL, initialization or recovery
         self.db.execute("PRAGMA synchronous=FULL")
         self.db.execute("""CREATE TABLE IF NOT EXISTS sleep_runs (
             run_id TEXT PRIMARY KEY, binding BLOB NOT NULL, state BLOB NOT NULL)""")
@@ -254,8 +268,7 @@ class SleepCoordinator:
         if before["status"] != "ready":
             return before
         binding = loads_strict_bytes(raw_binding)
-        operation_id = "sleep-" + sha256_hex(_encode(
-            dict(run_id=run_id, binding=sha256_hex(raw_binding), proposal=before["deep"])))
+        operation_id = preparation_operation_id(run_id, raw_binding, before["deep"])
         # Persist intent before any trusted preparation side effect.
         preparing = dict(before, status="preparing", operation_id=operation_id)
         self._cas(run_id, before, preparing)
