@@ -23,7 +23,7 @@ def read_json(path):
     return loads_strict_bytes(data)
 
 
-def open_store(config):
+def open_store(config, *, read_only=False):
     # This is explicit LOCAL boundary configuration, not proof of caller identity.
     if not Path(config["path"]).is_file():
         raise ValueError("existing adoption-store path required; no implicit initialization")
@@ -35,7 +35,7 @@ def open_store(config):
     evaluator["protocols"] = frozenset(tuple(v) for v in evaluator["protocols"])
     return AdoptionStore(config["path"], CaptureBoundary(**capture),
                          verifier=VerifierBoundary(**verifier), evaluator=EvaluatorBoundary(**evaluator),
-                         evaluation_protocol=tuple(config["evaluation_protocol"]))
+                         evaluation_protocol=tuple(config["evaluation_protocol"]), read_only=read_only)
 
 
 def execute(args):

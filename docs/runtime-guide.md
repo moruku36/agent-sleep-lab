@@ -140,6 +140,54 @@ CLI does not bypass any boundary or auto-adopt generated prose. Retrieval uses
 current eligibility and excludes lexical score-zero items for nonempty query
 terms; no-query listing is still supported.
 
+## Offline comparison preparation
+
+```sh
+agent-sleep-lab compare-prepare --store-config private/store.json --manifest private/comparison.json --journal private/comparison.sqlite --model xiaomi/mimo-v2.6-pro
+```
+
+This explicit offline operation freezes and inspects the existing independent-raw
+A/B plan before constructing any provider. `--model` is required and accepts only
+`xiaomi/mimo-v2.6-pro` or `fake-model-1`; it binds a label, without paid execution.
+There are no agent, provider, live, dispatch, rubric-key or execution options.
+
+Use the **same private manifest and separate journal as `compare`**, described
+below: `plan_id`, 1–5 unique `{task_id,prompt}` tasks, `retrieval`,
+`evaluator_identity`, and optional `budget`/`config` with the existing defaults.
+Unknown contract fields, duplicate JSON keys, invalid budgets and database aliases
+(including hardlinks) are refused. Manifest/store-config files are bounded to
+1 MiB; retrieval `max_bytes` is at most 1 MiB, `scan_limit` at most 1,024 and
+`max_raw` at most 64. Existing retrieval/packing caps still apply. Caller `config`
+is opaque metadata, not operating policy or execution options.
+
+The adoption store is opened with `read_only=True` / SQLite query-only controls.
+Only the separate existing `ComparisonStore` journal is written: frozen context,
+plan and evaluation contact; no verification/adoption receipts or arm dispatches
+are created. The journal contains private frozen source/request text: keep it
+outside public artifacts. Identical reopens preserve plan bytes and execution
+states. Changed bindings, stale current context, absent eligible memory and
+identical A/B requests fail closed. Unknown intent remains unknown, without
+resend or status changes.
+
+The bounded JSON output contains plan/config/taskset/context/policy/snapshot and
+evaluator hashes, model, identical per-arm caps, AB/BA order, request hash/length/
+status, existing membership-hash audit and current validity. It omits source,
+prompt, query, reply and answer-key text. Each B must include consolidated memory
+after the same complete raw prefix as A. **Five tasks fix all ten planned arm
+slots** (five per arm); missing, failed or unknown outcomes never shrink this
+denominator. Reply bytes are checked **after generation**, not token or monetary
+caps. Usage/cost measurements remain unavailable, including MiMo; no zero-cost,
+performance or completed-acceptance claim follows.
+
+Preparation reads only evaluator identity and its protocol hash, never an answer
+key. Later, the existing explicit `compare --provider script` (for `fake-model-1`)
+or `--provider mimo --agent ...` route can consume the same manifest/journal with
+a separate `--rubric` matching that hash. Model/budget/task bindings must match.
+Current validity is a read-time observation, not dispatch authorization or an
+atomic cross-database guarantee. Account/approval binding, target-host restrictions,
+real responses, total measured costs and independent acceptance remain unresolved;
+preparation does not resolve or bypass them.
+
 ## Paired comparison
 
 ```sh
