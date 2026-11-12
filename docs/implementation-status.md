@@ -4,12 +4,55 @@
 
 ## Current assessment — 2026-11-12
 
-**Provisional initial-version completion: 30–35%. The former 50% estimate is withdrawn.**
-100% means capture → adoption → retrieval → Light/Deep → comparison evaluation →
-one existing-agent integration. REM, diary and wider rollout are excluded.
-File/test counts and prepared interfaces do not increase this estimate.
+**Acceptance first; no supported completion percentage.** The 2026-11-12 owner
+review tracks four capabilities below. The initial target remains capture →
+adoption → retrieval → Light/Deep → comparison evaluation → one existing-agent
+integration; REM, diary and wider rollout are excluded. File/test counts and
+prepared interfaces are not completed acceptance.
 This page and its Japanese translation are the ONLY current status authority;
 dated gate reports are historical evidence.
+
+Fresh GitHub reads confirmed main `8321996c112bc61154ad84f7ed2aaf3c69d2d768`
+and merged PR #44. This independent branch starts there. Prior
+`feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
+its prior PR creation is **UNKNOWN**, not reissued here.
+
+| Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
+|---|---|---|---|---|---|---|
+| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic-store path implemented | Historical baseline regression; current results below | Not performed | Real-data boundary and operational acceptance | Define one authorized real-data boundary | Existing store/writer/retrieval contracts |
+| Real-model Light/Deep → independent adoption → retrieval | Body-bound generation and separate verifier/writer implemented; prior same-run CLI branch preserved separately | Existing contracts; no new model call | Not performed | Supported host execution binding and real generated-candidate verification | After binding resolution, one bounded receipt call within total budget | [Runtime guide](runtime-guide.md), prior branch noted above |
+| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus new offline preparation | Seven new preparation contracts pass; current regression below | Not performed | Ten real outcomes and total measured costs | Prepare fixed five-pair manifest, then resolve execution gate | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
+| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge and offline handoff only | Existing synthetic integration contracts | Not performed | Real-data permission, retention/deletion/scope/secrets contract and tracked actual use | Define OSS Contributor real-data acceptance contract | Existing bridge and execution journal; no real-agent receipt |
+
+Paid-use consent was already received; missing generic consent is not the blocker.
+The saved host-binding denial and unknown outcomes remain unresolved. Preparation
+does not replay them or change host/account controls.
+
+## Current change: predispatch comparison preparation
+
+- Added explicit [compare-prepare](runtime-guide.md#offline-comparison-preparation):
+  same bounded comparison manifest, separate journal and finite model choice;
+  adoption store opened read-only. Only frozen context/plan/evaluation contact
+  are written. No provider/evaluator is constructed, no answer key is read and
+  no execution status is changed. Unknown intent remains unknown.
+- Returns hashes, caps, fixed planned denominator/order and existing membership
+  audit; requires the same A raw prefix in B plus eligible consolidated memory
+  and a fresh current-context check. Existing explicit `compare` can later use
+  the same frozen plan with its separate rubric and matching model route.
+- Seven new [offline behavior tests](../tests/test_compare_prepare_cli.py) passed
+  in one focused invocation (0.980s). Full regression then passed **425 unique
+  cases in one invocation** (34.600s), using existing Python 3.13 and pinned
+  dependencies. Total: 432 case executions / two local test invocations.
+  Documentation validation passed 513 relative file links across 86 Markdown
+  files; whitespace check passed. PR Python 3.11/3.13 CI and wheel validation
+  are separate, not yet accepted here.
+- The selected Codex draft invocation reached its 600-second outer timeout;
+  no final completion receipt was recovered and the scoped process was absent.
+  The coordinator reviewed/completed and tested the saved draft without replay.
+  Coordinator review is not independent approval. No live inference or
+  independent acceptance occurred. Reply byte caps are post-generation, not
+  token/money caps; MiMo costs stay unavailable. This is preparation, not live
+  recovery, real Light/Deep or real-agent ingestion.
 
 ## Verified merged baseline
 
@@ -136,7 +179,7 @@ succeeded. The demo figures below are historical, not this gate's checks.
   capture, authenticated delivery, semantic memory use or improvement. Raw synthetic
   memory/request payloads appear in output and are not a publication allowlist.
   No paid inference, configuration/authentication changes or merge were performed.
-  Feature PR CI is a separate gate; completion remains provisional **30–35%**.
+  Feature PR CI is a separate gate; real acceptance remains outstanding.
 
 ## Historical PR #43 local gate
 
@@ -182,7 +225,7 @@ succeeded. The demo figures below are historical, not this gate's checks.
   handling, answer exclusion and refusal of live/provider dispatch are covered
   by the affected cases. Scripted exact-match scores do not establish semantic
   memory use, real-agent integration, billing, holdout quality or improvement.
-  Current completion remains provisional **30–35%** pending real acceptance.
+  Real acceptance remains outstanding.
 
 ## Merged development gates (historical checks)
 
@@ -262,7 +305,7 @@ saved context/plan bytes and replay behavior; there is no migration or new dispa
   occurred. The owner authorized this feature branch and review PR publication;
   merge requires separate approval. GitHub PR checks are the authority for the
   published commit. No fairness, semantic relevance or improvement evidence is claimed;
-  overall completion remains provisional **30–35%**.
+  real acceptance remains outstanding.
 
 ### Merged PR #40 offline-worker filesystem audit hardening
 
@@ -306,8 +349,7 @@ are historical evidence, not verification of the new ranking code.
   and unrelated dependency edits were left untouched. Publication is limited to
   this feature branch and its review PR. This is reviewed-code guard
   hardening, not full isolation of hostile Python, native code, inherited descriptors,
-  unaudited syscalls, hardlink aliases or filesystem races. Initial completion stays
-  provisional **30–35%**.
+  unaudited syscalls, hardlink aliases or filesystem races. Real acceptance remains outstanding.
 
 ### Merged PR #39 offline OSS cost accounting
 
@@ -341,8 +383,7 @@ GitHub PR checks remain the authority for feature CI.
   No live runtime inference, paid effect measurement, new credentials, target
   mutation or merge occurred. Publication is limited to this feature branch and
   its review PR. This is a cost-recording boundary,
-  not completion of Gate 5 or the existing-agent integration. Initial completion
-  remains **30–35%**.
+  not completion of Gate 5 or the existing-agent integration.
 
 ### Merged PR #38 selected-issue offline probe (historical checks)
 
@@ -390,7 +431,7 @@ at that exact commit.
   runtime measurement, independent holdout, semantic memory-use evidence and
   adoption were outside their scope. #1/#4/#5 repeat issue text.
   Parser/evaluator and target implementation bytes are unchanged.
-  Initial completion remains provisional **30–35%**.
+  Real acceptance remains outstanding.
 
 ### Merged PR #37 cohort baseline evidence (historical checks)
 
@@ -424,7 +465,7 @@ at that exact commit.
   evaluation dataset, confidence interval, rationale-quality scoring, cost
   schema, adoption, target changes or merge. This is descriptive synthetic
   development-fixture accounting, not performance evidence.
-  Initial-version completion remains provisional **30–35%**.
+  Real acceptance remains outstanding.
 
 ## Merged PR #36 strict fixture evaluation
 
@@ -472,7 +513,7 @@ successful Python 3.11 / 3.13 PR checks.
   Labels are unauthenticated synthetic fixtures; rationale quality is not verified.
   Remaining: justified independent dataset, broader aggregation, live verification
   under spending controls, usage/cost schema and actual paired effect measurement.
-  Provisional initial-version completion remains **30–35%**.
+  Real acceptance remains outstanding.
 
 ## Merged PR #35 durable execution journal
 
@@ -514,7 +555,7 @@ successful Python 3.11 / 3.13 PR checks.
   unavailable; byte bounds are not token/financial caps.
   Remaining: live verification under separate spending approval, target verdict
   parsing, frozen independent evaluator, paired usage/cost and effect comparison.
-  Provisional initial-version progress remains **30–35%**.
+  Real acceptance remains outstanding.
 
 ## Merged PR #34 exact-prompt adapter
 
@@ -549,7 +590,7 @@ successful Python 3.11 / 3.13 PR checks.
   been run for this change. All runtime adapter calls were injected mocks.
   The prior paired journal remains fake-only with unchanged schema/type restrictions.
   Next: durable context-aware live execution, target verdict parsing, frozen
-  evaluator and paired usage/cost/effect measurement. Initial progress stays 30–35%.
+  evaluator and paired usage/cost/effect measurement. Real acceptance remains outstanding.
 
 ## Merged PR #33 offline paired-outcome journal
 

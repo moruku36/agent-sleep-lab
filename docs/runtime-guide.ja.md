@@ -97,6 +97,44 @@ agent-sleep-lab retrieve --store-config private/store.json --manifest configs/re
 
 採用入力は独立したtrusted preparationが作るrequest_bytes／manifest_bytes／source_manifest_bytesのhex文字列と、memory_bytesのID→hex mapです。モデルの自己申告receiptを使わず、CLIからreceiptを登録しません。既存writerが期待親版、現在policy、原証拠、独立検証・評価受領を再検査します。取得は現在の適格性を確認し、queryの有効語がある場合はスコア0を除外します。queryなしの一覧は可能です。
 
+## オフライン比較準備
+
+```sh
+agent-sleep-lab compare-prepare --store-config private/store.json --manifest private/comparison.json --journal private/comparison.sqlite --model xiaomi/mimo-v2.6-pro
+```
+
+独立raw A/Bの既存planを、provider構築前に固定・検査する明示的offline操作です。
+必須の`--model`は`xiaomi/mimo-v2.6-pro`か`fake-model-1`だけを受け付け、
+labelを固定するだけで有料実行しません。agent・provider・live・dispatch・rubric-key・
+実行optionはありません。
+
+下記`compare`と**同じ非公開manifest・別journal**を使います。`plan_id`、
+1〜5件の一意な`{task_id,prompt}`、`retrieval`、`evaluator_identity`、任意の
+`budget`／`config`で、既存の既定値を保ちます。未知field、JSON重複key、不正予算、
+DB alias（hardlinkを含む）は拒否します。manifest／store設定は各1 MiB以下、
+retrievalの`max_bytes`は1 MiB以下、`scan_limit`は1,024以下、`max_raw`は64以下です。
+既存の取得・packing上限も適用します。呼出し側`config`はmetadataであり、権限や実行optionではありません。
+
+採用storeは`read_only=True`／SQLite query-onlyで開きます。書込先は既存
+`ComparisonStore`の別journalだけで、固定context・plan・評価contactを保存します。
+検証／採用受領やdispatch行は作りません。journalには固定した非公開の原文・要求が
+入るため、公開artifactに含めないでください。同一再openはplan byteと実行状態を保ち、
+束縛変更・古い現在文脈・適格記憶なし・同一A/Bを拒否します。
+不明intentは不明のまま表示し、再送・状態変更しません。
+
+上限付きJSONはplan／config／taskset／context／policy／snapshot／評価器のhash、model、
+両群同一上限、AB／BA順、要求hash・長さ・状態、既存membership hash監査と現在の有効性を返します。
+原文・prompt・query・返答・解答keyは出しません。各BにはAと同じ完全raw prefixの後に
+整理記憶が入ることが必須です。**5課題では計画した10枠（各群5枠）が固定分母**で、
+欠測・失敗・不明結果で縮めません。返答byteは**生成後の検査**で、token・金額上限ではありません。
+MiMoを含む使用量・実費はunavailableのままで、0費用・性能・受入完了を主張しません。
+
+準備では評価器identityとprotocol hashだけを読み、解答keyは読みません。後で既存の明示的な
+`compare --provider script`（`fake-model-1`用）、または`--provider mimo --agent ...`へ
+同じmanifest／journalとhash一致する別`--rubric`を渡せます。model・予算・課題の束縛は同一必須です。
+現在の有効性は読取り時点の観測で、dispatch許可やDB間の原子的保証ではありません。
+アカウント／承認binding、対象hostの制限、実応答・総実費・独立受入は未解決で、準備で回避しません。
+
 ## 対応比較
 
 ```sh

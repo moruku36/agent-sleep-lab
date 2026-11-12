@@ -70,6 +70,14 @@ def build_parser() -> argparse.ArgumentParser:
                              help="offline read-only pinned synthetic request preparation")
     prepare.add_argument("--manifest", required=True, help="strict bounded preparation JSON")
     prepare.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
+    comparison_prepare = sub.add_parser(
+        "compare-prepare", allow_abbrev=False,
+        help="offline freeze and inspect an independent-raw comparison; no execution")
+    comparison_prepare.add_argument("--manifest", required=True, help="existing bounded compare manifest JSON")
+    comparison_prepare.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
+    comparison_prepare.add_argument("--journal", required=True, help="separate private comparison SQLite journal")
+    comparison_prepare.add_argument("--model", required=True,
+                                    choices=("xiaomi/mimo-v2.6-pro", "fake-model-1"))
     for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
         cmd = sub.add_parser(name, help="explicit runtime " + name)
         if name != "sleep-status":
@@ -149,22 +157,34 @@ def main(
     err = stderr if stderr is not None else sys.stderr
     parser = build_parser()
     arguments = list(sys.argv[1:] if argv is None else argv)
-    preparing = arguments[:1] == ["oss-prepare"]
+    private_command = arguments[0] if arguments[:1] in (
+        ["oss-prepare"], ["compare-prepare"]) else None
     try:
         # argparse otherwise echoes unknown options/values from untrusted input.
-        if preparing:
+        if private_command:
             with redirect_stderr(io.StringIO()):
                 args = parser.parse_args(arguments)
         else:
             args = parser.parse_args(arguments)
     except SystemExit as exc:  # argparse exits 0 for --help/--version, 2 for usage errors
-        if preparing and exc.code != 0:
-            print("error[oss-prepare]: invalid command arguments", file=err)
+        if private_command and exc.code != 0:
+            print(f"error[{private_command}]: invalid command arguments", file=err)
         return int(exc.code) if isinstance(exc.code, int) else EXIT_ERROR
     if args.command == "validate":
         return _cmd_validate(args, out, err)
     if args.command == "schemas":
         return _cmd_schemas(out, err)
+    if args.command == "compare-prepare":
+        try:
+            from agent_sleep_lab.comparison_prepare import execute as prepare_comparison
+            result = prepare_comparison(args.manifest, store_config_path=args.store_config,
+                                        journal_path=args.journal, model=args.model)
+            print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+            return EXIT_OK
+        except Exception:
+            print("error[compare-prepare]: preparation refused; check strict inputs, distinct "
+                  "databases, frozen bindings, budgets and current eligible memory", file=err)
+            return EXIT_ERROR
     if args.command == "oss-prepare":
         try:
             from agent_sleep_lab.oss_prepare_cli import execute as prepare

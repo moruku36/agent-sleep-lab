@@ -4,10 +4,46 @@
 
 ## 現在の評価 — 2026-11-12
 
-**初期版は暫定30〜35%。従来の50%見積りは撤回します。**
-100%は記録→採用→取得→Light／Deep→比較評価→既存agent一つの接続です。
-REM・日記・横展開は含めません。ファイル数、テスト数、入口の準備では進捗を上げません。
+**受入優先とし、裏付けのない完成率は示しません。** 2026-11-12の所有者レビューは
+下記4能力で追跡します。初期目標は記録→採用→取得→Light／Deep→比較評価→既存agent一つの接続です。
+REM・日記・横展開は含めません。ファイル数・テスト数・入口の準備は受入完了ではありません。
 本ページと英語訳だけを現在の状態の正本とし、Gate文書は日付付き履歴とします。
+
+最新のGitHub読取りでmain `8321996c112bc61154ad84f7ed2aaf3c69d2d768`と
+PR #44のマージを確認し、独立した本branchの基点にしました。先行
+`feat/live-acceptance-path`のcommit `1e636d8`は別途保全済みで、過去のPR作成は
+**UNKNOWN**です。その作成操作は再送しません。
+
+| 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
+|---|---|---|---|---|---|---|
+| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store向け実装済み | 既存回帰。今回の結果は下記 | 未実施 | 実データ境界と運用受入 | 許可された実データ境界を一つ定義 | 既存store／writer／retrieval契約 |
+| 実model Light／Deep→独立採用→取得 | 本文束縛生成・別verifier／writer。先行の同run CLI branchは別途保全 | 既存契約。新たなmodel呼出しなし | 未実施 | hostの実行bindingと実生成候補の独立確認 | binding解消後、総枠内の最小1呼出しで受領確認 | [実行手順](runtime-guide.ja.md)、上記先行branch |
+| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journalにoffline準備を接続 | 新7契約合格。全回帰は下記 | 未実施 | 実10結果と総実費の実測 | 5組のmanifestを固定し、実行障害を解消 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
+| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeとoffline handoffのみ | 既存合成接続契約 | 未実施 | 実データ許可・保持／削除・scope・秘密情報契約と実利用の追跡 | OSS Contributorの実データ受入契約を定義 | 既存bridge／実行journal。実agent受領なし |
+
+有料利用の許可は受領済みで、一般的な再承認が障害ではありません。
+保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
+host／アカウント制御を変更したりしません。
+
+## 今回の変更：dispatch前の比較準備
+
+- 明示的な[compare-prepare](runtime-guide.ja.md#オフライン比較準備)を追加。
+  同じ上限付き比較manifest、別journal、有限のmodel選択を使い、採用storeはread-onlyで開きます。
+  固定context／plan／評価contactだけを書き、provider・評価器構築、解答key読出し、
+  実行状態の変更はありません。不明intentは不明のままです。
+- hash・上限・固定計画分母／順序・既存membership監査を返し、BにAと同じraw prefixと
+  適格整理記憶が入ること、現在文脈の再照合を必須にします。後で既存の明示`compare`へ
+  同じ固定planと別rubricを、対応するmodel経路で渡せます。
+- 新[offline behavior 7件](../tests/test_compare_prepare_cli.py)が1起動で合格（0.980秒）。
+  続く全回帰は**重複なし425件が1起動で合格**（34.600秒）しました。
+  既存Python 3.13・固定依存を使用し、ローカル計432ケース実行／テスト2起動です。
+  文書86ファイルの相対リンク513件と空白チェックも合格しました。
+  PRのPython 3.11／3.13 CI・wheelは別の確認で、ここでは未受入です。
+- 選択したCodexのdraft呼出しは外側600秒でtimeoutし、正常完了受領は未取得でした。
+  対象processの不在を確認後、保存差分をcoordinatorがレビュー・補完・検証し、再送していません。
+  coordinatorレビューは独立承認ではありません。実推論・独立受入はありません。
+  返答byteは生成後の上限検査で、token・金額上限ではなく、MiMo費用はunavailableです。
+  今回は準備であり、live復旧、実Light／Deep、実agent取込ではありません。
 
 ## 確認済みのマージ基点
 
@@ -129,7 +165,7 @@ coordinatorのGitHub照会で2026-11-11T04:35:30ZのMERGEDと同一merge commit�
 - オフラインで利用できる入力準備の確認であり、実運用capture・認証付き配送・意味的利用・
   改善の証明ではありません。出力には合成記憶／request本文を含み、公開許可一覧ではありません。
   有料推論・設定／認証変更・mergeは実施していません。feature PR CIは別ゲートです。
-  完成率は暫定**30〜35%**を維持します。
+  実受入は未完です。
 
 ## PR #43のローカルゲート履歴
 
@@ -167,7 +203,7 @@ coordinatorのGitHub照会で2026-11-11T04:35:30ZのMERGEDと同一merge commit�
   feature公開とレビュー用PRは承認済みで、公開commitの検証はGitHub PR checksを正本とします。
   一時状態の削除、失敗処理、解答の除外、live／provider実行経路の拒否を限定テストで確認。
   定型返答の完全一致点数は意味的な記憶利用・実agent接続・請求・holdout品質・改善の
-  証拠ではありません。実受入までは完成率を暫定**30〜35%**に維持します。
+  証拠ではありません。実受入は未完です。
 
 ## マージ済み開発ゲート（検証履歴）
 
@@ -232,7 +268,7 @@ demoの検証や新たな公開の承認ではありません。
   live runtime／評価provider呼出し、有料効果計測、設定・認証変更、マージ、scheduleは
   行っていません。所有者は今回のfeature branch公開とレビュー用PR作成を承認しました。
   マージは別の承認が必要で、公開commitのCI結果はGitHubのPR checksを正本とします。
-  公平性・意味的関連度・改善の証拠はなく、初期版は引き続き暫定**30〜35%**です。
+  公平性・意味的関連度・改善の証拠はなく、実受入は未完です。
 
 ### PR #40でマージ済みのOffline worker filesystem audit補強
 
@@ -268,7 +304,7 @@ demoの検証や新たな公開の承認ではありません。
   無関係な依存設定の編集は保持しました。公開はこのfeature branchとレビュー用PRに限ります。
   レビュー済みcode用のguard補強であり、敵対的Python、
   native code、継承descriptor、未監査syscall、既存hardlink alias、filesystem raceの
-  完全隔離ではありません。初期版は引き続き暫定**30〜35%**です。
+  完全隔離ではありません。実受入は未完です。
 
 ### PR #39でマージ済みのOSSオフライン費用集計
 
@@ -298,7 +334,7 @@ feature CIの正本は引き続きGitHubのPR checksです。
   実runtime推論・有料効果計測・新規認証・対象変更・マージはありません。
   公開対象はこのfeature branchとレビュー用PRに限ります。
   費用記録の境界を追加したもので、ゲート5全体や既存agent接続の完了ではありません。
-  初期版は暫定**30〜35%**のままです。
+  実受入は未完です。
 
 ### PR #38でマージ済みの選択課題offline probe（検証履歴）
 
@@ -336,7 +372,7 @@ GitHubでMERGEDと同じcommitの
   再送・代替worker／model・API開発呼出しはせず、開発使用量／費用は不明です。
 - 検証にはオフラインfixtureと模擬返答を使用しました。実推論、有料runtime計測、独立holdout、
   記憶の意味的利用の証拠と採用は検証範囲外です。#1／#4／#5は同文です。
-  parser／evaluatorとtarget実装bytesは未変更。初期版は暫定**30〜35%**のままです。
+  parser／evaluatorとtarget実装bytesは未変更。実受入は未完です。
 
 ### PR #37でマージ済みのcohort基準版（検証履歴）
 
@@ -364,7 +400,7 @@ GitHubでMERGEDと同じcommitの
   再送・代替model・API worker呼出しなし。開発の使用量・費用は不明です。
 - 未マージ。実推論、有料runtime計測、独立評価集合、信頼区間、理由の品質採点、
   費用schema、採用、target変更、mergeは未実施。合成開発fixtureの記述集計であり、
-  性能改善の証拠ではありません。初期版は暫定**30〜35%**です。
+  性能改善の証拠ではありません。実受入は未完です。
 
 ## PR #36でマージ済みの厳格fixture評価
 
@@ -404,7 +440,7 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
   default／認証／schedule／mergeは未実施。labelは認証された正解ではなく合成fixtureで、
   理由の真偽・品質も未検証。残りは独立に根拠付けた評価集合、複数課題集計、
   費用承認下の実接続確認、使用量／費用schemaと実際の対応比較です。
-  初期版は引き続き暫定**30〜35%**です。
+  実受入は未完です。
 
 ## PR #35でマージ済みの永続実行journal
 
@@ -441,7 +477,7 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
   実推論、今回の実target受入、有料効果計測、新CLI入口、認証、default、
   schedule、mergeは未実施。使用量／費用は未取得、byte上限はtoken／金額上限ではありません。
   残りは別途費用承認下の実接続確認、target判定解析、固定独立評価器、
-  対応比較の使用量／費用／効果計測です。初期版は引き続き暫定**30〜35%**です。
+  対応比較の使用量／費用／効果計測です。実受入は未完です。
 
 ## PR #34でマージ済みのprompt本文adapter
 
@@ -472,7 +508,7 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
   永続live journal、現在policyの実行driver、実OSSの今回受入、実評価は未実施です。
   adapterの実行はすべて模擬transport。従来journalはschema／型制限を変えず模擬専用。
   次は現在文脈を照合する永続実行、target判定の解析、固定評価器と対応比較の
-  使用量／費用／効果計測です。初期版は引き続き暫定30〜35%です。
+  使用量／費用／効果計測です。実受入は未完です。
 
 ## PR #33でマージ済みのoffline対応結果journal
 
