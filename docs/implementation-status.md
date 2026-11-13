@@ -7,11 +7,48 @@
 This page and its Japanese translation are the ONLY current-status authority.
 The bounded one-public-document end-to-end development verification succeeded;
 independent source review found no blocking defect under the documented cooperative
-sidecar contract. This feature is being submitted for owner review; exact-head
-static CI is a separate publication gate. It is not claimed merged or a completed
-research project.
+sidecar contract. The baseline feature was merged in PR55. The new dogfood fixes
+below remain unmerged; parent review and exact-head CI are separate gates.
+The overall research project is not complete.
 
-### Verified bounded path
+### Local Sleep dogfood fixes — draft reviewed, final checks pending
+
+This fresh isolated-worktree change adds opt-in bounded rejected-reply quarantine
+through the existing managed content lifecycle, content-free structured error
+categories, and optional bounded untrusted downstream task/rubric context for
+Light selection. Exact requests include context; optional host prompt-hash pinning
+also binds the complete prompt. Defaults retain the previous request/prompt bytes
+and no rejected-output retention. One immutable quarantine slot per stage cannot
+issue proposals/receipts or grant retry credit. Current-control checks and managed
+withdrawal/expiry/purge cover both context and quarantine. Independent verifier,
+atomic adoption and consumer boundaries remain separate.
+
+**Coordinator verified 4 selected offline synthetic cases PASS / 1 invocation
+(0.045 seconds) before the acceptance corrections.** Subsequent native edits split
+Deep rejection categories and add assertions within the existing selected case;
+those corrections have not been executed. Independent draft source review covered
+context binding and quarantine lifecycle/privacy; parent final review remains.
+No live model/provider calls, historical bundles or live experiments were used for
+these fixes. The shared trial has 6 case executions remaining for parent/CI.
+Previous baseline live results below do not verify the new fixes.
+
+Before the acceptance corrections, coordinator whitespace and documentation checks
+passed: **744 relative file links / 102 Markdown files** (anchors not checked).
+The worker reported syntax parsing without a complete terminal receipt. Final
+corrected files still require parent static checks; these are not regression proof.
+
+The sole workflow retains its existing workflow/job check names, Python 3.13 AST
+syntax and documentation-link checks on PRs and main pushes. Dependency installation
+and the explicit four-case invocation run only on PR events, so merging repeats
+static checks but not regressions. No full suite or version matrix is configured.
+Future CI installs only the existing pinned runtime requirements before those
+cases; no local install or CI trigger was performed here. Every future run/retry
+consumes four case executions and one invocation from the coordinator's trial
+budget. Historical tests are retained. Contracts:
+[model/context/quarantine](public-document-model.md),
+[managed lifecycle](public-document-lifecycle.md).
+
+### Previously verified bounded baseline path
 
 - The separate library's explicit `invoke_stage` adapter called Light and Deep
   successfully once each on one reviewed, pinned public README (public source
@@ -65,11 +102,11 @@ derivative exports; no cleanup schedule was added. Remote/provider copies and
 backups are outside store deletion. Retain content-free no-retry metadata
 tombstones and manage their access/retention separately.
 
-Independent source review is complete; owner review and the exact published
-head's static CI remain separate release gates. The configured workflow uses Python 3.13 AST
-parsing without imports/tests and documentation file-link checks; it does not
-install dependencies, run regression/matrix/wheel checks or paid inference.
-These pending gates and future cleanup are not silently marked complete.
+The baseline is merged. The local dogfood draft has the bounded checks and source
+review described above, not live acceptance; final corrected-head checks and parent
+review remain separate release gates. CI preserves static checks and adds only the
+four named synthetic cases on PR events; no full regression, matrix, wheel or paid
+inference is configured. Pending gates and future cleanup are not complete.
 
 ## Historical checkpoints — not current status or instructions
 

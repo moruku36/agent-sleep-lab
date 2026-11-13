@@ -6,10 +6,40 @@
 
 本ページと英語訳だけが現在の状況の正本です。公開文書1件の限定的なend-to-end開発検証は
 成功しました。文書化された協調的sidecar契約の下で独立source reviewはblocking defectを
-認めませんでした。本featureは所有者review向けに提出するもので、公開exact headの
-static CIは別gateです。マージ済みとも、研究プロジェクト全体の完了とも主張しません。
+認めませんでした。基点featureはPR55でマージ済みです。下記の新dogfood修正は未マージで、
+親reviewとexact-head CIは別gateです。研究プロジェクト全体の完了は主張しません。
 
-### 確認した限定経路
+### Local Sleep dogfood修正 — draft review済み・最終確認待ち
+
+この新規隔離worktreeで、拒否応答の任意・上限付きquarantineを既存管理content lifecycleへ
+追加し、内容なしの構造化error categoryと、Light選別用の任意・上限付きuntrustedな
+下流task／rubric contextを実装しました。exact要求はcontextを含み、任意のhost prompt hash
+固定はprompt全体も束縛します。既定では従来の要求／prompt byteと拒否出力を保持しない動作を
+維持します。stageごと1件の不変quarantineはproposal／受領を発行せず、retry枠も増やしません。
+現在control検査と撤回／期限／purgeはcontext・quarantineにも適用します。
+独立verifier・原子的採用・consumer境界は分離したままです。
+
+**受入修正前にcoordinatorが限定offline合成4ケースPASS／1起動（0.045秒）を確認**しました。
+その後native editでDeep拒否分類を分離し、既存選択ケース内へassertionを追加しましたが、
+この修正後の実行は未実施です。独立draft source reviewはcontext束縛とquarantineの
+lifecycle／privacyを確認しました。親の最終reviewは残ります。この修正でmodel/provider呼出し・
+過去bundleへのアクセス・live実験はありません。共有試行の残り6ケースは親／CI用です。
+下記の過去基点live結果は新修正の検証ではありません。
+
+受入修正前のcoordinator空白検査と文書検査は合格し、**744相対file link／102 Markdown file**
+を確認しました（anchor未検査）。workerの構文parse報告には完全なterminal受領がありません。
+修正後fileのstatic検査は親側に残り、これらは回帰合格の証拠ではありません。
+
+唯一のworkflowは既存workflow／jobのcheck名、Python 3.13 AST構文検査と文書link検査を
+保持し、PRとmain pushでstatic検査を実行します。依存installと明示4ケース／1起動だけを
+PR event限定にし、merge時はstatic検査のみを再実行します。全件suite・version matrixは
+ありません。将来CIはその4件の前に既存pin済み
+runtime requirementsだけをinstallしますが、今回local installもCI triggerも行いません。
+将来の各run／retryはcoordinatorの試行予算から4ケース実行・1起動を消費します。
+過去testは保持します。契約は[model／context／quarantine](public-document-model.ja.md)と
+[管理lifecycle](public-document-lifecycle.ja.md)を参照してください。
+
+### 以前に確認した限定基点経路
 
 - 別libraryの明示的な`invoke_stage` adapterで、review済みの固定公開READMEに
   Light／Deepを各1回成功させました（公開source commit
@@ -56,9 +86,9 @@ host許可・各stageの提出・独立verifier／evaluator・guard付き採用�
 scheduleは追加しません。remote／provider複製・backupはstore削除の対象外です。
 内容を持たないno-retry metadata tombstoneは保持し、アクセスと保持期間を別途管理します。
 
-独立source reviewは完了しました。所有者reviewと公開exact headのstatic CIは別のrelease gateです。
-設定済みworkflowはPython 3.13でimport／testなしのAST構文検査と文書file link検査だけを行い、
-依存install・回帰全件・version matrix・wheel・有料推論を実行しません。
+基点はマージ済みです。新dogfood draftの限定確認とsource reviewは上記の通りで、live受入では
+ありません。修正後exact headの検査と親reviewは別release gateです。CIはstatic検査を保持し、
+PR eventのみ明示4件の合成testを追加します。全件回帰・matrix・wheel・有料推論は設定しません。
 未完gateや将来のcleanupを完了扱いしません。
 
 ## 過去のcheckpoint — 現在の状況・作業指示ではない

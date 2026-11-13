@@ -65,8 +65,99 @@ This is at most two NEW model calls, one per explicit stage, only after a host
 authorizes the concrete document and invocation. Source and replies stay in the
 store's managed inventory when submitted; do not export raw replies to the repo.
 If submission fails after a return, stop and inspect existing evidence: do not
-call the provider again. The runner does not persist raw replies before submission;
-a crash in that gap may lose them and requires stopping, not redispatch.
+call the provider again. By default the runner does not persist raw replies before
+submission. The optional rejected-reply quarantine below covers only bounded
+returned protocol failures; a crash can still lose a reply and requires stopping,
+not redispatch.
+
+## Optional Light task/rubric context
+
+`prepare_sleep(..., selection_context=SelectionContext(task=..., rubric=...,
+max_bytes=2048))` accepts an explicit `SelectionContext` from
+`public_document_sleep`. The combined exact UTF-8 task/rubric text must be nonempty
+and fit that positive bound, which cannot exceed **8192 bytes**. The entire canonical
+request must still fit `SleepLimits.max_request_bytes`; nothing is truncated.
+Use reviewed public development-task context only. Private text, credentials,
+evaluation answers and held-out evaluation rubrics must not enter this field or
+provider requests. Context exposed to Sleep is development input, not independent
+holdout evidence.
+
+The optional Light `selection_context` object contains exactly `task`, `rubric`,
+`max_bytes`, `untrusted:true`, `authority:false`. It helps select useful original
+units; it supplies no source evidence, permissions, review or adoption authority.
+Deep receives only selected source units and binds the context through the exact
+Light request hash. The context itself is omitted from Deep. Context text cannot
+change limits, roles, paid-call choice, retry identity or execution restrictions.
+
+Omitting context (or passing `None`) preserves the existing request and prompt
+bytes. Adding/changing context changes the canonical request hash, so a permission
+for an old request fails before reservation/dispatch. Reusing a sleep ID with
+different context conflicts. Reopen/current-control reconstruction retains the
+saved context. It is managed request content and is removed by the same purge.
+
+To additionally pin the exact instruction plus request prompt, use
+`build_stage_prompt(request=request_bytes, stage="light")` from
+`public_document_model` and supply its SHA-256 as
+`InvocationPermission(..., prompt_sha256=...)`. This field defaults to `None` for
+existing callers. Request-hash permission and the prompt-byte cap are always
+required; a supplied prompt hash must match before reservation. The actual outgoing
+prompt is always hash-checked at transport entry and its hash/byte count recorded.
+Prompt pinning grants no independent authority and authorizes no extra attempt.
+
+## Opt-in managed rejected-reply quarantine
+
+`invoke_stage(..., quarantine_max_bytes=N)` explicitly opts into retaining a
+rejected raw reply. Default `None` retains no rejected bytes. `N` must be a positive
+integer at most **65536** and no larger than the prepared reply limit. Only a
+returned text reply from the verified transport envelope that fails the strict
+Light/Deep protocol can be saved. Oversized quarantine input is skipped whole,
+never truncated. Transport-envelope failures, unknown outcomes and crashes do
+not produce a quarantined reply; generation/output-byte rejection before return
+also cannot preserve it. These bounds are not token or monetary caps.
+
+The adapter calls `store.quarantine_sleep_result(sleep_id=..., stage=...,
+expected_request_sha256=..., result_bytes=..., max_bytes=N)`. Offline callers may
+explicitly use that same API after a saved-output rejection. It rechecks current
+control/source/parent/request and independently confirms strict rejection. Its cap
+cannot exceed the reply limit (store maximum 512 KiB). Valid or already-accepted
+replies cannot enter quarantine. A store has **one immutable raw-reply slot per
+stage**, plus one small content-free rejection record per slot. Exact replay is
+idempotent; a different request or raw reply conflicts without growing inventory.
+Both writes commit together or roll back together.
+
+Managed kinds `sleep_rejected_reply` and `sleep_rejection` use the existing content
+inventory, integrity guard, expiry/withdrawal exclusion, `purge_pending`,
+secure-delete and compaction path. No new table, migration or raw-output sidecar is
+added. The explicit `read_sleep_quarantine(sleep_id=..., stage=...,
+expected_request_sha256=...)` diagnostic read returns rejected bytes only while
+their original bindings remain current. It does not parse them into proposals.
+A saved quarantine is terminal for submission under that exact request: even a
+corrected saved reply cannot replace it. Invalid Deep replies produce **zero**
+proposals, reviews, adoptions or consumer results. Verifier/adoption/consumer
+boundaries are unchanged.
+
+Sleep errors expose content-free `.code` categories: `invalid_json`,
+`protocol_fields`, `binding_mismatch`, `source_selection`, legacy `invalid_excerpt`,
+`authority_claim`, `excerpt_source_mismatch`, `quotation_bound`,
+`quotation_not_exact`, `duplicate_excerpt`,
+`byte_limit`, `item_limit`, `invalid_context` and fallback `invalid_protocol`.
+For structurally valid Deep items, first-failure order is authority flags, source
+binding, quotation byte bound, exact substring, then duplicate quotation. Malformed
+fields/text still use protocol categories. No partial proposal list is returned.
+Store quarantine refusal adds `quarantine_bound` or `quarantined`; ordinary
+lifecycle rejection uses `lifecycle_rejected`. Transport errors use
+`transport_rejected` or `transport_outcome_unknown`. No raw output, hostile keys or
+exception text is copied into exceptions, logs or receipts. Sidecar metadata adds
+only `error_category` and `quarantine_status`: `disabled`, `skipped_bound`,
+`saved_untrusted` or `not_saved`. `not_saved` can reflect exclusion, an immutable
+slot conflict or a storage failure; it asserts no retention success.
+
+Quarantine never refunds the durable stage reservation. Changing context, sleep
+ID, request, parent or quarantine opt-in does not permit redispatch. Purge removes
+the managed quarantine but leaves the separate metadata no-retry tombstone.
+Caller buffers/exports, provider copies, backups and stopped-program deadlines
+remain outside the managed deletion guarantee. Retained bytes are untrusted
+diagnostic data, not an independent verification/adoption receipt.
 
 ## Observability and durable stops
 

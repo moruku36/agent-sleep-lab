@@ -21,7 +21,7 @@ from .public_source_intake import (
 from .strictjson import loads_strict_bytes
 from .public_document_sleep import (
     SleepLimits, PublicDocumentSleepError, build_light_request, build_deep_request,
-    parse_deep_result,
+    parse_light_result, parse_deep_result, _context,
 )
 
 VERSION = "agent-sleep-public-document/1"
@@ -33,6 +33,10 @@ MAX_CONTENT_BYTES = 512 * 1024
 
 class PublicDocumentError(ValueError):
     """Fail-closed lifecycle or binding violation; contains no source text."""
+
+    def __init__(self, message, *, code="lifecycle_rejected"):
+        super().__init__(message)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -352,8 +356,8 @@ class PublicDocumentStore:
         try:
             with self._live() as live:
                 yield live
-        except PublicDocumentSleepError:
-            raise PublicDocumentError("invalid offline sleep protocol or bounds") from None
+        except PublicDocumentSleepError as exc:
+            raise PublicDocumentError("invalid offline sleep protocol or bounds", code=exc.code) from None
 
     def _sleep_current(self, db, c, sleep_id):
         """Reconstruct the saved request from CURRENT admitted body/control/head."""
@@ -366,12 +370,15 @@ class PublicDocumentStore:
             source_sha256=c["source_hash"], generation=c["generation"],
             scope={k: approval[k] for k in ("project", "task_family")},
             expected_parent=c["head"], origin_task=c["origin_task"],
-            source_text=artifact["source"]["text"], limits=SleepLimits(**saved["limits"]))
+            source_text=artifact["source"]["text"], limits=SleepLimits(**saved["limits"]),
+            selection_context=(_context(saved["selection_context"])
+                               if "selection_context" in saved else None))
         if data != expected:
             raise PublicDocumentError("sleep source, scope, generation or parent no longer current")
         return data
 
-    def prepare_sleep(self, *, sleep_id, scope, expected_generation, expected_parent, limits):
+    def prepare_sleep(self, *, sleep_id, scope, expected_generation, expected_parent, limits,
+                      selection_context=None):
         """Save/return canonical Light bytes, WITHOUT dispatch or authority issuance.
 
         No provider callback, live option or synthetic coordinator is involved.
@@ -389,7 +396,8 @@ class PublicDocumentStore:
                 sleep_id=sleep_id, artifact_sha256=c["artifact_hash"],
                 source_sha256=c["source_hash"], generation=c["generation"], scope=scope,
                 expected_parent=expected_parent, origin_task=c["origin_task"],
-                source_text=artifact["source"]["text"], limits=limits)
+                source_text=artifact["source"]["text"], limits=limits,
+                selection_context=selection_context)
             self._put(db, "sleep:" + sleep_id + ":light_request", "sleep_light_request", data)
             return data
 
@@ -405,6 +413,7 @@ class PublicDocumentStore:
             request = self._sleep_current(db, c, sleep_id)
             if sha256_hex(request) != expected_request_sha256:
                 raise PublicDocumentError("light request hash conflict")
+            self._reject_quarantined(db, request, "light")
             deep = build_deep_request(request, result_bytes)  # validates WHOLE reply
             prefix = "sleep:" + sleep_id
             self._put(db, prefix + ":light_reply", "sleep_light_reply", result_bytes)
@@ -435,6 +444,7 @@ class PublicDocumentStore:
             if (self._get(db, prefix + ":deep_request", "sleep_deep_request") != request
                     or sha256_hex(request) != expected_request_sha256):
                 raise PublicDocumentError("deep request binding conflict")
+            self._reject_quarantined(db, request, "deep")
             excerpts = parse_deep_result(request, result_bytes)  # before ANY writes
             self._put(db, prefix + ":deep_reply", "sleep_deep_reply", result_bytes)
             binding = _json(request)
@@ -461,6 +471,75 @@ class PublicDocumentStore:
                       "deep_reply_sha256": sha256_hex(result_bytes)}
             self._put(db, prefix + ":result", "sleep_result", canonical_json(result))
             return result
+
+    def _sleep_stage_request(self, db, c, sleep_id, stage, expected_request_sha256):
+        if stage not in ("light", "deep"):
+            raise PublicDocumentError("explicit sleep stage required")
+        request = self._sleep_current(db, c, sleep_id)
+        if stage == "deep":
+            reply = self._get(db, "sleep:" + sleep_id + ":light_reply", "sleep_light_reply")
+            request = build_deep_request(request, reply)
+            if (request is None or request != self._get(
+                    db, "sleep:" + sleep_id + ":deep_request", "sleep_deep_request")):
+                raise PublicDocumentError("current nonempty Deep request required")
+        if sha256_hex(request) != expected_request_sha256:
+            raise PublicDocumentError("quarantine request binding conflict", code="binding_mismatch")
+        return request
+
+    @staticmethod
+    def _reject_quarantined(db, request, stage):
+        row = db.execute("SELECT body FROM content WHERE key=? AND kind='sleep_rejection'",
+                         ("sleep:quarantine:" + stage + ":record",)).fetchone()
+        if row and _json(row["body"])["request_sha256"] == sha256_hex(request):
+            raise PublicDocumentError("sleep stage quarantined; rejected output is terminal",
+                                      code="quarantined")
+
+    def quarantine_sleep_result(self, *, sleep_id, stage, expected_request_sha256,
+                                result_bytes, max_bytes):
+        """Opt-in, immutable rejected bytes; one slot per stage in this store.
+
+        Valid replies cannot enter quarantine. No truncation, proposals, receipts,
+        retry credit or authority. Raw bytes and metadata share managed deletion.
+        """
+        _identifier(sleep_id)
+        _hash(expected_request_sha256)
+        _bound(max_bytes)
+        with self._sleep_live() as (db, c):
+            request = self._sleep_stage_request(db, c, sleep_id, stage, expected_request_sha256)
+            limits = SleepLimits(**_json(request)["limits"])
+            if (max_bytes > limits.max_reply_bytes or type(result_bytes) is not bytes
+                    or not 1 <= len(result_bytes) <= max_bytes):
+                raise PublicDocumentError("rejected bytes exceed quarantine bound", code="quarantine_bound")
+            try:
+                (parse_light_result if stage == "light" else parse_deep_result)(request, result_bytes)
+            except PublicDocumentSleepError as exc:
+                category = exc.code
+            else:
+                raise PublicDocumentError("valid replies cannot be quarantined")
+            # An accepted saved reply cannot be replaced by a later rejection.
+            if db.execute("SELECT 1 FROM content WHERE key=?",
+                          ("sleep:" + sleep_id + ":" + stage + "_reply",)).fetchone():
+                raise PublicDocumentError("accepted stage cannot be quarantined")
+            record = {"state": "rejected_untrusted", "stage": stage,
+                      "request_sha256": sha256_hex(request),
+                      "reply_sha256": sha256_hex(result_bytes), "reply_bytes": len(result_bytes),
+                      "error_category": category, "untrusted": True, "authority": False}
+            prefix = "sleep:quarantine:" + stage
+            self._put(db, prefix + ":reply", "sleep_rejected_reply", result_bytes)
+            self._put(db, prefix + ":record", "sleep_rejection", canonical_json(record))
+            return record
+
+    def read_sleep_quarantine(self, *, sleep_id, stage, expected_request_sha256):
+        """Explicit guarded diagnostic read; bytes remain rejected, never proposals."""
+        _identifier(sleep_id)
+        _hash(expected_request_sha256)
+        with self._sleep_live() as (db, c):
+            self._sleep_stage_request(db, c, sleep_id, stage, expected_request_sha256)
+            prefix = "sleep:quarantine:" + stage
+            record = _json(self._get(db, prefix + ":record", "sleep_rejection"))
+            if record["request_sha256"] != expected_request_sha256:
+                raise PublicDocumentError("quarantine request binding conflict", code="binding_mismatch")
+            return self._get(db, prefix + ":reply", "sleep_rejected_reply")
 
     def propose_excerpt(self, *, proposal_id, quotation):
         """Unverified immutable data; never executes source prose or issues receipts."""
