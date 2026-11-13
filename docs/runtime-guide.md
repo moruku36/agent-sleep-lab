@@ -165,8 +165,22 @@ Per-response observations do **not** complete total accounting: capture,
 consolidation, verification, retrieval, execution and evaluation must all be
 covered with established currency and billing provenance. Existing comparison
 phase/total costs remain unavailable; no measured savings are emitted. Missing
-live model availability, historical execution binding and the synthetic-only
-real-agent boundary remain separate blockers.
+historical execution binding and the synthetic-only store boundary remain
+separate concerns. One new selected-MiMo Light call succeeded without config changes,
+but the installed local CLI returned no usage/cost. See the current
+[connection observation](implementation-status.md#selected-model-connection-and-public-document-staging--2026-11-13).
+An `infer model inspect` miss in its reduced inventory is not proof that an
+explicit model run is unavailable. Full catalog listing and an authorized bounded
+call establish different facts; neither a stored credential nor catalog
+`available:true` proves a live result.
+
+## Public-document intake preparation
+
+The separate [public-document staging API](public-source-intake.md) checks exact
+reviewed bytes/URI/scope, a caller-configured finite approval and its current
+validity, without model calls or store admission. Returned artifacts are private
+and explicitly non-synthetic. This does not relax the synthetic-only runtime
+commands above, enforce deletion or connect an existing agent.
 
 ## Adoption and retrieval
 

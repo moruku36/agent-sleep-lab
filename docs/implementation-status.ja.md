@@ -17,28 +17,70 @@ REM・日記・横展開は含めません。ファイル数・テスト数・�
 所有者マージ済みで、merge commitは`2ab948bebbdcdf14d4ffeca0a2a071cf1db16af8`です。
 同一headの[CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43350754976)は
 Python各版435件・文書・wheelが合格しました。読取り専用確認が入ったこの基点から、
-今回はproviderの計測値保存を追加します。
+[PR #49](https://github.com/moruku36/agent-sleep-lab/pull/49)も所有者マージ済みで、
+merge commitは`529ba8d7abdd282db3280e496db6d77b146d3b96`です。provider計測値保存が入り、
+今回は公開文書の明示的なstagingを追加します。
 文書だけの[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46)に記載した
 別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
 `1e636d8`は別途保全済みで、過去のPR作成は**UNKNOWN**です。その操作は再送しません。
 
 | 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
 |---|---|---|---|---|---|---|
-| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store向け実装済み | 既存回帰。今回の結果は下記 | 未実施 | 実データ境界と運用受入 | 許可された実データ境界を一つ定義 | 既存store／writer／retrieval契約 |
-| 実model Light／Deep→独立採用→取得 | 本文束縛生成・別verifier／writer。先行の同run CLI branchは別途保全 | 既存契約。新たなmodel呼出しなし | 未実施 | 現agentのcatalogにMiMo不在、未解決の実行binding、実生成候補の独立確認 | binding解消後、総枠内の最小1呼出しで受領確認 | [実行手順](runtime-guide.ja.md)、上記先行branch |
-| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journal・準備・byte集計・確認にprovider計測値保存を追加 | 基点と新しい計測契約は下記 | 未実施 | 実10結果、live使用量、通貨と全段階の請求実費 | 実行前に正式なMiMo能力を復旧 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
-| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeとoffline handoffのみ | 既存合成接続契約 | 未実施 | 実データ許可・保持／削除・scope・秘密情報契約と実利用の追跡 | クロッチ向けの明示的な公開資料取込み受入をscope化 | 既存bridge／実行journal。実agent受領なし |
+| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成storeと別の公開文書staging | 今回の検証は下記 | 未実施 | 非合成store受入と保持／削除の実施 | 受入／削除をレビューし現在許可を伝播 | [取込み境界](public-source-intake.ja.md) |
+| 実model Light／Deep→独立採用→取得 | 既存本文束縛生成・別verifier／writer | 既存契約 | 単独MiMo Lightの応答1件。全鎖は未実施 | 実Deep、実データ束縛、候補の独立確認 | 実データsleep前に非合成受入契約を整備 | 下記接続確認 |
+| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journal・準備・byte集計・計測値保存 | 既存計測契約 | 未実施 | 実10結果、現local CLIが返さない使用量／費用、通貨と全段階請求 | 追加評価前に使用量を返すCLIと課金計測を確立 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
+| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeと別の非合成staging API | 取込み契約は下記 | 別taskへの実利用なし | store受入、lifecycleの実施、利用追跡 | 合成制限を緩めず公開文書境界を接続 | [取込み](public-source-intake.ja.md)。利用受領なし |
 
 有料利用の許可は受領済みで、一般的な再承認が障害ではありません。
 保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
 host／アカウント制御を変更したりしません。
 
-## 本人による検証前チェックと計測値保存 — 2026-11-13
+## 指定modelの接続確認と公開文書staging — 2026-11-13
+
+- 既存の登録CLI／accountで指定`xiaomi/mimo-v2.6-pro`の単独Light選別が返りました。
+  **実呼出し1件／1起動**、合成入力507 byte、出力59 byteで2つのevent IDを選択しました。
+  provider／model／fallbackなしとhashを確認しました。既定model・認証・許可一覧・
+  plugin・host・経路の設定変更は不要でした。本文束縛sleep全体・Deep・採用・
+  5課題A/B・agent利用の受入ではありません。
+- 先の`infer inspect`は限定されたprepared一覧でした。
+  全catalogの`models list --agent ... --all --provider xiaomi --json`では
+  対象model available、provider readyで、認証登録もありました。
+  **inspectのModel not foundだけで明示推論も使えないとは判断できません。**
+  今回の成功は過去の不明呼出しの照合・再送や別の承認binding修復ではありません。
+- 実受領は`usage_state:absent`、`last_call_usage_state:absent`、費用／通貨nullです。
+  CLI表示と同revisionの
+  [847611d local model.runソース](https://github.com/openclaw/openclaw/blob/847611d/src/cli/capability-cli/model.ts)
+  もtext／provider／modelだけを返し、usageを含みません。
+  公開された同revisionの確認で、インストール済み内部ファイルの検査ではありません。
+  CLIが省略する情報はadapter保存処理では復元できません。架空の0・推定請求・
+  CLI更新・追加有料A/Bは行っていません。
+- [公開文書staging](public-source-intake.ja.md)で確認済みの正確な原文／URL／scope、
+  別設定の有限許可、保持／削除義務、非合成label、最新許可での再確認を追加しました。
+  合成store受入、秘密情報の自動検査、削除の実施、verifier受領、モデル送信許可ではありません。
+  未公開の試用コードは検索・復元していません。
+- 正式updaterのdry-runはstable／latestを導入済みと同じ`2026.11.3`へ解決しました。
+  使用量対応版への更新は確認できず、install・再起動・channel変更・権限拡大はしていません。
+  対応した正式releaseか、別管理するCLI修正が必要です。
+- 新しい合成intakeテスト6件が1起動で合格（0.007秒）。現在許可での再検査を加えた後、
+  現sourceの全回帰も**重複なし448件／1起動で合格**（37.192秒）。
+  **確認済み454ケース実行／test 2起動**です。その前のrunner 1起動は
+  既存install済みpackageを参照してimport段階で失敗し、選択／実行は0件でした。
+  後続は明示的にこのcheckoutの`src`を参照しています。
+- 別途、公開・マージ済み`529ba8d7abdd282db3280e496db6d77b146d3b96`の実README
+  5,043 byteを確認し、repo外にstagingして再検査が成功しました。
+  `staged_not_admitted`のままで、この操作のmodel呼出し・store受入・採用は0件です。
+  許可は1日間で削除は手動義務、cleanup scheduleは設置していません。
+  原文や許可参照はここに公開しません。これは1件のstaging観測で、回帰testには加算しません。
+- coordinator自身のレビューで、独立承認やagent接続完了とは扱いません。
+  完成率は推測しません。PR CIは別記録です。
+
+## 先の本人による検証前チェックと計測値保存 — 2026-11-13
 
 所有者はworkerを使わずクロッチ本人での検証を依頼しました。
 設定済みagentで`xiaomi/mimo-v2.6-pro`を読取り専用inspectすると
 **Model not found**でした。推論や承認拒否ではなく、認証情報の世界的な不在や
-過去bindingの修復を示しません。実呼出しは**0件**です。
+過去bindingの修復を示しません。その時点の実呼出しは**0件**です。
+現在の接続診断は上記の新しい1呼出しの観測で更新しました。
 5組の検証票は固定実行planでも採点結果でもありません。
 
 - 既存論文pilot adapterへ[provider計測値保存](runtime-guide.ja.md#provider計測値の保存)を実装。
@@ -54,7 +96,7 @@ host／アカウント制御を変更したりしません。
 - coordinator自身のレビューと模擬transportは独立レビュー・実環境受入ではありません。
   今回のPRのPython 3.11／3.13 CIは別のcheck記録です。参照した公開CLI契約は
   現行インストールより新しい可能性があり、実際の出力・課金は未確認です。
-- 残りはインフラ担当による正式MiMo能力／binding復旧、通貨と全段階の請求実費、
+- その時点の残項目は正式MiMo能力／binding復旧、通貨と全段階の請求実費、
   出典・scope・目的・保持／削除を明示した別の実データ境界と別taskへの実入力／利用受領です。
   未公開の試用コードを検索・復元せず、実データを合成扱いに変更していません。
 
