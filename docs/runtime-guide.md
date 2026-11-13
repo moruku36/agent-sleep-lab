@@ -125,6 +125,13 @@ unknown. Preparation recovery never re-executes the trusted callback. Reconcile
 any independently registered artifacts/receipts before a separate new operation.
 
 
+## Partial live measurements
+
+The selected-model adapter also records exact request/CLI-prompt UTF-8 bytes and
+monotonic CLI-process elapsed time, including failures. These are not token
+counts, provider-only latency or billed cost. See the
+[partial live development protocol and observations](live-development-measurement.md).
+
 ## Provider accounting observations
 
 The paper-pilot `OpenClawMimoProvider` retains allowlisted observations from the
