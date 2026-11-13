@@ -14,6 +14,7 @@ import json
 import re
 import sqlite3
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 from agent_sleep_lab.provenance import sha256_hex
 from agent_sleep_lab.strictjson import loads_strict_bytes
@@ -129,7 +130,33 @@ def _request(task, items, cap):
 
 
 class ComparisonStore:
-    def __init__(self, path):
+    def __init__(self, path, *, read_only=False):
+        if type(read_only) is not bool:
+            raise TypeError("read_only must be boolean")
+        self.read_only = read_only
+        if read_only:
+            path = Path(path).resolve(strict=True)
+            if not path.is_file() or not path.stat().st_size:
+                raise ValueError("existing nonempty comparison journal required")
+            self.db = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True,
+                                      isolation_level=None, timeout=5)
+            try:
+                self.db.execute("PRAGMA query_only=ON")
+                tables = {row[0] for row in self.db.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'")}
+                expected = {"comparison_plans", "evaluation_contacts", "comparison_arms",
+                            "frozen_contexts", "comparison_provider_receipts"}
+                if (self.db.execute("PRAGMA application_id").fetchone()[0] != 0
+                        or self.db.execute("PRAGMA user_version").fetchone()[0] != 0
+                        or not {"comparison_plans", "evaluation_contacts", "comparison_arms"} <= tables
+                        or tables - expected
+                        or self.db.execute("SELECT 1 FROM sqlite_master WHERE type IN "
+                                           "('view','trigger') LIMIT 1").fetchone()):
+                    raise ValueError("existing comparison journal required")
+            except BaseException:
+                self.db.close()
+                raise
+            return  # No schema creation, migration, recovery or write pragma.
         self.db = sqlite3.connect(path, isolation_level=None, timeout=5)
         if (self.db.execute("PRAGMA application_id").fetchone()[0] != 0
                 or self.db.execute("PRAGMA user_version").fetchone()[0] != 0
@@ -165,6 +192,8 @@ class ComparisonStore:
         Tasks carry only task_id and prompt; evaluator answers must stay inside
         the trusted evaluator and are rejected here by the exact key set.
         """
+        if self.read_only:
+            raise ValueError("read-only comparison journal cannot plan")
         if not _id(plan_id):
             raise ValueError("invalid plan ID")
         if (type(tasks) is not list or not 1 <= len(tasks) <= budget.calls
@@ -282,6 +311,8 @@ class ComparisonStore:
         local callable returning the present policy/snapshot hashes; `evaluator`
         is a trusted local callable (task_id, reply_bytes) -> 0 or 1, separate
         from the provider. `limit` bounds new dispatches in this call."""
+        if self.read_only:
+            raise ValueError("read-only comparison journal cannot run")
         plan, _, status, _, _ = self._plan(plan_id)
         from agent_sleep_lab.mimo_provider import MODEL, OpenClawMimoProvider
         fake = isinstance(provider, FakeTaskProvider)

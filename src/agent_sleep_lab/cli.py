@@ -78,6 +78,14 @@ def build_parser() -> argparse.ArgumentParser:
     comparison_prepare.add_argument("--journal", required=True, help="separate private comparison SQLite journal")
     comparison_prepare.add_argument("--model", required=True,
                                     choices=("xiaomi/mimo-v2.6-pro", "fake-model-1"))
+    comparison_inspect = sub.add_parser(
+        "compare-inspect", allow_abbrev=False,
+        help="read-only saved comparison progress; no execution or state changes")
+    comparison_inspect.add_argument("--store-config", required=True,
+                                    help="explicit existing store configuration JSON")
+    comparison_inspect.add_argument("--journal", required=True,
+                                    help="existing separate private comparison SQLite journal")
+    comparison_inspect.add_argument("--plan-id", required=True, help="existing comparison plan ID")
     for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
         cmd = sub.add_parser(name, help="explicit runtime " + name)
         if name != "sleep-status":
@@ -158,7 +166,7 @@ def main(
     parser = build_parser()
     arguments = list(sys.argv[1:] if argv is None else argv)
     private_command = arguments[0] if arguments[:1] in (
-        ["oss-prepare"], ["compare-prepare"]) else None
+        ["oss-prepare"], ["compare-prepare"], ["compare-inspect"]) else None
     try:
         # argparse otherwise echoes unknown options/values from untrusted input.
         if private_command:
@@ -174,6 +182,17 @@ def main(
         return _cmd_validate(args, out, err)
     if args.command == "schemas":
         return _cmd_schemas(out, err)
+    if args.command == "compare-inspect":
+        try:
+            from agent_sleep_lab.comparison_inspect import execute as inspect_comparison
+            result = inspect_comparison(store_config_path=args.store_config,
+                                        journal_path=args.journal, plan_id=args.plan_id)
+            print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+            return EXIT_OK
+        except Exception:
+            print("error[compare-inspect]: inspection refused; check strict inputs, existing "
+                  "distinct databases and saved comparison integrity", file=err)
+            return EXIT_ERROR
     if args.command == "compare-prepare":
         try:
             from agent_sleep_lab.comparison_prepare import execute as prepare_comparison

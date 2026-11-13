@@ -152,6 +152,44 @@ MiMoを含む使用量・実費はunavailableのままで、0費用・性能・�
 現在の有効性は読取り時点の観測で、dispatch許可やDB間の原子的保証ではありません。
 アカウント／承認binding、対象hostの制限、実応答・総実費・独立受入は未解決で、準備で回避しません。
 
+## 保存済み比較の読取り専用確認
+
+```sh
+agent-sleep-lab compare-inspect --store-config private/store.json --journal private/comparison.sqlite --plan-id my-comparison
+```
+
+準備後・中断後・実行後に、**既存**の独立raw比較（1〜5組）を確認します。
+`compare-prepare`と違ってplanや評価contactを作りません。`compare`や既存reportと違って、
+providerの実行／再試行、返答の採点、失効／復旧状態の書込みをしません。
+受け付ける引数は`--store-config`、`--journal`、`--plan-id`だけで、
+manifest・rubric・provider・model・実行optionは不要かつ指定不可です。
+
+両DBをSQLiteのread-only／query-onlyで開きます。欠落・空・異種・別名参照
+（hardlinkを含む）・破損・未対応journalは、初期化や移行をせず拒否します。
+保存context・plan・要求のhashとmembershipを照合し、journalは1読取りtransactionで確認します。
+証拠storeの現在適格性は別の観測で、DB間の原子的保証ではありません。
+通常のSQLite読取りlockやWAL／SHM sidecarが必要になる場合はあります。
+
+期限切れ・許可撤回・文脈変更でも、保存済み`status`はそのまま返し、
+`current_validity.valid:false`で不一致を示します。確認時の観測であり、
+dispatch許可・出自認証・受入完了ではありません。整合性不正は固定診断とexit 2、
+部分実行や古い文脈の**確認成功**はexit 0で、実行成功の判定ではありません。
+既にinvalidatedのplanは、現在文脈が再一致してもinvalidatedのままです。
+
+- `outcomes.A/B`は全計画分母を保ち、`planned_not_dispatched`、
+  `dispatch_intent_outcome_unknown`、`replied`、`completed`、`timeout`、
+  `missing`、`invalid`を別に数えます。不明intentを失敗や再送許可へ変えず、
+  応答済みと採点済みを区別します。
+- `arms`は課題index・群・実行位置・要求hash／byte・保存状態・結果既知flagと
+  既存0/1採点（完了前はnull）です。`evaluator_pass`は保存済み合格数、
+  `all_outcomes_scored`は全予定枠がcompletedの場合だけtrueです。
+  実modelの返答でも採点は合成の完全一致rubricで、検証済みmodel受領ではありません。
+- `input_volume`は準備時と同じ計画直列化byte定義で、完了状態によらず全枠を数えます。
+- prompt・query・原証拠／記憶本文・返答・自由記述理由・provider受領原文は返しません。
+  IDやhashも必要に応じ非公開にし、自動公開の許可一覧とは扱いません。
+- 使用量・実費はunavailable（0ではない）、`comparison`と`performance_claim`はnullです。
+  採用や実環境受入の完了は発行しません。
+
 ## 対応比較
 
 ```sh

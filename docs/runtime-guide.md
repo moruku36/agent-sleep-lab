@@ -208,6 +208,51 @@ atomic cross-database guarantee. Account/approval binding, target-host restricti
 real responses, total measured costs and independent acceptance remain unresolved;
 preparation does not resolve or bypass them.
 
+## Read-only saved comparison inspection
+
+```sh
+agent-sleep-lab compare-inspect --store-config private/store.json --journal private/comparison.sqlite --plan-id my-comparison
+```
+
+Use this after preparation, interruption or execution to inspect an **existing**
+independent-raw plan with 1–5 pairs. Unlike `compare-prepare`, it never creates a
+plan or evaluation contact. Unlike `compare` and its report method, it never
+runs/retries a provider, evaluates a reply or persists invalidation/recovery.
+Only `--store-config`, `--journal` and `--plan-id` are accepted; no manifest,
+rubric, provider, model or execution options are needed or accepted.
+
+Both databases open in SQLite read-only/query-only mode. Missing, empty, foreign,
+aliased (including hardlinked), corrupt or unsupported journals fail without
+initialization/migration. Saved context, plan and request hashes/membership are
+checked. The journal is read within one transaction. Evidence-store eligibility
+is a separate current observation, not an atomic cross-database guarantee.
+Normal SQLite read locks and WAL/SHM sidecars may still be required.
+
+JSON preserves the saved `status` even when context has expired, been revoked or
+changed; `current_validity.valid:false` reports that mismatch without rewriting
+the journal. This read-time flag is not dispatch authorization, origin
+authentication or completed acceptance. Invalid integrity fails with exit 2 and
+a fixed diagnostic; an inspected partial/stale plan exits 0, **not** a run-success
+verdict. An already-invalidated plan stays invalidated even if current context
+matches again.
+
+- `outcomes.A/B` keeps the full planned denominator and counts
+  `planned_not_dispatched`, `dispatch_intent_outcome_unknown`, `replied`,
+  `completed`, `timeout`, `missing` and `invalid` separately. Unknown intent
+  never becomes a failure or permission to resend. A reply is not a scored outcome.
+- `arms` gives task index, arm, dispatch position, request hash/bytes, saved status,
+  known-outcome flag and existing 0/1 score (null until completed).
+  `evaluator_pass` counts saved passes; `all_outcomes_scored` is true only when
+  every planned slot is completed. Scores remain synthetic exact-match rubric
+  results, even for a real-model response; these are not verified model receipts.
+- `input_volume` uses the same planned serialized-byte definition and all-slot
+  denominator as preparation, regardless of completion.
+- No prompt, query, original evidence/memory, reply, free-text reason or raw
+  provider receipt is returned. Keep identifiers and hashes private as appropriate;
+  the output is not an automatic publication allowlist.
+- Usage and measured cost remain unavailable (not zero); `comparison` and
+  `performance_claim` remain null. No adoption or live-acceptance claim is issued.
+
 ## Paired comparison
 
 ```sh
