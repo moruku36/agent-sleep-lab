@@ -63,6 +63,8 @@ connected agent, and fake-provider scores are not evidence of model improvement.
 ## Runtime and evaluation guides
 
 - [Runtime guide](docs/runtime-guide.md): explicit commands and their conditions.
+- [Public-document lifecycle](docs/public-document-lifecycle.md): separate explicit
+  one-document store, excerpt review, deletion and offline consumer boundaries.
 - [OSS request preparation](docs/oss-prepare.md): read-only, offline paired-input
   construction from existing adopted synthetic memories; no sending.
 - [Synthetic fixture cohort](docs/oss-fixture-cohort.md): predeclared multi-task

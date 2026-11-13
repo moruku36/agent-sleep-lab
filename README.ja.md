@@ -61,6 +61,8 @@ REM・日記・定期処理・横展開は後続の任意項目です。
 ## 実行・評価ガイド
 
 - [ランタイム手順](docs/runtime-guide.ja.md)：明示的なコマンドと実行条件。
+- [公開文書lifecycle](docs/public-document-lifecycle.ja.md)：別の明示store、引用review、
+  管理削除とoffline consumer境界。
 - [OSSリクエスト準備](docs/oss-prepare.ja.md)：既存の採用済み合成記憶から比較入力を
   読取り専用・オフラインで構築。送信はしません。
 - [合成fixture cohort](docs/oss-fixture-cohort.md)：事前登録した複数課題の集計用。

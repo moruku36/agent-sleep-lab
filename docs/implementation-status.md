@@ -25,21 +25,109 @@ That baseline adds read-only comparison inspection.
 `529ba8d7abdd282db3280e496db6d77b146d3b96`, retaining provider accounting observations.
 [PR #50](https://github.com/moruku36/agent-sleep-lab/pull/50) is owner-merged at
 `d90e3036c6440e34901a65659fe1096057f110f8`, adding public-document staging.
-This follow-up records partial live process-time/byte measurements; it does not publish the separate trial code from
+[PR #51](https://github.com/moruku36/agent-sleep-lab/pull/51) is merged at
+`4a4c144dc3414b6ddf72446b508dca2c98fc8002` (2026-11-13 04:08:54 UTC);
+its exact-head Python 3.11/3.13 checks succeeded. That baseline records partial
+live process-time/byte measurements; it does not publish the separate trial code from
 [PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46).
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
 
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
 |---|---|---|---|---|---|---|
-| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store plus separate public-document staging | Current intake checks below | Not performed | Non-synthetic store admission and lifecycle enforcement | Review admission/deletion and propagate current approval | [Intake boundary](public-source-intake.md) |
-| Real-model Light/Deep → independent adoption → retrieval | Body-bound generator, process-time/byte receipts, separate verifier/writer | 451-case regression below | New synthetic body-bound Light and Deep returned; two exact-source candidates, no adoption | Local preparer date-format failure; corrected command native approval pending; real-data binding still absent | Collect the original pending local preparation, without model replay | [Partial observation](live-development-measurement.md) |
-| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus process-time/byte observations | Three focused measurement cases and full regression | Not performed; task/rubric fixed, executable plan not registered | Adoption/local native approval; token/currency/all-phase billing remain absent | Finish saved-candidate adoption and freeze/run the partial byte/time/response comparison; do not claim cost acceptance | [Protocol](live-development-measurement.md) |
-| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge; separate non-synthetic staging API | Intake contracts below | No actual later-task use | Store admission, enforced lifecycle and tracked actual use | Integrate the staged public-document boundary without weakening synthetic gates | [Intake](public-source-intake.md); no real-agent use receipt |
+| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store unchanged; separate one-document public lifecycle library | 27 fictional lifecycle cases PASS in current unpinned full run; mandatory dependency-pin check FAIL; pinned full regression pending | Not performed | Independent review, full regression and actual document acceptance; public-data resurrection deliberately absent | Review the isolated lifecycle implementation | [Public lifecycle](public-document-lifecycle.md) |
+| Real-model Light/Deep → independent adoption → retrieval | Body-bound generator, process-time/byte receipts, separate verifier/writer | 451-case regression below | New synthetic body-bound Light and Deep returned; two exact-source candidates, adoption unverified | Original corrected preparation approved, execution outcome unresolved; real-data binding still absent | Recover original execution evidence without replay | [Partial observation](live-development-measurement.md) |
+| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus optional read-only byte/time projection | Five new local reader cases below; historical regression separate | Not performed; task/rubric fixed, executable plan not registered | Original preparation execution outcome; token/currency/all-phase billing remain absent | Reconcile original preparation before adoption/comparison; saved observations are inspectable without dispatch | [Protocol](live-development-measurement.md) |
+| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge unchanged; separate explicit public-document consumer boundary | Fictional different-task input/return/semantic-review separation below | No real-agent later-task use | Actual authorized adapter integration and independent semantic/performance review | Review the bounded offline consumer boundary | [Lifecycle](public-document-lifecycle.md); no real-agent use claim |
 
 Paid-use consent was already received; missing generic consent is not the blocker.
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
+
+## Local worker implementation — one-document public lifecycle
+
+- Added a separate versioned private one-document store; no synthetic contracts,
+  RuntimeStore, retrieval or CollectOnlyBridge behavior changed. Persisted current
+  approval/generation binds exact source/artifact/scope/time/origin task; all content
+  accesses recheck current control, expiry/exclusions and managed-byte integrity.
+- Immutable unverified excerpts have read-only proposal/candidate views. Independent
+  deterministic quotation-fidelity and mechanical snapshot review are separate
+  configured boundaries, not truth, abstraction quality or performance review.
+  Atomic add-only adoption commits receipt/operation/head with parent/current-control
+  CAS. Exact operation replay is content-free history and never restores eligibility.
+- Whole-record bounded retrieval requires another task in the same scope. Explicit
+  consumer identity/version/runtime permission binds frozen input/reference hashes.
+  Unknown intent is durable before consumer entry; input observation, returned result
+  and separate semantic judgment stay distinct. Unknown calls cannot be replayed
+  across reopen or by merely changing request IDs. Revocation during execution
+  makes the result unusable.
+- Managed source/evidence/proposal/memory/snapshot/request/result text is removed by
+  crash-resumable secure_delete/VACUUM cleanup. Failure remains purge_pending.
+  Explicit sweep/on-access expiry only; stopped programs, remote/caller copies,
+  backups and arbitrary exports are outside deletion guarantees.
+- Pre-review focused verification (before the fixes below): **23 unique fictional behavior cases / one invocation
+  PASS (0.151s)**. Earlier development runs: 20 cases / one invocation, 19 pass and
+  one error (missing-file exception mismatch; 0.130s), then 20 cases / one invocation
+  PASS (0.133s) and 22 cases / one invocation PASS (0.146s).
+  Total: **85 case executions / four invocations**, one repaired error.
+  The shared interpreter has the previously diagnosed unpinned jsonschema environment;
+  source binding was explicit. **Required pinned full regression remains pending**:
+  separate environment creation was denied by native execution control, and no usable
+  pinned environment was created. No package pins/shared environment were changed.
+- Static independent review identified two P2 paths: snapshot-only changes bypassed
+  effective no-retry identity, and an in-flight asynchronous observer could overwrite
+  a returned receipt. Local source fixes now separate exact provenance from effective
+  identity and serialize observer transactions with close, with DB status guards.
+  Four deterministic fictional regressions cover identical re-adoption, changed
+  snapshot with identical packed references, and asynchronous normal/exceptional close.
+  All four now **PASS / one affected invocation (0.042s)** on the revised source.
+  The subsequent **483-unique-case full diagnostic run / one invocation (37.434s)**
+  passed 482 cases, including all 27 lifecycle cases; its sole failure was the
+  mandatory installed-version check: jsonschema 4.26.0 instead of pinned 4.23.0.
+  Both runs used the unchanged existing Python 3.15.2 environment with explicit
+  checkout-source binding. **This is not a passing or pinned full-regression gate**;
+  the denied setup was not replayed and no alternate environment or dependency
+  change was used. This follow-up totals **487 case executions / two invocations**
+  (486 pass, one pin failure); lifecycle development history including the earlier
+  runs totals **572 case executions / six invocations**, with one earlier repaired
+  error and this unresolved environment failure. Current documentation validation
+  passed **594 relative file links / 94 Markdown files** (anchors not checked).
+  Independent re-review, supported pinned full regression and exact-head CI/wheel
+  remain separate gates.
+- See [library contract](public-document-lifecycle.md) and
+  [fictional tests](../tests/test_public_document_runtime.py). Local self-review is
+  not independent approval. No actual public document/private live bundle, model,
+  provider or real agent was used; no live acceptance, paid call, original-operation
+  replay, publication, push, merge, configuration change or schedule occurred.
+  Public-data Light/Deep, actual adapter use, accounting and performance evidence
+  remain unfinished. The historical observations below predate this offline slice.
+
+## Local worker implementation — saved comparison measurements
+
+- Implemented optional `compare-inspect --measurements` over existing journals:
+  bounded, hash-bound, allowlisted request/CLI-prompt/output bytes and CLI
+  monotonic elapsed nanoseconds; no raw receipt/text export or paid calls.
+  Default inspection remains unchanged. Old journals without receipt retention
+  return all-missing observations without migration.
+- Every planned A/B slot remains in the denominator. Missing/invalid/mismatched
+  receipts, absent/invalid numeric fields, recorded zero and partial observed sums
+  stay distinct. Registered CLI and injected-transport counts remain explicit;
+  neither authenticates origin, proves live acceptance or supplies model latency,
+  usage, currency, billed cost or savings.
+- **Five new synthetic behavior cases / one invocation PASS (0.579s)** with retained
+  Python 3.13.18. No historical tests, full suite or CI were rerun for this change.
+  See [new cases](../tests/test_compare_measurements.py) and the
+  [optional reader contract](runtime-guide.md#optional-saved-bytetime-observations).
+  Local review is not independent approval; changes are local and unpublished.
+- Original corrected local-preparation approval is now confirmed allowed, but
+  no authoritative dispatch/terminal outcome has been recovered. The prior
+  pending-approval wording below is superseded: do not replay, reset state or
+  treat absence of artifacts as proof of nondispatch. Adoption remains unverified
+  and the ten A/B responses have not been dispatched. This worker did not read
+  or modify the private live bundle or rerun any original preparation.
+- At that saved-comparison checkpoint, non-synthetic lifecycle and later-task use
+  were unfinished; the newer offline library is described above. No live model invocation, push, merge,
+  publication, configuration change or schedule was performed here.
 
 ## Partial live development measurements — 2026-11-13
 
@@ -53,10 +141,11 @@ does not replay them or change host/account controls.
 - Local preparation then failed before first receipt registration: the private
   caller's ISO expiry string exceeded the receipt schema length. No schema was
   changed, coordinator failure retained. A corrected one-shot local command is
-  **native execution approval pending**, without confirmed execution. The tool
-  wait timed out; the original approval remains pending and local intent/completion
-  artifacts were not observed. Do not resubmit. No alternate writer/route
-  is run while it waits. Adoption and ten-arm A/B remain not performed.
+  approved through the native allow-once path after the tool wait timed out.
+  Its dispatch/terminal outcome is unresolved; local intent/completion artifacts
+  were not observed. Approval is confirmed, not execution or nondispatch.
+  Do not resubmit or use an alternate writer/route. Adoption is unverified;
+  ten-arm A/B responses remain undispatched.
 - Tokens, currency and billed cost remain unavailable; partial byte/time/response
   measurement is now explicitly separate from still-blocked accounting acceptance.
 - Focused **3 cases / one invocation PASS** (0.005s), full unique regression

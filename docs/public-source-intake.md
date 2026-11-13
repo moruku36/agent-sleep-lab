@@ -61,8 +61,10 @@ separate approval / URI / hash / scope binding, withdrawal/expiry/revision/time,
 review assertions, text bounds, artifact tampering and unchanged synthetic refusal.
 Current execution results live in [implementation status](implementation-status.md).
 
-A separately reviewed non-synthetic store admission, lifecycle/deletion enforcement,
-Light/Deep current-approval propagation, independent verification/adoption and an
-actual later-task input/use receipt are still required. Successful staging is not
-completion of those capabilities. This independent slice neither imports nor
-reconstructs the unpublished trial extension.
+A separate [one-document lifecycle library](public-document-lifecycle.md) now
+resolves persisted current controls and implements admission, managed deletion,
+independent excerpt/mechanical receipts, adoption and explicit later-task consumer
+boundaries. Staging alone still implements none of those operations. See
+[implementation status](implementation-status.md) for local verification and
+remaining live acceptance. Neither slice imports or reconstructs the unpublished
+trial extension.
