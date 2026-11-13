@@ -21,21 +21,90 @@ Python各版435件・文書・wheelが合格しました。読取り専用確認
 merge commitは`529ba8d7abdd282db3280e496db6d77b146d3b96`です。provider計測値保存が入り、
 [PR #50](https://github.com/moruku36/agent-sleep-lab/pull/50)も所有者マージ済みで、
 mergeは`d90e3036c6440e34901a65659fe1096057f110f8`、公開文書stagingが入りました。
-今回はCLI経過時間・byte数の実部分計測を記録します。
+[PR #51](https://github.com/moruku36/agent-sleep-lab/pull/51)も2026-11-13 04:08:54 UTCに
+`4a4c144dc3414b6ddf72446b508dca2c98fc8002`へマージ済みで、同一headの
+Python 3.11／3.13 CI成功を確認しました。この基点にCLI経過時間・byte数の実部分計測が入っています。
 文書だけの[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46)に記載した
 別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
 `1e636d8`は別途保全済みで、過去のPR作成は**UNKNOWN**です。その操作は再送しません。
 
 | 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
 |---|---|---|---|---|---|---|
-| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成storeと別の公開文書staging | 今回の検証は下記 | 未実施 | 非合成store受入と保持／削除の実施 | 受入／削除をレビューし現在許可を伝播 | [取込み境界](public-source-intake.ja.md) |
-| 実model Light／Deep→独立採用→取得 | 本文束縛生成・経過時間／byte記録・別verifier／writer | 下記451件回帰 | 新しい合成本文束縛Light／Deepが応答、原文一致候補2件。採用なし | local準備の日時形式失敗、修正版はネイティブ実行承認待ち。実データ束縛も未整備 | 元のpending準備を回収。再推論しない | [部分観測](live-development-measurement.ja.md) |
-| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journalと経過時間／byte観測 | focused 3件・全回帰 | 未実施。task／rubric選択固定、比較plan未登録 | 採用とlocal実行承認、token／通貨／全phase請求は欠測 | 保存候補の採用後にbyte／時間／応答の部分比較を固定・実行。会計受入とは分ける | [プロトコル](live-development-measurement.ja.md) |
-| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeと別の非合成staging API | 取込み契約は下記 | 別taskへの実利用なし | store受入、lifecycleの実施、利用追跡 | 合成制限を緩めず公開文書境界を接続 | [取込み](public-source-intake.ja.md)。利用受領なし |
+| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store不変、別の公開文書1件lifecycle | 現在の非固定依存全回帰で架空lifecycle 27件合格、必須依存pin検査は失敗。固定依存全回帰は未完 | 未実施 | 独立review・全回帰・実文書受入。公開文書の復活は意図的に非対応 | 隔離したlifecycle実装をreview | [公開文書lifecycle](public-document-lifecycle.ja.md) |
+| 実model Light／Deep→独立採用→取得 | 本文束縛生成・経過時間／byte記録・別verifier／writer | 下記451件回帰 | 新しい合成本文束縛Light／Deepが応答、原文一致候補2件。採用未確認 | 修正準備の元承認はallowed、実行結果は未解決。実データ束縛も未整備 | 再送せず元実行の証拠を回収 | [部分観測](live-development-measurement.ja.md) |
+| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journalと任意の読取り専用byte／時間集計 | 下記の新規local読取り5件。過去回帰は別 | 未実施。task／rubric選択固定、比較plan未登録 | 元の準備実行結果、token／通貨／全phase請求は欠測 | 元準備を照合してから採用／比較へ。保存済み観測はdispatchせず確認可能 | [プロトコル](live-development-measurement.ja.md) |
+| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridge不変、別の明示公開文書consumer境界 | 架空の別task入力／応答／意味reviewの分離 | 実agentでの別task利用なし | 実adapter接続と独立した意味／性能review | 上限付きoffline consumer境界をreview | [lifecycle](public-document-lifecycle.ja.md)。実agent利用の主張なし |
 
 有料利用の許可は受領済みで、一般的な再承認が障害ではありません。
 保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
 host／アカウント制御を変更したりしません。
+
+## 子ワーカーのローカル実装 — 公開文書1件のlifecycle
+
+- 別の版付き非公開storeを実装しました。合成契約・RuntimeStore・取得・CollectOnlyBridgeは
+  不変です。永続化した現在許可／generationでexact source／artifact／scope／時刻／origin taskを
+  束縛し、本文APIが現在control・期限／除外・全管理本文hashを再検査します。
+- 不変の未検証引用と読取り専用案API、別設定の決定的引用一致verifierと機械的snapshot
+  evaluatorを分離しました。真偽・抽象化品質・性能の確認ではありません。
+  追記型採用はparent／current-control CASと受領／operation／headを同時commitします。
+  exact operation replayは内容なし履歴だけで、適格性を復活させません。
+- 同scopeの別taskだけにrecord全体をbyte上限で取得します。consumerの明示identity／version／
+  runtime permissionと入力／reference hashを固定し、呼出し前にunknown intentを永続化します。
+  入力観測・応答・別の意味reviewを区別し、restartやrequest ID変更でunknownを再試行しません。
+  実行中の撤回は結果を利用不可にします。
+- 原文／evidence／proposal／memory／snapshot／request／resultの管理本文を
+  secure_delete／VACUUMで除去し、途中失敗はpurge_pendingに残します。
+  明示sweep／アクセス時検査だけで、停止中・remote／caller複製・backup／任意exportは保証外です。
+- 以下の修正前のfocused検証は**架空の固有23ケース／1起動合格（0.151秒）**。
+  先行開発は20件／1起動で19合格・1error（未存在fileの例外不一致、0.130秒）、
+  修正後20件／1起動合格（0.133秒）と22件／1起動合格（0.146秒）。
+  合計**85ケース実行／4起動**、1error修正済みです。
+  明示source束縛で検証しましたが、共有環境のjsonschema版不一致は既知のままです。
+  **必須の固定依存全回帰は未完**です。別環境作成がnative実行制御で拒否され、
+  使用可能な固定依存環境はありません。依存pin／共有環境は変更していません。
+- 独立した静的reviewでP2を2件確認しました。snapshot履歴だけの変更による
+  実効no-retry identityの迂回と、進入済みの非同期observerによるreturned受領の上書きです。
+  local sourceはexact provenanceと実効identityを分離し、観測transactionとcloseを
+  直列化してDB status条件も付けました。架空の決定的回帰4件（同一引用再採用、
+  新headでも同一packed reference、非同期の正常／例外close）は、修正後sourceで
+  **4件／1起動合格（0.042秒）**しました。
+  続く**固有483件の全回帰診断／1起動（37.434秒）**ではlifecycle全27件を含む
+  482件が合格し、唯一の失敗は必須のinstalled-version検査でした。
+  jsonschemaは固定4.23.0ではなく4.26.0です。両起動とも変更していない既存の
+  Python 3.15.2環境でcheckoutのsourceを明示束縛しました。
+  **固定依存全回帰の合格ではありません**。拒否されたsetupは再送せず、
+  別環境による代用や依存変更もしていません。
+  今回は**487ケース実行／2起動（486合格・依存pinの1失敗）**です。
+  先行分を含むlifecycle開発履歴は**572ケース実行／6起動**で、以前の修正済み1errorと
+  今回の未解決の環境失敗を含みます。現在の文書検査は
+  **相対file link 594件／Markdown 94file合格**（anchor対象外）です。
+  独立再review、対応した固定依存全回帰、exact-head CI／wheelは別の未完gateです。
+- [ライブラリ契約](public-document-lifecycle.ja.md)と
+  [架空テスト](../tests/test_public_document_runtime.py)を参照してください。自己reviewは
+  独立承認ではありません。実公開文書・私的live bundle・model・provider・実agentは使わず、
+  live受入・有料呼出し・元操作の再送・公開・push・merge・設定変更・scheduleはありません。
+  公開文書Light／Deep、実adapter利用、請求／性能の実証は未完です。下記の履歴より新しいoffline実装です。
+
+## 子ワーカーのローカル実装 — 保存済み比較の計測確認
+
+- `compare-inspect --measurements`を実装しました。既存journalから上限付きで受領を読み、
+  要求hashを照合し、要求／CLI prompt／応答byteとCLI monotonic経過nsだけを返します。
+  受領原文・本文の返却や有料呼出しはありません。既定の確認出力は変更しません。
+  受領tableのない旧journalは全欠測とし、移行しません。
+- 全計画A/B枠を分母に保ち、受領の欠落／不正／不一致、数値の欠測／不正、記録された0、
+  部分観測和を区別します。登録CLI／注入transportの件数も分けます。出自認証・live受入・
+  model単体遅延・usage／通貨／請求実費・節約の証明にはなりません。
+- 保持済みPython 3.13.18で**新規の合成5ケース／1起動合格（0.579秒）**。
+  この変更で過去テスト・全スイート・CIは再実行していません。
+  [新規テスト](../tests/test_compare_measurements.py)と
+  [任意の観測契約](runtime-guide.ja.md#任意の保存済みbyte時間観測)を参照してください。
+  localレビューは独立承認ではなく、変更はローカル・未公開です。
+- 修正したlocal準備の元のネイティブ承認はallowedと確認済みですが、dispatch／終端の
+  権威的証拠は未回収です。下記の古い「承認待ち」は更新済みで、再送・状態resetをせず、
+  artifact不在を未実行の証明としません。採用未確認、10枠A/B応答は未dispatchのままです。
+  この子は私的live bundleを読取り／変更せず、元の準備も再実行していません。
+- 当時は非合成lifecycleと別task利用が未完でした。新しいofflineライブラリは上記を参照してください。
+  実model呼出し・push・merge・公開・設定変更・scheduleは実施していません。
 
 ## 実モデルの開発用部分計測 — 2026-11-13
 
@@ -47,9 +116,9 @@ host／アカウント制御を変更したりしません。
   抽出的な開発試用で、実データの統合品質・独立holdoutではありません。
 - local準備は最初のreceipt登録前に、私的callerのISO期限の文字数超過で失敗しました。
   schemaやcoordinatorの失敗状態は変更していません。修正したlocalコマンドは
-  **ネイティブ実行承認待ち**で、実行未確認です。ツール待機はtimeoutしましたが元の承認は
-  pendingのままで、local intent／完了artifactは未観測です。再発行・別writer／経路の実行はしません。
-  採用・10枠A/Bは未実施です。
+  ツール待機timeout後にネイティブallow-onceで承認済みですが、dispatch／終端結果は未解決です。
+  local intent／完了artifactは未観測です。承認確認は実行確認や未dispatchの証明ではありません。
+  再発行・別writer／経路の実行はしません。採用は未確認、10枠A/B応答は未dispatchです。
 - token・通貨・請求実費は欠測です。まだblockedの会計受入と、進められるbyte／時間／応答の
   部分計測を明示的に分けます。
 - focused **3件／1起動合格**（0.005秒）、全回帰**451件／1起動合格**

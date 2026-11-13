@@ -284,8 +284,9 @@ Use this after preparation, interruption or execution to inspect an **existing**
 independent-raw plan with 1–5 pairs. Unlike `compare-prepare`, it never creates a
 plan or evaluation contact. Unlike `compare` and its report method, it never
 runs/retries a provider, evaluates a reply or persists invalidation/recovery.
-Only `--store-config`, `--journal` and `--plan-id` are accepted; no manifest,
-rubric, provider, model or execution options are needed or accepted.
+Required arguments are `--store-config`, `--journal` and `--plan-id`.
+Optional `--measurements` adds the bounded saved-observation projection below.
+No manifest, rubric, provider, model or execution options are needed or accepted.
 
 Both databases open in SQLite read-only/query-only mode. Missing, empty, foreign,
 aliased (including hardlinked), corrupt or unsupported journals fail without
@@ -318,6 +319,39 @@ matches again.
   the output is not an automatic publication allowlist.
 - Usage and measured cost remain unavailable (not zero); `comparison` and
   `performance_claim` remain null. No adoption or live-acceptance claim is issued.
+
+### Optional saved byte/time observations
+
+Add `--measurements` to the command above to include content-free observations
+from the existing provider-receipt table. The default output is unchanged and
+does not parse receipts. This option does not execute, resume, reconcile or
+authenticate any model call.
+
+- `measurements.slots` retains all planned slots. Each receipt is `missing`,
+  `invalid`, `binding_mismatch` or `recorded`; model/request hashes must match
+  the frozen slot and a receipt on an undispatched slot is a mismatch.
+- Only integer `request_bytes`, `cli_prompt_bytes`, `output_bytes` and
+  `transport_elapsed_ns` are projected. Each has `observed`, `absent` or
+  `invalid` state. Booleans, negatives, strings and unsafe integers are invalid.
+  Request bytes must equal the frozen request, CLI prompt bytes cannot be smaller,
+  and elapsed time requires the adapter's explicit monotonic process-time basis.
+- Per-arm metrics report observed/absent/invalid slot counts, `observed_sum` and
+  `all_slots_observed`, always against the full planned denominator. No observations
+  means a null sum, not zero. A recorded zero remains zero. Partial sums describe
+  observed slots only, not estimates for missing slots or all-phase totals.
+- Time includes CLI startup/transport/cleanup, **not provider-only latency**.
+  Failure/unknown-outcome receipts may retain time/input observations without
+  a reply. These observations never alter saved outcome or score states.
+- Finite receipt status/source labels distinguish registered CLI from injected
+  transports; neither label authenticates origin or establishes live acceptance.
+  Sources are counted separately even when numeric sums combine them.
+- Each receipt read is capped at 65,536 bytes; malformed, duplicate-key or oversized
+  blobs are classified invalid without exposing them. Unexpected receipt identities
+  refuse inspection. Older journals without receipt retention return all-missing
+  observations without migration.
+- Receipt bodies, unknown metadata, output text/hashes, usage and costs are not
+  exported. Existing top-level usage/cost remain unavailable, not zero.
+  This is no billing, savings, success or performance conclusion.
 
 ## Paired comparison
 

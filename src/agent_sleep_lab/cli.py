@@ -86,6 +86,8 @@ def build_parser() -> argparse.ArgumentParser:
     comparison_inspect.add_argument("--journal", required=True,
                                     help="existing separate private comparison SQLite journal")
     comparison_inspect.add_argument("--plan-id", required=True, help="existing comparison plan ID")
+    comparison_inspect.add_argument("--measurements", action="store_true",
+                                    help="include saved byte/process-time observations; no raw receipts")
     for name in ("sleep", "adopt", "retrieve", "compare", "sleep-status"):
         cmd = sub.add_parser(name, help="explicit runtime " + name)
         if name != "sleep-status":
@@ -186,7 +188,8 @@ def main(
         try:
             from agent_sleep_lab.comparison_inspect import execute as inspect_comparison
             result = inspect_comparison(store_config_path=args.store_config,
-                                        journal_path=args.journal, plan_id=args.plan_id)
+                                        journal_path=args.journal, plan_id=args.plan_id,
+                                        measurements=args.measurements)
             print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
             return EXIT_OK
         except Exception:

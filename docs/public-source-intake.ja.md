@@ -53,7 +53,8 @@ CLI・暗黙の初期化・schema移行・合成への偽装・verifier登録・
 撤回／期限／版／時刻、確認assertion、サイズ、改変、従来の合成限定拒否を確認します。
 実行結果の正本は[実装状況](implementation-status.ja.md)です。
 
-別レビュー済みの非合成store受入、保持／削除の実施、Light／Deepへの現在許可の伝播、
-独立検証／採用、別taskへの実入力／利用受領は未完です。
-staging成功をそれらの完了とは扱いません。今回の独立した改修は、
-未公開の試用拡張を検索・復元・取込みしていません。
+別の[公開文書1件のlifecycleライブラリ](public-document-lifecycle.ja.md)が、永続化した
+現在control、受入、管理削除、独立した引用／機械的受領、採用、明示consumer境界を実装します。
+staging単体はそれらを実行しません。local検証と残る実環境受入は
+[実装状況](implementation-status.ja.md)を参照してください。
+どちらも未公開の試用拡張を検索・復元・取込みしていません。

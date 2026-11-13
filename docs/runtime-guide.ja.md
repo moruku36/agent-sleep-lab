@@ -218,7 +218,8 @@ agent-sleep-lab compare-inspect --store-config private/store.json --journal priv
 準備後・中断後・実行後に、**既存**の独立raw比較（1〜5組）を確認します。
 `compare-prepare`と違ってplanや評価contactを作りません。`compare`や既存reportと違って、
 providerの実行／再試行、返答の採点、失効／復旧状態の書込みをしません。
-受け付ける引数は`--store-config`、`--journal`、`--plan-id`だけで、
+必須引数は`--store-config`、`--journal`、`--plan-id`です。
+任意の`--measurements`で下記の保存済み数値観測を追加します。
 manifest・rubric・provider・model・実行optionは不要かつ指定不可です。
 
 両DBをSQLiteのread-only／query-onlyで開きます。欠落・空・異種・別名参照
@@ -246,6 +247,31 @@ dispatch許可・出自認証・受入完了ではありません。整合性不
   IDやhashも必要に応じ非公開にし、自動公開の許可一覧とは扱いません。
 - 使用量・実費はunavailable（0ではない）、`comparison`と`performance_claim`はnullです。
   採用や実環境受入の完了は発行しません。
+
+### 任意の保存済みbyte／時間観測
+
+上のコマンドへ`--measurements`を追加すると、既存provider受領tableから
+本文なしの数値観測を返します。既定出力は変わらず、受領を解析しません。
+実行・再開・過去の結果照合・モデル呼出しの出自認証は行いません。
+
+- `measurements.slots`は全計画枠を保ちます。受領状態は`missing`、
+  `invalid`、`binding_mismatch`、`recorded`です。model／要求hashが
+  固定枠に一致しない受領、未dispatch枠に付いた受領は不一致とします。
+- 整数の`request_bytes`、`cli_prompt_bytes`、`output_bytes`、
+  `transport_elapsed_ns`だけを返し、それぞれ`observed`／`absent`／`invalid`を区別します。
+  bool・負数・文字列・安全整数範囲外は不正です。要求byteは固定要求と同じ、
+  CLI prompt byteは要求以上、時間はadapterの明示monotonic process-time定義が必須です。
+- 群別に観測／欠測／不正の枠数、`observed_sum`、`all_slots_observed`を返し、
+  分母は全予定枠です。観測なしの和はnullで、記録された0とは区別します。
+  部分和は観測枠だけの集計で、欠測補完や全phaseの総計ではありません。
+- 時間にはCLI起動・transport・終了処理を含み、**model単体遅延ではありません**。
+  失敗／結果不明でも時間や入力の観測を残せます。保存済み応答状態・採点は変更しません。
+- 有限の受領状態／source labelで登録CLIと注入transportを区別して件数を返します。
+  数値和は両sourceを合算し得ます。いずれのlabelも出自認証やlive受入にはなりません。
+- 受領は各65,536byte上限で読み、破損・重複JSON key・超過は本文を返さず不正とします。
+  計画外の受領IDは確認を拒否します。受領tableのない旧journalは全欠測とし、移行しません。
+- 受領原文・任意metadata・出力本文／hash・usage・costは返しません。
+  既存のtop-level usage／実費は欠測のままで、請求・節約・成功・性能の結論は出しません。
 
 ## 対応比較
 

@@ -15,13 +15,15 @@ STATES = ("planned_not_dispatched", "dispatch_intent_outcome_unknown", "replied"
           "completed", "timeout", "missing", "invalid")
 
 
-def execute(*, store_config_path, journal_path, plan_id):
+def execute(*, store_config_path, journal_path, plan_id, measurements=False):
     """Inspect one existing plan from a journal read snapshot, without a rubric.
 
     Current eligibility is observed separately in the evidence store. Neither
     this observation nor a complete journal authorizes dispatch or adoption.
     SQLite's normal read locks/WAL sidecars may still be needed.
     """
+    if type(measurements) is not bool:
+        raise ValueError("measurements must be boolean")
     if not _id(plan_id):
         raise ValueError("bounded comparison plan ID required")
     config = loads_strict_bytes(_read(_file(store_config_path), MAX_INPUT_BYTES))
@@ -74,6 +76,10 @@ def execute(*, store_config_path, journal_path, plan_id):
                     "status", "outcome_known")} | {"score": score})
             current = baseline.current(plan_id)
             valid = current == comparisons._bound(plan)
+            observed = {}
+            if measurements:
+                from agent_sleep_lab.comparison_measurements import project
+                observed["measurements"] = project(comparisons.db, plan_id, plan["model"], arms)
             return dict(
                 operation="compare-inspect", offline=True, read_only=True,
                 dispatch_authorization=False, adoption_receipt=None,
@@ -87,4 +93,4 @@ def execute(*, store_config_path, journal_path, plan_id):
                 all_outcomes_scored=all(outcomes[a]["completed"] == volume["task_pairs"] for a in "AB"),
                 current_validity={"valid": valid},
                 cost={"label": "unavailable", "value": None}, usage=None,
-                comparison=None, performance_claim=None, acceptance_complete=False)
+                comparison=None, performance_claim=None, acceptance_complete=False, **observed)
