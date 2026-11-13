@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: src
         run: >-
           python tests/run_tests.py
-          test_public_document_dogfood.PublicDocumentDogfoodTests.test_rejected_deep_quarantine_never_adopts_and_withdrawal_purges
-          test_public_document_dogfood.PublicDocumentDogfoodTests.test_light_quarantine_is_bounded_immutable_and_not_a_reply
-          test_public_document_dogfood.PublicDocumentDogfoodTests.test_selection_context_binds_request_prompt_and_has_no_authority
-          test_public_document_dogfood.PublicDocumentDogfoodTests.test_hostile_transport_envelope_is_sanitized_and_stays_reserved
+          test_demo_text.DemoTextTests.test_default_and_explicit_json_preserve_exact_serialization
+          test_demo_text.DemoTextTests.test_text_uses_single_actual_result_without_extra_dispatch
+          test_demo_text.DemoTextTests.test_invalid_format_rejected_before_execution
+          test_demo_text.DemoTextTests.test_text_failure_keeps_exit_and_closes_removes_temporary_state

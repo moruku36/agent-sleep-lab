@@ -66,11 +66,13 @@ with at most 10 case executions across local runs, CI, retries and subagents;
 UNKNOWN outcomes retain their reservation. Documentation-only edits normally need
 review, not regression execution. Never use the runner's unbounded default.
 PR and main CI use Python 3.13 AST syntax checks without imports or tests, plus
-relative documentation file-link checks: no dependency install, regression suite,
-version matrix, wheel build or paid model calls. Exact-head CI evidence belongs
+relative documentation file-link checks. PR events additionally install pinned runtime
+dependencies and run exactly four explicitly named affected cases in one invocation;
+main pushes execute no cases. No full suite, matrix, wheel build or paid model calls.
+Budget each PR event/retry before triggering it. Exact-head CI evidence belongs
 in [current status](implementation-status.md). The documentation checker does not
 validate anchors or external URLs. See [repository instructions](../AGENTS.md)
-and [test policy (日本語)](testing-budget.ja.md).
+and [test policy](testing-budget.md) / [日本語](testing-budget.ja.md).
 
 ## License
 

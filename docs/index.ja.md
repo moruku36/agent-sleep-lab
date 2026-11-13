@@ -62,7 +62,9 @@ OpenClawの[Dreaming](https://docs.openclaw.ai/concepts/dreaming)があります
 通常3〜5件の意味あるケースを選び、local・CI・retry・子agentを合算して最大10ケース実行とし、
 UNKNOWNも予約枠に保持します。文書だけの変更は通常reviewで確認し、回帰実行を増やしません。
 runnerの無指定全件実行は使いません。PR・main CIはPython 3.13でimport・testなしのAST構文検査と
-文書の相対file link検査だけです。依存install・回帰全件・version matrix・wheel・有料推論はありません。
+文書の相対file link検査を行います。PR時だけpin済みruntime依存をinstallし、
+明示名の影響4ケースを1起動で実行します。main pushはケース実行なしです。
+PR作成・更新・retryの各起動前に枠を確保します。全件回帰・matrix・wheel・有料推論はありません。
 exact headの結果は[現在の実装状況](implementation-status.ja.md)で確認します。
 文書checkerはanchorや外部URLを検査しません。[repo指示](../AGENTS.md)と
 [テスト方針](testing-budget.ja.md)も参照してください。

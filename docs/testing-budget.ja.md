@@ -1,21 +1,40 @@
-# 回帰テスト方針
+# 開発時のテスト方針
 
-[ホーム](../README.ja.md) | [実装状況](implementation-status.ja.md)
+[English](testing-budget.md) | **日本語** | [ホーム](../README.ja.md)
 
-所有者の2026-11-10 18:37 JSTのレビュー修正依頼により、Sleep Labの旧「1試行10件以下」を撤廃しました。PRおよびmainのCIで全件回帰を実行します。過去の上限と実行数は当時の履歴であり、現在の実行制限ではありません。
+[AGENTS](../AGENTS.md)にある所有者の2026-11-13個人開発方針が、
+2026-11-10の全件回帰overrideに優先します。通常は変更に関係する3〜5ケースを選び、
+**1開発試行で最大10ケース実行**です。local・CI・retry・全子agentを合算し、
+個別taskのより狭い割当を守ります。使い切った枠やUNKNOWN予約を試行名の変更でresetしません。
 
-```sh
-python -m pip install .
-python tests/run_tests.py
-python tools/check_docs.py
-# 修正箇所の確認だけを先に行う場合
-python tests/run_tests.py test_runtime_review
-# 実行せず全選択IDを確認
-python tests/run_tests.py --list
-```
+## 実行前に選択
 
-runnerは全test_*.pyを探索し、同一unittest IDを重複排除します。fixtureとしてimportされたTestCase aliasを二重実行しません。実行したケース数と呼出し回数は分けて報告し、外部レビューの253件などを自分の実行結果として数えません。
+`python tests/run_tests.py <明示した完全method名>`を使います。
+無指定の過去互換全探索や、割当より多数のケースを含むclass／module指定は使いません。
+`--list <明示名>`はload／列挙だけでtest本体は実行せず、合格結果ではありません。
+ケース実行数と起動回数は別々に報告します。可逆的な文書だけの変更は通常reviewと
+`python tools/check_docs.py`で確認し、回帰実行を増やしません。
 
-CIはPython 3.11／3.13、PRイベントとmainへのpushを対象にします。feature pushとPRの二重起動は避けますが、mainマージ時の回帰は意図した再確認です。全Markdownの相対ファイルリンク（anchor対象外）とwheelビルドも確認します。有料モデルAPIはCIから呼びません。
+## 実際のCI
 
-失敗時は原因を直し、まず関係するケースだけを再実行します。全件の繰返しは修正・新たな懸念があるときに限定します。依存pinの不一致をテスト省略や期待値の変更で隠しません。実API試行の費用・時間・回数上限は回帰テスト方針とは別です。
+[workflow](../.github/workflows/gate-1.yml)はPython 3.13のみです。
+
+| event | 静的確認 | 回帰 |
+|---|---|---|
+| PR | importなしAST構文検査、Markdown相対file link検査 | pin済みruntime依存をinstallし、明示した4ケースを1起動 |
+| main push | 同じ静的確認 | 依存install・ケース実行なし |
+
+matrix・wheel・全件回帰・demo command・有料model／API呼出しを静的確認に隠しません。
+link checkerはanchor／外部URLを検査しません。PR作成・更新・rerunごとにさらに4ケースを
+消費し得るため、公開前に予約します。許可と予約枠は試行ledgerに記録します。
+
+現在の選択は既存`test_demo_text.DemoTextTests`の4methodで、
+JSON直列化互換、追加dispatchなしの単一結果text表示、不正formatの実行前拒否、
+失敗exitと一時state cleanupです。1methodを1ケースと数え、内部assertionや台本fixture呼出しは
+別unittestケースでも実モデル呼出しでもありません。
+次の変更では影響する4ケースに入れ替え、過去選択を積み増ししません。
+
+日付付き報告と過去テストは保持します。多件数・旧matrix・旧runner commandは当時の履歴で、
+現在の指示ではありません。失敗時も自動rerunせず、結果と残枠を確認します。
+追加が必要なら具体的な増枠理由を示し、全件実行を既定にしません。
+live実験には別の明示許可が必要です。回帰上限はmodel・token・金額上限ではありません。
