@@ -88,6 +88,45 @@ agent-sleep-lab sleep --store-config private/store.json --manifest configs/sleep
 
 中断したprovider／準備callbackは再実行しません。古いworkerの停止を確認した後だけrecover_stopped_provider／recover_stopped_preparationを呼ぶと、結果不明のincompleteへ進めます。登録済みartifact・受領は別途照合し、新しい操作で二重実行しないでください。
 
+
+## provider計測値の保存
+
+論文pilotの`OpenClawMimoProvider`は、
+[model.runの公式JSON契約](https://docs.openclaw.ai/cli/infer#json-output)で
+返された値だけをallowlistで保存します。公開契約への互換対応であり、
+**現行のインストール済みCLI・アカウントで値が返ることを確認したわけではありません**。
+参照した公式実装は
+[usage正規化](https://github.com/openclaw/openclaw/blob/db4b2edd6d0882dd93ce2fdc670a5861e42621f3/src/agents/usage.ts)と
+[CLI契約テスト](https://github.com/openclaw/openclaw/blob/db4b2edd6d0882dd93ce2fdc670a5861e42621f3/src/cli/capability-cli/model.run-outcomes.test.ts)です。
+
+- `usage`は与えられた正規名のtoken値（`input`、`output`、`cacheRead`、
+  `cacheWrite`、`cacheWrite1h`、`cacheWrite5m`、`reasoningTokens`、`total`）と、
+  有限非負の費用合計・内訳、定義済みの費用状態・使用量可用性labelだけを保存します。
+  token合計・価格は計算しません。
+- `last_call_usage`は`lastCallUsage`の別snapshotです。aggregateの欠測を
+  最後の1呼出しで補いません。Gatewayの集計は複数呼出しに及ぶことがあります。
+- `usage_state`／`last_call_usage_state`で、`not_observed`（未確認envelope）、
+  `absent`、`unavailable`、`invalid`、`observed`を区別します。
+  欠測・既定の0だけのsnapshotは測定0とみなしません。明示availableの0や
+  provider-billedの0費用は保持します。
+- receiptの`cost`は、CLIに`totalOrigin: "provider-billed"`がある場合だけ
+  `provider_billed`とします。それ以外は`recorded_unverified_billing`で、
+  課金されたと断定しません。runtimeの出所表示であり、請求書との独立照合ではありません。
+  `costStatus: "unavailable"`または使用量unavailableなら費用を除きます。
+  envelopeで通貨は確定できないためnullのままです。
+- 未知・アカウント・自由文metadataは保存しません。既知fieldが不正ならそのsnapshotを
+  invalidにし、正常な返答自体は捨てません。モデル・fallbackなしを照合した後、
+  本文・byte検査より先に計測値を保存し、不正な返答でも使用量が残るようにします。
+- 既存Light／Deep checkpoint（`sleep-status`）と非公開A/B journalの
+  `provider_receipts`に保存し、再open後も保持します。schema移行・新規dispatch・
+  再試行・採用・取込み許可・モデル変更は追加しません。注入transportの受領は
+  非liveと明示します。別のOSS adapterと`compare-inspect`は変更しません。
+
+応答ごとの値があっても総費用計測は完成しません。capture・整理・独立検証・取得・
+タスク実行・評価の全段階と、通貨・課金の出所が必要です。既存比較の段階／総費用は
+unavailableを維持し、節約額を作りません。モデル利用不可・過去の実行binding・
+合成限定の実agent取込み境界は、別の未解決事項です。
+
 ## 採用・取得
 
 ```sh
@@ -127,7 +166,8 @@ retrievalの`max_bytes`は1 MiB以下、`scan_limit`は1,024以下、`max_raw`�
 原文・prompt・query・返答・解答keyは出しません。各BにはAと同じ完全raw prefixの後に
 整理記憶が入ることが必須です。**5課題では計画した10枠（各群5枠）が固定分母**で、
 欠測・失敗・不明結果で縮めません。返答byteは**生成後の検査**で、token・金額上限ではありません。
-MiMoを含む使用量・実費はunavailableのままで、0費用・性能・受入完了を主張しません。
+準備操作では使用量・実費を測定しません。後続MiMo応答の観測値は上記のとおり保存できますが、
+総費用はunavailableのままで、0費用・性能・受入完了を主張しません。
 
 追加の`input_volume`で、計画した入力の増加量を明示します。
 
@@ -205,6 +245,6 @@ manifestはplan_id、1〜5件のtasks（task_id／prompt）、retrieval（scope�
 順位方式・queryの固定と旧planの互換性を記載しています。両群のraw prefixは同一で、
 公平性・改善の証拠にはなりません。
 
-各群の予算は同一で実行順を交互にします。詰めたA/Bが一つでも同じなら、登録・呼出し前に拒否します。原ログを減らすか上限を増やしてください。ライブラリのdiagnostic_only=Trueは入力監査だけに使え、comparable:false／comparison:nullとなります。原ログの完全record・prefix監査を維持します。受領・結果不明状態は非公開journalへ残し、不明intentを再送しません。実API費用は不明のまま保持し、合成0費用や節約実績としません。
+各群の予算は同一で実行順を交互にします。詰めたA/Bが一つでも同じなら、登録・呼出し前に拒否します。原ログを減らすか上限を増やしてください。ライブラリのdiagnostic_only=Trueは入力監査だけに使え、comparable:false／comparison:nullとなります。原ログの完全record・prefix監査を維持します。受領・結果不明状態は非公開journalへ残し、不明intentを再送しません。MiMo応答の使用量・費用観測値は上記のとおり保持しますが、段階／総費用は不明のままとし、合成0費用や節約実績としません。
 
 [5課題fixture](../examples/paper-pilot/README.md)は実応答試行の準備であり、実施済み・独立holdoutではありません。研究ノートhandoffの対象はrepo名と40桁commitを呼出し側が明示し、libraryへ固定しません。

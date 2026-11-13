@@ -16,8 +16,12 @@ Fresh GitHub reads confirmed [PR #47](https://github.com/moruku36/agent-sleep-la
 owner-merged at `82729e8dff6ce5b3967fd406490a058c5f265b70` on 2026-11-13.
 Its exact-head [PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43347223453)
 succeeded. That baseline includes planned input-volume reporting.
-This follow-up adds a read-only saved-comparison inspector; it does not publish
-the separate public-source trial implementation from the documentation-only
+[PR #48](https://github.com/moruku36/agent-sleep-lab/pull/48) is also owner-merged
+at `2ab948bebbdcdf14d4ffeca0a2a071cf1db16af8`. Its exact-head
+[CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43350754976) passed
+435 cases on each Python version, documentation and wheel checks.
+That baseline adds read-only comparison inspection. This follow-up retains
+provider accounting observations; it does not publish the separate trial code from
 [PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46).
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
@@ -25,15 +29,48 @@ its prior PR creation is **UNKNOWN**, not reissued here.
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
 |---|---|---|---|---|---|---|
 | Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic-store path implemented | Historical baseline regression; current results below | Not performed | Real-data boundary and operational acceptance | Define one authorized real-data boundary | Existing store/writer/retrieval contracts |
-| Real-model Light/Deep → independent adoption → retrieval | Body-bound generation and separate verifier/writer implemented; prior same-run CLI branch preserved separately | Existing contracts; no new model call | Not performed | Supported host execution binding and real generated-candidate verification | After binding resolution, one bounded receipt call within total budget | [Runtime guide](runtime-guide.md), prior branch noted above |
-| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal, offline preparation/volume, new read-only inspection | Preparation/volume baseline passes; inspection verification below | Not performed | Ten real outcomes and total measured costs | Prepare fixed five-pair manifest, then resolve execution gate | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
-| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge and offline handoff only | Existing synthetic integration contracts | Not performed | Real-data permission, retention/deletion/scope/secrets contract and tracked actual use | Define OSS Contributor real-data acceptance contract | Existing bridge and execution journal; no real-agent receipt |
+| Real-model Light/Deep → independent adoption → retrieval | Body-bound generation and separate verifier/writer implemented; prior same-run CLI branch preserved separately | Existing contracts; no new model call | Not performed | MiMo absent from the current agent catalog; unresolved execution binding and real candidate verification | After binding resolution, one bounded receipt call within total budget | [Runtime guide](runtime-guide.md), prior branch noted above |
+| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal, preparation/volume/inspection; provider accounting retention | Baseline and new accounting contracts below | Not performed | Ten real outcomes, live-emitted usage, currency and all-phase billed costs | Restore the supported MiMo capability before any live run | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
+| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge and offline handoff only | Existing synthetic integration contracts | Not performed | Real-data permission, retention/deletion/scope/secrets contract and tracked actual use | Scope explicit public-source capture acceptance for Kurotchi | Existing bridge and execution journal; no real-agent receipt |
 
 Paid-use consent was already received; missing generic consent is not the blocker.
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
 
-## Read-only saved comparison inspection — 2026-11-13 follow-up
+## Direct validation preflight and accounting retention — 2026-11-13
+
+Owner asked Kurotchi itself to validate, without workers. A read-only catalog
+inspect for `xiaomi/mimo-v2.6-pro` returned **Model not found** for the configured
+agent. This is not an inference, an approval rejection, proof of globally missing
+credentials, or proof the historical binding was repaired. Live calls: **0**.
+The five-pair worksheet is not a frozen executable comparison or scored result.
+
+- Implemented [provider accounting retention](runtime-guide.md#provider-accounting-observations)
+  in the existing paper-pilot adapter: allowlisted aggregate/last-call token and
+  recorded cost metadata, availability and billing provenance. Missing/default
+  zeros, unavailable usage and malformed values never become invented metrics.
+  No currency, prices, monetary totals or savings are inferred.
+- Existing Light/Deep checkpoints and A/B provider-receipt journals retain these
+  observations across reopen, including on rejected post-generation output.
+  This changes no schema, permissions, synthetic-only gates, dispatch, model,
+  verification or adoption policy. The separate OSS adapter/inspector stay unchanged.
+- Seven new [offline behavior cases](../tests/test_provider_usage.py) passed in
+  one focused invocation (0.052s). Full regression passed **442 unique cases /
+  one invocation** (36.809s), using existing Python 3.13.18 and pinned dependencies:
+  **449 verified local case executions / two invocations**. The full run includes
+  a clearer unverified-billing label introduced after the focused run.
+  Earlier unknown/denied operations are not retried or reset.
+- Direct coordinator review and injected transports are not independent review
+  or live acceptance. Current PR Python 3.11/3.13 CI is a separate check record.
+  The reviewed public CLI contract may be newer than the installed CLI; actual
+  emission and provider billing are still unverified.
+- Remaining: supported MiMo capability/binding restoration by the infrastructure
+  owner; established currency and all-phase billed-cost coverage; a separately
+  reviewed real-data boundary with explicit source/scope/purpose/retention/deletion
+  and actual later-task input/use receipts. No private trial code was searched or
+  reconstructed, and real data was not relabelled synthetic.
+
+## Read-only saved comparison inspection — PR #48 merged baseline
 
 - Added [compare-inspect](runtime-guide.md#read-only-saved-comparison-inspection)
   over existing independent-raw journals, without initialization, plan/contact
