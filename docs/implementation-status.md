@@ -47,16 +47,21 @@ correctness or security defects. Separate QA verified source commit
 **488 unique regression cases / one invocation PASS (35.480s)**, including the
 five new fictional handoff cases; **696 relative file links / 98 Markdown files
 PASS** (anchors not checked), and whitespace checks PASS. No local Python 3.11
-or wheel result is claimed. This documentation-only follow-up does not repeat
-the full regression. Feature publication is authorized; exact-head PR CI on
-Python 3.11/3.13, documentation and wheel checks is a separate publication gate,
-pending at this documentation checkpoint. These are offline checks, not live
-model, actual-document or real-agent acceptance.
+or wheel result is claimed. That full-suite result predates the owner's updated
+personal-development policy: select relevant checks, normally 3–5 cases and at
+most 10 case executions per trial across local runs, CI, retries and subagents.
+The publication follow-up changes only policy, CI and status documentation; it
+adds **0 regression case executions / 0 test invocations**. Automatic CI now uses
+one Python version for AST syntax and documentation-link checks only, with no
+project imports, dependency installation, regression suite or wheel build.
+Exact-head static PR CI is pending at this checkpoint; full multi-version
+regression and wheel checks are no longer required publication gates. These are
+offline checks, not live model, actual-document or real-agent acceptance.
 
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
 |---|---|---|---|---|---|---|
-| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store unchanged; published separate public lifecycle library | Published 483-case baseline CI separate; new 488-case pinned local regression PASS | Not performed | Actual document acceptance; public-data resurrection deliberately absent | Observe exact-head PR CI, then assess authorized actual-document intake | [Public lifecycle](public-document-lifecycle.md) |
-| Real-model Light/Deep → independent adoption → retrieval | Existing synthetic generator unchanged; new separate offline body-bound public-document saved-output handoff | Five new fictional scenarios PASS within the 488-case local regression; independent concrete review found no actionable defects | Only prior synthetic Light/Deep responses; original adoption unverified; no public-document model use | Exact-head PR CI and actual authorized model integration/accounting; original preparation outcome unresolved | Observe offline PR CI without replaying old execution | [Lifecycle contract](public-document-lifecycle.md); [partial observation](live-development-measurement.md) |
+| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store unchanged; published separate public lifecycle library | Published 483-case baseline CI separate; new 488-case pinned local regression PASS | Not performed | Actual document acceptance; public-data resurrection deliberately absent | Observe exact-head static PR CI, then assess authorized actual-document intake | [Public lifecycle](public-document-lifecycle.md) |
+| Real-model Light/Deep → independent adoption → retrieval | Existing synthetic generator unchanged; new separate offline body-bound public-document saved-output handoff | Five new fictional scenarios PASS within the 488-case local regression; independent concrete review found no actionable defects | Only prior synthetic Light/Deep responses; original adoption unverified; no public-document model use | Exact-head static PR CI and actual authorized model integration/accounting; original preparation outcome unresolved | Observe static PR CI without replaying old execution | [Lifecycle contract](public-document-lifecycle.md); [partial observation](live-development-measurement.md) |
 | Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus optional read-only byte/time projection | Five new local reader cases below; historical regression separate | Not performed; task/rubric fixed, executable plan not registered | Original preparation execution outcome; token/currency/all-phase billing remain absent | Reconcile original preparation before adoption/comparison; saved observations are inspectable without dispatch | [Protocol](live-development-measurement.md) |
 | One real-agent capture → retrieval on another task → input / execution | Synthetic bridge unchanged; separate explicit public-document consumer boundary | Fictional different-task input/return/semantic-review separation below | No real-agent later-task use | Actual authorized adapter integration and independent semantic/performance review | Review the bounded offline consumer boundary | [Lifecycle](public-document-lifecycle.md); no real-agent use claim |
 
@@ -90,8 +95,11 @@ does not replay them or change host/account controls.
   pinned Python 3.13.18 at source commit `db8dd1b`. Independent concrete review
   found no actionable correctness/security defects. Documentation validation
   passed 696 relative file links / 98 Markdown files (anchors not checked), and
-  whitespace checks passed. Exact-head PR CI/wheel is pending at this checkpoint;
-  the historical published 483-case CI remains a distinct baseline result.
+  whitespace checks passed. The 488-case run predates the updated personal-
+  development testing policy; this publication follow-up adds no regression
+  executions. Exact-head static PR CI is pending at this checkpoint; no new
+  multi-version suite or wheel is required. The historical published 483-case
+  CI remains a distinct baseline result.
 - The offline implementation is locally committed and feature PR publication is
   authorized; merge is not authorized or performed. No actual public/private
   document, old live bundle, paid/model call,
