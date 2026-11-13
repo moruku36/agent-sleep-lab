@@ -19,6 +19,10 @@ from .public_source_intake import (
     PublicDocumentApproval, _identifier, _stamp, recheck_public_document,
 )
 from .strictjson import loads_strict_bytes
+from .public_document_sleep import (
+    SleepLimits, PublicDocumentSleepError, build_light_request, build_deep_request,
+    parse_deep_result,
+)
 
 VERSION = "agent-sleep-public-document/1"
 EXCERPT_PROTOCOL = "exact-source-quotation/1"
@@ -342,6 +346,121 @@ class PublicDocumentStore:
             self._put(db, "source", "source_evidence", artifact)
             db.execute("UPDATE control SET admitted_generation=generation")
             return {"artifact_sha256": c["artifact_hash"], "generation": c["generation"]}
+
+    @contextmanager
+    def _sleep_live(self):
+        try:
+            with self._live() as live:
+                yield live
+        except PublicDocumentSleepError:
+            raise PublicDocumentError("invalid offline sleep protocol or bounds") from None
+
+    def _sleep_current(self, db, c, sleep_id):
+        """Reconstruct the saved request from CURRENT admitted body/control/head."""
+        data = self._get(db, "sleep:" + sleep_id + ":light_request", "sleep_light_request")
+        saved = _json(data)
+        approval = _json(c["body"])
+        artifact = _json(self._get(db, "source", "source_evidence"))
+        expected = build_light_request(
+            sleep_id=sleep_id, artifact_sha256=c["artifact_hash"],
+            source_sha256=c["source_hash"], generation=c["generation"],
+            scope={k: approval[k] for k in ("project", "task_family")},
+            expected_parent=c["head"], origin_task=c["origin_task"],
+            source_text=artifact["source"]["text"], limits=SleepLimits(**saved["limits"]))
+        if data != expected:
+            raise PublicDocumentError("sleep source, scope, generation or parent no longer current")
+        return data
+
+    def prepare_sleep(self, *, sleep_id, scope, expected_generation, expected_parent, limits):
+        """Save/return canonical Light bytes, WITHOUT dispatch or authority issuance.
+
+        No provider callback, live option or synthetic coordinator is involved.
+        Exact current-bound replay returns the same bytes; a changed binding fails.
+        """
+        _identifier(sleep_id)
+        with self._sleep_live() as (db, c):
+            approval = _json(c["body"])
+            if (type(expected_generation) is not int or expected_generation != c["generation"]
+                    or expected_parent != c["head"] or type(scope) is not dict
+                    or scope != {k: approval[k] for k in ("project", "task_family")}):
+                raise PublicDocumentError("sleep current-control, scope or parent conflict")
+            artifact = _json(self._get(db, "source", "source_evidence"))
+            data = build_light_request(
+                sleep_id=sleep_id, artifact_sha256=c["artifact_hash"],
+                source_sha256=c["source_hash"], generation=c["generation"], scope=scope,
+                expected_parent=expected_parent, origin_task=c["origin_task"],
+                source_text=artifact["source"]["text"], limits=limits)
+            self._put(db, "sleep:" + sleep_id + ":light_request", "sleep_light_request", data)
+            return data
+
+    def submit_light_result(self, *, sleep_id, expected_request_sha256, result_bytes):
+        """Save a strict offline reply; return selected-only Deep bytes or None.
+
+        Empty selection is terminal no-change, not permission to introduce evidence.
+        Saved replies are not authenticated model responses or execution receipts.
+        """
+        _identifier(sleep_id)
+        _hash(expected_request_sha256)
+        with self._sleep_live() as (db, c):
+            request = self._sleep_current(db, c, sleep_id)
+            if sha256_hex(request) != expected_request_sha256:
+                raise PublicDocumentError("light request hash conflict")
+            deep = build_deep_request(request, result_bytes)  # validates WHOLE reply
+            prefix = "sleep:" + sleep_id
+            self._put(db, prefix + ":light_reply", "sleep_light_reply", result_bytes)
+            if deep is None:
+                self._put(db, prefix + ":result", "sleep_result", canonical_json({
+                    "state": "no_change", "proposal_ids": [],
+                    "light_request_sha256": sha256_hex(request),
+                    "light_reply_sha256": sha256_hex(result_bytes)}))
+            else:
+                self._put(db, prefix + ":deep_request", "sleep_deep_request", deep)
+            return deep
+
+    def submit_deep_result(self, *, sleep_id, expected_request_sha256, result_bytes):
+        """Atomically save ALL valid excerpts as UNVERIFIED proposals, or none.
+
+        No reviews/receipts, snapshots, memory, head or operation are written.
+        Exact byte replay is idempotent only while source/control/parent stay current.
+        """
+        _identifier(sleep_id)
+        _hash(expected_request_sha256)
+        with self._sleep_live() as (db, c):
+            light = self._sleep_current(db, c, sleep_id)
+            prefix = "sleep:" + sleep_id
+            light_reply = self._get(db, prefix + ":light_reply", "sleep_light_reply")
+            request = build_deep_request(light, light_reply)
+            if request is None:
+                raise PublicDocumentError("empty Light is terminal; Deep evidence forbidden")
+            if (self._get(db, prefix + ":deep_request", "sleep_deep_request") != request
+                    or sha256_hex(request) != expected_request_sha256):
+                raise PublicDocumentError("deep request binding conflict")
+            excerpts = parse_deep_result(request, result_bytes)  # before ANY writes
+            self._put(db, prefix + ":deep_reply", "sleep_deep_reply", result_bytes)
+            binding = _json(request)
+            proposal_ids = []
+            for index, excerpt in enumerate(excerpts):
+                # Host-generated IDs cannot escape this run or choose another proposal.
+                proposal_id = "sleep-" + _fingerprint(sleep_id) + "-" + str(index + 1)
+                proposal = {
+                    "schema_version": VERSION, "kind": "source_attributed_excerpt",
+                    "proposal_id": proposal_id, "quotation": excerpt["quotation"],
+                    "source_sha256": c["source_hash"], "artifact_sha256": c["artifact_hash"],
+                    "generation": c["generation"], "untrusted": True, "authority": False,
+                    "sleep_binding": {
+                        "sleep_id": sleep_id, "deep_request_sha256": sha256_hex(request),
+                        "source_selection_sha256": binding["source_selection_sha256"],
+                        "unit_id": excerpt["unit_id"],
+                        "source_unit_sha256": excerpt["source_unit_sha256"],
+                    },
+                }
+                self._put(db, "proposal:" + proposal_id, "proposal", canonical_json(proposal))
+                proposal_ids.append(proposal_id)
+            result = {"state": "unverified_proposals" if proposal_ids else "no_change",
+                      "proposal_ids": proposal_ids, "deep_request_sha256": sha256_hex(request),
+                      "deep_reply_sha256": sha256_hex(result_bytes)}
+            self._put(db, prefix + ":result", "sleep_result", canonical_json(result))
+            return result
 
     def propose_excerpt(self, *, proposal_id, quotation):
         """Unverified immutable data; never executes source prose or issues receipts."""

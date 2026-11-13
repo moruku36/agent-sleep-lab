@@ -60,6 +60,11 @@ This path does **not** admit public data into the synthetic stores above.
 [public_source_intake.py](../src/agent_sleep_lab/public_source_intake.py) stages
 exact reviewed public bytes; [public_document_runtime.py](../src/agent_sleep_lab/public_document_runtime.py)
 provides a dedicated versioned SQLite library with separately configured roles.
+[public_document_sleep.py](../src/agent_sleep_lab/public_document_sleep.py)
+adds pure body-bound Light/Deep request construction and strict offline saved-reply
+parsing. Guarded store APIs save selected-source excerpts as unverified proposals,
+not receipts or adopted memory. This is not the synthetic coordinator or a model
+transport; all stage bytes remain in the managed deletion inventory.
 
 ```mermaid
 flowchart LR

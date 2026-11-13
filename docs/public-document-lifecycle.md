@@ -101,6 +101,107 @@ The executable fictional walkthrough is the [behavior suite](../tests/test_publi
 There is deliberately no implicit authority issue, provider output-to-receipt
 conversion or default public-data dispatch.
 
+## Offline body-bound Light / Deep saved-output handoff
+
+This separate path uses pure
+[public_document_sleep.py](../src/agent_sleep_lab/public_document_sleep.py)
+contract `agent-sleep-public-document-sleep/1`, **not** the synthetic
+`SleepCoordinator`. It constructs canonical requests and validates caller-saved
+replies; it has no transport, callback, model selector, live option, retry or
+receipt issuer. An accepted reply does not prove that a model was invoked or
+received the request, and does not grant permission to invoke one.
+
+After admission, trusted host code explicitly supplies all limits:
+
+```python
+from agent_sleep_lab.public_document_sleep import SleepLimits
+from agent_sleep_lab.provenance import sha256_hex
+
+limits = SleepLimits(
+    max_request_bytes=16384, max_reply_bytes=8192, max_source_units=128,
+    max_candidates=8, max_quotation_bytes=1024,
+)
+light_bytes = store.prepare_sleep(
+    sleep_id="document-night-1", scope=approved_scope,
+    expected_generation=current_generation, expected_parent=current_head,
+    limits=limits,
+)
+# light_saved_reply and deep_saved_reply are separately obtained offline bytes.
+# None of these APIs invokes a provider or executes the document.
+deep_bytes = store.submit_light_result(
+    sleep_id="document-night-1", expected_request_sha256=sha256_hex(light_bytes),
+    result_bytes=light_saved_reply,
+)
+if deep_bytes is not None:
+    pending = store.submit_deep_result(
+        sleep_id="document-night-1", expected_request_sha256=sha256_hex(deep_bytes),
+        result_bytes=deep_saved_reply,
+    )
+```
+
+`prepare_sleep` returns exact canonical Light bytes. Deterministic complete source
+lines (including original separators) are the units: each carries a unit ID,
+UTF-8 byte offsets, exact text and unit SHA-256. There is no normalization,
+truncation or generated source evidence. The request binds sleep ID, exact admitted
+artifact/source hashes, current generation, approved scope, origin task, current
+parent and all limits. Excess source-unit count or whole canonical request bytes
+refuses preparation. Limits are positive integers: request/reply bytes at most
+512 KiB each, source units at most 256, candidates at most 32 and an individual
+quotation at most 65,536 UTF-8 bytes. These are not token or money limits.
+
+The strict Light reply has **only** these fields:
+
+```json
+{"schema_version":"agent-sleep-public-document-sleep/1","stage":"light","request_sha256":"<exact Light hash>","selected":[{"unit_id":"line-1","source_unit_sha256":"<exact unit hash>"}]}
+```
+
+Selections must be unique existing IDs with matching hashes and fit the candidate
+cap. Source order is canonicalized, not model order. Deep receives **only the
+selected original units**, plus provenance/limits, exact Light request/reply hashes
+and `source_selection_sha256 = SHA256(canonical_json(selected_original_units))`.
+An empty Light list returns `None`, durably records `no_change` and cannot accept
+a Deep reply or later introduce evidence under that same sleep ID.
+
+The strict Deep reply has **only** these fields:
+
+```json
+{"schema_version":"agent-sleep-public-document-sleep/1","stage":"deep","request_sha256":"<exact Deep hash>","source_selection_sha256":"<selection hash>","proposals":[{"unit_id":"line-1","source_unit_sha256":"<exact unit hash>","quotation":"<nonempty exact substring of that selected unit>","untrusted":true,"authority":false}]}
+```
+
+Both parsers reject duplicate keys, extra fields, invalid UTF-8/JSON, wrong
+request/selection/unit hashes, unknown or unselected units and count/byte overflow.
+Deep additionally rejects non-source or duplicate quotations and authority-bearing
+metadata. Quoted prose may itself contain instructions: it remains untrusted
+source data, never host authority. A quotation cannot span units. Empty Deep is
+also `no_change`. No abstractions, generated answers or verification claims are
+accepted as source evidence.
+
+Every API re-resolves current approval, admitted artifact, exclusion/expiry,
+generation and managed-content integrity under the existing SQLite writer lock.
+Submission reconstructs the original request from the current source/control/head;
+a changed scope, generation, parent or source rejects even an exact old reply.
+All Deep excerpts are validated **before any writes**; one transaction saves the
+raw reply, host-ID-generated **UNVERIFIED** proposals and a non-authoritative
+result summary, or rolls everything back. Head, memories, snapshots, reviews,
+operations and consumer dispatch remain untouched. Return state
+`unverified_proposals` is not adoption. Existing separately invoked verifier,
+mechanical evaluator and atomic adoption are still required; adopting one proposal
+changes the parent and requires fresh independent review for subsequent additions.
+
+Immutable managed content kinds are `sleep_light_request`, `sleep_light_reply`,
+`sleep_deep_request`, `sleep_deep_reply` and `sleep_result`. Generated proposals
+also retain Deep-request, selected-source and source-unit hashes. All live in the
+existing `content` inventory and are covered by the same purge; no schema/table
+migration or external file is created. Invalid submissions leave no proposal or
+reply artifact. Accepted exact byte replay is idempotent across reopen **only while
+the original bindings remain current**; a different binding or raw reply, including
+different whitespace, conflicts. Deletion does not resurrect artifacts or permit
+replay. Caller buffers/exported saved files remain outside managed deletion.
+
+[Five fictional offline scenarios](../tests/test_public_document_sleep.py) are
+authored for this increment; execution and independent review are separate gates
+recorded in [status](implementation-status.md).
+
 ## Unknown outcomes and honest observations
 
 `prepared`, actual input observed and `returned` are distinct. Consumer
@@ -134,7 +235,7 @@ There is no rollback/resurrection API for a withdrawn public document.
 ## Managed deletion and limits
 
 The dedicated bundle inventories source/evidence, proposal, adopted memory,
-snapshot, request and result bytes. On expiry, withdrawal or integrity/current
+snapshot, request/result and all saved Light/Deep stage bytes. On expiry, withdrawal or integrity/current
 generation failure it first durably records exclusion as `purge_pending`.
 `purge()` removes managed text, approval URL/body, origin task and review/dispatch
 derivatives with SQLite `secure_delete=ON`, DELETE journaling and `VACUUM`, then
@@ -159,6 +260,6 @@ local access and makes the returned result unusable.
 
 No actual public document, existing private staging/live bundle, original unknown
 preparation, provider, paid model or real agent is exercised by this slice.
-Live acceptance, Light/Deep public-data generation, cost accounting and
-independent performance review remain separate. Current verification is recorded
+Live acceptance, actual public-data model generation, cost accounting and
+independent performance review remain separate from this offline saved-output path. Current verification is recorded
 only in [implementation status](implementation-status.md).

@@ -28,10 +28,30 @@ Python 3.11／3.13 CI成功を確認しました。この基点にCLI経過時�
 別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
 `1e636d8`は別途保全済みで、過去のPR作成は**UNKNOWN**です。その操作は再送しません。
 
+今回の公開済み基点は`bb95abf28fbde0a7490e843be4a4187c274c0363`です。
+[PR #52](https://github.com/moruku36/agent-sleep-lab/pull/52)で別の公開文書lifecycleが
+merge `361beb2`へ入り、[PR #53](https://github.com/moruku36/agent-sleep-lab/pull/53)で
+対訳overviewが入りました。公開済みの**483ケース基点CIは合格済み**です。
+公開基点のgateとしては以前のlocal非固定依存失敗より新しい結果ですが、
+新しい保存応答handoffの合格ではありません。
+
+新しいoffline handoffの独立した具体reviewでは、対処が必要な正確性・security欠陥は
+見つかりませんでした。別QAがsource commit
+`db8dd1bd9893d0f231b0b50547aad5a69e37b59b`を固定依存Python 3.13.18で検証し、
+新規の架空handoff 5件を含む**固有488ケースの全回帰／1起動合格（35.480秒）**でした。
+**相対file link 696件／Markdown 98file合格**（anchor対象外）、whitespaceも合格です。
+local Python 3.11／wheelの結果は主張しません。この全回帰は所有者による個人開発の
+テスト方針更新より前の記録です。今後は必要な通常3〜5件を選び、local・CI・再実行・
+subagent合計で1試行10ケース実行以内にします。公開前の追記は方針・CI・状況文書だけで、
+**追加回帰0ケース実行／テスト0起動**です。自動CIはPython 1版のAST構文・文書リンク検査だけに
+変更し、project import・依存導入・回帰suite・wheel buildは実行しません。
+exact-headの静的PR CIはこの記録時点で未完ですが、全件・複数版回帰とwheelは
+公開必須gateではなくなりました。いずれもoffline検証で、実model・実文書・実agentの受入ではありません。
+
 | 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
 |---|---|---|---|---|---|---|
-| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store不変、別の公開文書1件lifecycle | 現在の非固定依存全回帰で架空lifecycle 27件合格、必須依存pin検査は失敗。固定依存全回帰は未完 | 未実施 | 独立review・全回帰・実文書受入。公開文書の復活は意図的に非対応 | 隔離したlifecycle実装をreview | [公開文書lifecycle](public-document-lifecycle.ja.md) |
-| 実model Light／Deep→独立採用→取得 | 本文束縛生成・経過時間／byte記録・別verifier／writer | 下記451件回帰 | 新しい合成本文束縛Light／Deepが応答、原文一致候補2件。採用未確認 | 修正準備の元承認はallowed、実行結果は未解決。実データ束縛も未整備 | 再送せず元実行の証拠を回収 | [部分観測](live-development-measurement.ja.md) |
+| 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store不変、別の公開文書lifecycleは公開済み | 公開済み483ケース基点CIと別に、新増分の固定依存local 488ケース回帰合格 | 未実施 | 実文書受入。公開文書の復活は意図的に非対応 | exact-headの静的PR CIを確認し、認可された実文書取込を評価 | [公開文書lifecycle](public-document-lifecycle.ja.md) |
+| 実model Light／Deep→独立採用→取得 | 既存合成生成は不変、別の公開文書offline本文束縛保存応答handoffを追加 | 新規架空5シナリオはlocal 488ケース回帰内で合格。独立した具体reviewで対処必要な欠陥なし | 過去の合成Light／Deep応答だけ、元採用未確認。公開文書model利用なし | exact-headの静的PR CIと認可された実model接続／請求。元準備結果も未解決 | 旧実行を再送せず静的PR CIを確認 | [lifecycle契約](public-document-lifecycle.ja.md)・[部分観測](live-development-measurement.ja.md) |
 | 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journalと任意の読取り専用byte／時間集計 | 下記の新規local読取り5件。過去回帰は別 | 未実施。task／rubric選択固定、比較plan未登録 | 元の準備実行結果、token／通貨／全phase請求は欠測 | 元準備を照合してから採用／比較へ。保存済み観測はdispatchせず確認可能 | [プロトコル](live-development-measurement.ja.md) |
 | 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridge不変、別の明示公開文書consumer境界 | 架空の別task入力／応答／意味reviewの分離 | 実agentでの別task利用なし | 実adapter接続と独立した意味／性能review | 上限付きoffline consumer境界をreview | [lifecycle](public-document-lifecycle.ja.md)。実agent利用の主張なし |
 
@@ -39,7 +59,40 @@ Python 3.11／3.13 CI成功を確認しました。この基点にCLI経過時�
 保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
 host／アカウント制御を変更したりしません。
 
-## 子ワーカーのローカル実装 — 公開文書1件のlifecycle
+## ローカル実装 — 公開文書Light／Deepのoffline保存応答handoff
+
+- [public_document_sleep.py](../src/agent_sleep_lab/public_document_sleep.py)に
+  純粋なcanonical要求作成と厳密な保存応答parserを追加しました。transport import・
+  model呼出し・合成coordinatorの名前替え・受領発行・移行・自動採用・live optionはありません。
+- 別storeの現在control guard／SQLite writer transactionで`prepare_sleep`、
+  `submit_light_result`、`submit_deep_result`を実装しました。exact受入source／artifact・
+  現在generation・scope・origin・parentを束縛します。Deepには選択した原文行unitだけを
+  exact selection／unit hash付きで渡し、要求／応答／引用byteとunit／candidate件数を制限します。
+- Deep応答全体を先に検査し、原文一致引用だけを原子的にUNVERIFIED proposalへ保存します。
+  head／memory／reviewは変えません。空Lightは終端no-changeです。束縛が現在も有効な間だけ
+  再open後もexact raw-byte replayは冪等で、別出力／bindingは競合します。
+- 不変の段階要求・raw応答・結果summary・proposalは既存管理本文inventoryとpurgeの対象です。
+  caller buffer／export、remote複製、停止中の期限削除は保証外のままです。
+- [架空offline 5シナリオ](../tests/test_public_document_sleep.py)を記述しました。
+  UTF-8選択unit限定roundtrip、正常＋権威主張の不正候補の原子的拒否（途中書込みrollback含む）、
+  期限／purge、空Light no-change、再open／replay／競合です。
+  5件すべてがsource commit `db8dd1b`の固定依存Python 3.13.18による
+  **別QAの固有488ケース全回帰／1起動（35.480秒）内で合格**しました。
+  独立した具体reviewでも対処が必要な正確性／security欠陥はありませんでした。
+  相対file link 696件／Markdown 98fileの文書検査（anchor対象外）とwhitespaceも合格です。
+  488ケースの実行は個人開発テスト方針の更新前で、今回の公開追記では回帰を追加実行しません。
+  exact-headの静的PR CIはこの記録時点で未完です。新しい複数版全回帰・wheelは必須ではなく、
+  過去の公開済み483ケースCIとは区別します。
+- offline実装はlocal commit済みで、feature PR公開は許可済みです。
+  mergeは未許可・未実施です。実公開／私的文書、
+  旧live bundle、有料／model呼出し、元の結果不明実行、A/B、実agent、環境／設定変更、
+  ラウンジ投稿、scheduleは使っていません。完成率は主張しません。
+  実model生成・抽象化品質・全費用・実agent別task利用／性能受入は未完です。
+
+## 過去の実装観測 — 公開文書1件のlifecycle
+
+以下は公開済みPR #52より前のlocal観測です。合格した483ケース基点CIが
+下記の過去の環境／CI gateを更新しますが、失敗したlocal起動を合格へ改変しません。
 
 - 別の版付き非公開storeを実装しました。合成契約・RuntimeStore・取得・CollectOnlyBridgeは
   不変です。永続化した現在許可／generationでexact source／artifact／scope／時刻／origin taskを
@@ -83,7 +136,7 @@ host／アカウント制御を変更したりしません。
   [架空テスト](../tests/test_public_document_runtime.py)を参照してください。自己reviewは
   独立承認ではありません。実公開文書・私的live bundle・model・provider・実agentは使わず、
   live受入・有料呼出し・元操作の再送・公開・push・merge・設定変更・scheduleはありません。
-  公開文書Light／Deep、実adapter利用、請求／性能の実証は未完です。下記の履歴より新しいoffline実装です。
+  live公開文書Light／Deep、実adapter利用、請求／性能の実証は未完です。新しいoffline保存応答handoffは上記を参照してください。
 
 ## 子ワーカーのローカル実装 — 保存済み比較の計測確認
 

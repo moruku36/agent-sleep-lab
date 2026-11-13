@@ -68,6 +68,93 @@ revision更新には現在generationと同じ許可refが必要で、受入後�
 [詳細API契約](public-document-lifecycle.md)を参照してください。
 provider出力から権威的受領を自動作成する経路はありません。
 
+## 本文束縛Light／Deepの保存応答offline handoff
+
+純粋な[public_document_sleep.py](../src/agent_sleep_lab/public_document_sleep.py)の
+契約`agent-sleep-public-document-sleep/1`を使い、合成`SleepCoordinator`とは
+別経路です。canonical要求の作成と保存済み応答の検査だけで、transport・callback・
+model選択・live option・再試行・受領発行はありません。応答の受入はmodel実行や
+実入力観測の証明でも、呼出し権限でもありません。
+
+受入後、信頼するhostが全ての上限を明示します。
+
+```python
+from agent_sleep_lab.public_document_sleep import SleepLimits
+from agent_sleep_lab.provenance import sha256_hex
+
+limits = SleepLimits(
+    max_request_bytes=16384, max_reply_bytes=8192, max_source_units=128,
+    max_candidates=8, max_quotation_bytes=1024,
+)
+light_bytes = store.prepare_sleep(
+    sleep_id="document-night-1", scope=approved_scope,
+    expected_generation=current_generation, expected_parent=current_head,
+    limits=limits,
+)
+# light_saved_reply / deep_saved_replyは別途offlineで得たbyteです。
+deep_bytes = store.submit_light_result(
+    sleep_id="document-night-1", expected_request_sha256=sha256_hex(light_bytes),
+    result_bytes=light_saved_reply,
+)
+if deep_bytes is not None:
+    pending = store.submit_deep_result(
+        sleep_id="document-night-1", expected_request_sha256=sha256_hex(deep_bytes),
+        result_bytes=deep_saved_reply,
+    )
+```
+
+Lightは原文全体を改行区切りの完全なunitで扱い、元の改行・UTF-8を保持します。
+unit ID・byte開始／終了位置・exact text／hashを持ち、正規化・切捨て・生成文の
+証拠化はしません。sleep ID・受入artifact／原文hash・現在generation・許可scope・
+origin task・現在parent・全上限を要求byteに束縛します。unit数／canonical要求byteの
+上限超過は拒否します。各上限は正の整数で、request／replyは各512 KiB以下、
+source unitは256以下、candidateは32以下、引用1件はUTF-8で65,536 byte以下です。
+tokenや金額の上限ではありません。
+
+Light応答は次のfield**だけ**です。
+
+```json
+{"schema_version":"agent-sleep-public-document-sleep/1","stage":"light","request_sha256":"<exact Light hash>","selected":[{"unit_id":"line-1","source_unit_sha256":"<exact unit hash>"}]}
+```
+
+既存unit ID／hashだけを重複なく候補上限内で選び、modelの列挙順ではなく原文順で
+固定します。Deepには**選択された原文unitだけ**と出典／上限、Light要求／保存応答hash、
+`source_selection_sha256 = SHA256(canonical_json(selected_original_units))`を渡します。
+空Lightは`None`を返して`no_change`を保存し、同じsleep IDへ後からDeepで
+証拠を持ち込んだり別のLight選択へ変更したりできません。
+
+Deep応答は次のfield**だけ**です。
+
+```json
+{"schema_version":"agent-sleep-public-document-sleep/1","stage":"deep","request_sha256":"<exact Deep hash>","source_selection_sha256":"<selection hash>","proposals":[{"unit_id":"line-1","source_unit_sha256":"<exact unit hash>","quotation":"<その選択unit内の非空のexact部分文字列>","untrusted":true,"authority":false}]}
+```
+
+両parserは重複key・余分なfield・不正UTF-8／JSON・要求／選択／unit hash不一致・
+未知／非選択unit・件数／byte超過を拒否します。Deepは原文にない／重複引用や
+権威を称するmetadataも拒否します。原文引用自体に命令文があってもuntrusted dataであり、
+host権限にはなりません。複数unitをまたぐ引用・抽象化・生成解答・検証済み主張は
+証拠として受け付けません。空Deepも`no_change`です。
+
+全APIは既存SQLite writer lock内で現在許可・受入artifact・除外／期限・generation・
+全管理本文の完全性を再検査します。submit時には現在の原文／control／headから
+元要求を再構築するため、scope・generation・parent・原文の変更はexact旧応答でも拒否します。
+Deep全候補を**書込み前**に検査し、raw応答・host生成IDの**UNVERIFIED** proposal・
+非権威的な結果summaryを一つのtransactionで保存します。一件の不正／書込み失敗でも
+全てrollbackします。head・memory・snapshot・review・operation・consumer dispatchは
+変えません。`unverified_proposals`は採用ではなく、既存の別verifier／機械評価／原子的採用が
+依然必要です。一件を採用するとparentが変わり、次の追加には新しい独立reviewが必要です。
+
+不変の管理本文kindは`sleep_light_request`・`sleep_light_reply`・`sleep_deep_request`・
+`sleep_deep_reply`・`sleep_result`です。生成proposalにもDeep要求／選択／unit hashを
+保存します。全て既存`content` inventoryとpurgeの対象で、schema／table移行や外部fileは
+ありません。不正submitは応答artifact／proposalを残しません。
+**元の束縛が現在も有効な間だけ**、再open後もexact byte replayは冪等です。
+別bindingや空白だけ異なるraw応答でも競合します。削除後は復活／再送できません。
+caller bufferやexportした保存fileは管理削除の対象外です。
+
+[架空offline 5シナリオ](../tests/test_public_document_sleep.py)を記述しました。
+実行・独立reviewは別gateで、[実装状況](implementation-status.ja.md)に記録します。
+
 ## 結果不明と観測の区別
 
 準備済み・実入力観測・応答済みは別状態です。consumerの利用自己申告、引用、
@@ -93,7 +180,7 @@ unknown以外の既存attemptにも同じ再試行防止を適用します。
 
 ## 管理対象の削除と限界
 
-source／evidence、proposal、memory、snapshot、request、resultを専用DBでinventory化します。
+source／evidence、proposal、memory、snapshot、request／resultと全Light／Deep段階byteを専用DBでinventory化します。
 期限・撤回・整合性／generation不一致でまず除外を`purge_pending`として永続化します。
 `purge`は本文、許可URL／body、origin task、review／dispatch派生物を
 SQLite secure_delete・DELETE journal・VACUUMで除去し、圧縮成功後だけ`deleted`にします。
@@ -111,5 +198,5 @@ consumerの複製、remote要求／応答はinventory外で、host側に別の�
 戻った結果を利用不可にします。
 
 実公開文書・既存の私的bundle・元の不明準備・provider・有料model・実agentは使いません。
-実環境受入、公開文書Light／Deep、費用計測、独立した性能reviewは別です。
+offline保存応答経路と、実環境受入・公開文書の実model生成・費用計測・独立した性能reviewは別です。
 検証結果の正本は[実装状況](implementation-status.ja.md)だけです。
