@@ -60,8 +60,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     sub.add_parser("schemas", help="list the packaged local schemas")
-    sub.add_parser("demo", allow_abbrev=False,
-                   help="run the built-in synthetic offline chain in temporary state")
+    demo = sub.add_parser("demo", allow_abbrev=False,
+                          help="run the built-in synthetic offline chain in temporary state")
+    demo.add_argument("--format", choices=("json", "text"), default="json")
     report = sub.add_parser("oss-cost-report", allow_abbrev=False,
                             help="offline read-only accounting over existing OSS pairs/cohorts")
     report.add_argument("--manifest", required=True, help="strict bounded report input JSON")
@@ -240,7 +241,11 @@ def main(
         else:
             from agent_sleep_lab.runtime_cli import execute
             result = execute(args)
-        print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+        if args.command == "demo" and args.format == "text":
+            from agent_sleep_lab.demo_text import format_demo_text
+            print(format_demo_text(result), file=out)
+        else:
+            print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
         if args.command in ("sleep", "compare") and result.get("status") in ("failed", "incomplete", "invalidated"):
             return EXIT_INVALID
         return EXIT_OK

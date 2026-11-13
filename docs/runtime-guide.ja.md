@@ -14,8 +14,10 @@
 agent-sleep-lab demo
 ```
 
-`--help`だけを受け付け、呼出し側のデータ、file path、store、出力先、manifest、
-provider／live optionは実行前に拒否します。組込みの合成catalog観測と定型返答だけを使います。
+既定はJSONで、`--format json`で明示指定、`--format text`で同じ結果の人向け要約を選べます。
+`--help`も使えます。呼出し側のデータ、file path、store、出力先、manifest、
+provider／live optionは実行前に拒否します。
+install・読み方・別の公開文書library経路は[初回手順](first-run.ja.md)を参照してください。組込みの合成catalog観測と定型返答だけを使います。
 この経路にはnetwork、subprocess、実provider、認証情報の読出し、fallback、schedule、
 既存agentの実行は含みません。現在の検証結果は[実装状況](implementation-status.ja.md)に集約します。
 
@@ -23,8 +25,8 @@ provider／live optionは実行前に拒否します。組込みの合成catalog
 capture境界とpolicyはローカルfixtureで、既存storeや権限を入力にしません。
 成功・失敗とも接続を閉じて一時状態を削除します。固定fixture時刻
 `2026-11-12T00:00:00Z`より後の`2026-11-13T00:00:00Z`を証拠の利用期限に設定し、
-実環境の許可には使いません。完了・削除後だけ`temporary_state_removed:true`を含むJSONを
-出力し、エラーは成功reportなしのexit 2で返します。
+実環境の許可には使いません。完了・削除後だけreportを選択形式で出力します。
+JSONでは`temporary_state_removed:true`を確認できます。エラーは成功reportなしのexit 2で返します。
 
 正常完了時の件数は以下の通りです。fixture操作の件数であり、実model呼出しや
 独立に受け入れた性能結果ではありません。

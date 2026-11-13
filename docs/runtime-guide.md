@@ -18,8 +18,12 @@ is an explicit offline reader with no execution options. See the
 agent-sleep-lab demo
 ```
 
-The command accepts only `--help`; caller data, file paths, stores, output paths,
-manifests and provider/live options are rejected before execution. It uses only
+The default output is JSON; `--format json` selects it explicitly and
+`--format text` opts into a human-readable summary of the same result. `--help`
+is also available. Caller data, file paths, stores, output paths, manifests and
+provider/live options are rejected before execution.
+See the [first-run guide](first-run.md) for installation, interpretation and the
+separate public-document library path. It uses only
 built-in synthetic catalog observations and scripted replies. No network,
 subprocess, live provider, credential lookup, fallback, schedule or existing-agent
 execution is part of this route. Current verification is recorded only in
@@ -30,9 +34,10 @@ SQLite stores for evidence/adoption, sleep and comparison. Its capture boundarie
 and policy are local fixtures; existing stores and permissions are not inputs.
 Connections close and temporary state is removed on success or failure. A fixed
 fixture clock (`2026-11-12T00:00:00Z`) precedes the evidence authorization expiry
-(`2026-11-13T00:00:00Z`); these dates do not grant real-world permission. The JSON
-report is printed only after successful completion and cleanup, with
-`temporary_state_removed:true`. Errors return exit 2 without a success report.
+(`2026-11-13T00:00:00Z`); these dates do not grant real-world permission. The selected JSON or text
+report is printed only after successful completion and cleanup. JSON records
+`temporary_state_removed:true`; text displays `Temporary state removed: true`.
+Errors return exit 2 without a success report.
 
 The successful path has the following counts. They describe fixture operations,
 not live-model calls or independently accepted performance results.

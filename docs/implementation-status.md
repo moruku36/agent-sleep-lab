@@ -2,6 +2,46 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
+## Current summary — PR56 merged
+
+This page and its Japanese translation remain the ONLY current-status authority.
+[PR56](https://github.com/moruku36/agent-sleep-lab/pull/56) is merged on main at
+`c3cba95c60113e24c85c4f15bb60626ba00c1967`, after PR55.
+
+| Available now | Evidence and boundary |
+|---|---|
+| Scripted offline demo | Disposable synthetic stores; not a live-model evaluation. [First run](first-run.md) |
+| Optional task-aware Light, content-free rejection categories and bounded rejected-reply quarantine | PR56 merged; quarantine remains opt-in, disabled by default |
+| Separate public-document library | One pinned README completed real-model Light/Deep, independent review/adoption and different-task use, as recorded below |
+| Earlier real-model handoff trial | [2026-11-12 report](public-source-trial-2026-11-12.md), on a distinct local extension; not the scripted demo |
+
+**PR56 verification:** local **4 PASS / 1 invocation**, plus
+[PR CI run 43514753903](https://github.com/moruku36/agent-sleep-lab/actions/runs/43514753903)
+**4 PASS / 1 invocation**, associated with exact PR head
+`1773113e996cf9fec5cc47df1dfe6b8e7ffe044c`. CI checked out synthetic PR merge
+`54a56f331b0bed6724f6636c021738e3731ab52d`, not the landed main merge.
+Historical trial total: **8 cases / 2 invocations**, not a full suite.
+AST and relative-file-link checks passed; anchors were not checked.
+These are synthetic regression results, not PR56 live acceptance.
+
+**Still unverified:** live acceptance of PR56 fixes/new consumer helper, general
+improvement, independent holdout/five-task comparison and complete token/currency/
+all-phase cost accounting. Unknown cost is not zero. Historical failures and
+UNKNOWN outcomes remain unchanged and must not be replayed.
+
+### Navigation and history policy
+
+[First run](first-run.md) · [Bounded live baseline](#previously-verified-bounded-baseline-path) ·
+[Capability gaps](#initial-four-capability-baseline-and-remaining-gaps) ·
+[Integration boundary](#integration-and-release-boundary) ·
+[Historical checkpoints](#historical-checkpoints--not-current-status-or-instructions).
+
+Everything from the original heading below is a preserved dated checkpoint,
+including its former readiness, pending/unmerged and remaining-budget wording.
+This summary supersedes those release-state statements. Existing headings and
+history stay in the same file to preserve inbound fragment links. Contracts and
+trust boundaries still apply; history is not current instructions.
+
 ## Current readiness — 2026-11-14
 
 This page and its Japanese translation are the ONLY current-status authority.
