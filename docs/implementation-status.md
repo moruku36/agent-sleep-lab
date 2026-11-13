@@ -20,29 +20,78 @@ succeeded. That baseline includes planned input-volume reporting.
 at `2ab948bebbdcdf14d4ffeca0a2a071cf1db16af8`. Its exact-head
 [CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43350754976) passed
 435 cases on each Python version, documentation and wheel checks.
-That baseline adds read-only comparison inspection. This follow-up retains
-provider accounting observations; it does not publish the separate trial code from
+That baseline adds read-only comparison inspection.
+[PR #49](https://github.com/moruku36/agent-sleep-lab/pull/49) is owner-merged at
+`529ba8d7abdd282db3280e496db6d77b146d3b96`, retaining provider accounting observations.
+This follow-up adds explicit public-document staging; it does not publish the separate trial code from
 [PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46).
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
 
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
 |---|---|---|---|---|---|---|
-| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic-store path implemented | Historical baseline regression; current results below | Not performed | Real-data boundary and operational acceptance | Define one authorized real-data boundary | Existing store/writer/retrieval contracts |
-| Real-model Light/Deep → independent adoption → retrieval | Body-bound generation and separate verifier/writer implemented; prior same-run CLI branch preserved separately | Existing contracts; no new model call | Not performed | MiMo absent from the current agent catalog; unresolved execution binding and real candidate verification | After binding resolution, one bounded receipt call within total budget | [Runtime guide](runtime-guide.md), prior branch noted above |
-| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal, preparation/volume/inspection; provider accounting retention | Baseline and new accounting contracts below | Not performed | Ten real outcomes, live-emitted usage, currency and all-phase billed costs | Restore the supported MiMo capability before any live run | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
-| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge and offline handoff only | Existing synthetic integration contracts | Not performed | Real-data permission, retention/deletion/scope/secrets contract and tracked actual use | Scope explicit public-source capture acceptance for Kurotchi | Existing bridge and execution journal; no real-agent receipt |
+| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store plus separate public-document staging | Current intake checks below | Not performed | Non-synthetic store admission and lifecycle enforcement | Review admission/deletion and propagate current approval | [Intake boundary](public-source-intake.md) |
+| Real-model Light/Deep → independent adoption → retrieval | Existing body-bound generator and separate verifier/writer | Existing offline contracts | One standalone MiMo Light response; full chain not performed | Live Deep, current real-data binding and independent candidate verification | Complete the non-synthetic admission contract before a real-data sleep | [Connection result below](#selected-model-connection-and-public-document-staging--2026-11-13) |
+| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal, preparation/volume/inspection; provider accounting retention | Historical accounting contracts | Not performed | Ten real outcomes; installed local CLI omits usage/cost, currency and all-phase billing absent | Establish usage-emitting CLI and billing coverage before more evaluation calls | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
+| One real-agent capture → retrieval on another task → input / execution | Synthetic bridge; separate non-synthetic staging API | Intake contracts below | No actual later-task use | Store admission, enforced lifecycle and tracked actual use | Integrate the staged public-document boundary without weakening synthetic gates | [Intake](public-source-intake.md); no real-agent use receipt |
 
 Paid-use consent was already received; missing generic consent is not the blocker.
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
 
-## Direct validation preflight and accounting retention — 2026-11-13
+## Selected-model connection and public-document staging — 2026-11-13
+
+- The selected `xiaomi/mimo-v2.6-pro` returned one useful standalone Light
+  selection through the existing registered CLI/account. Calls: **1 / one
+  invocation**, synthetic input 507 bytes, output 59 bytes, both event IDs selected.
+  Provider/model/no-fallback envelope and output hashes were checked. No default,
+  auth, allowlist, plugin, host or route configuration was changed. This is not a
+  body-bound full sleep, Deep, adoption, five-task A/B or agent-use acceptance.
+- Earlier `infer inspect` used a reduced prepared inventory. Full
+  `models list --agent ... --all --provider xiaomi --json` found the selected
+  model available and provider ready; stored auth was present. **Model not found
+  in inspect did not prove the explicit inference route was unavailable.**
+  The new successful call does not reconcile or replay historical unknown calls
+  or repair their distinct approval bindings.
+- The returned receipt has `usage_state:absent`, `last_call_usage_state:absent`
+  and null cost/currency. Matching CLI revision
+  [847611d local model.run source](https://github.com/openclaw/openclaw/blob/847611d/src/cli/capability-cli/model.ts)
+  returns text/provider/model without usage fields. This is public revision-matched
+  source review, not inspection of installed runtime files. Adapter retention
+  cannot recover fields that the CLI omits. No fabricated zero, inferred bill,
+  CLI upgrade or extra paid A/B request was performed.
+- Added [public-document staging](public-source-intake.md): exact reviewed source
+  bytes/URI/scope, separate finite approval, retention/deletion obligation,
+  explicit non-synthetic label and current-approval recheck. It is not admission
+  to the synthetic store, automated secrets review, enforced deletion, a verifier
+  receipt or permission to call a model. No unpublished trial code was searched.
+- A supported updater dry-run resolved stable/latest to the already installed
+  `2026.11.3`; it offers no verified usage-capable upgrade. No installation,
+  restart, channel change or capability widening was performed. A supported
+  usage-emitting release or separately maintained CLI fix is still needed.
+- Six new synthetic intake behavior cases passed in one focused invocation
+  (0.007s); after adding current-approval replay checks, full current-source
+  regression passed **448 unique cases / one invocation** (37.192s).
+  Local verified total: **454 case executions / two test invocations**.
+  One earlier runner invocation failed import before selection/execution because
+  it resolved the baseline installed package; the corrected calls explicitly
+  used this checkout's `src`. That failed invocation executed zero cases.
+- Separately, one actual immutable public README (5,043 bytes) from merged
+  `529ba8d7abdd282db3280e496db6d77b146d3b96` was reviewed, staged outside the
+  repository and successfully rechecked. It remains `staged_not_admitted`;
+  model calls, store admission and adoption for this staging operation were zero.
+  It has a finite one-day approval and manual deletion obligation, not an
+  installed cleanup schedule. Private source bytes/approval references are not
+  published here. This is one staging observation, not another regression case.
+- Coordinator-reviewed; no independent approval or completed agent integration
+  is claimed. No percentage is inferred. PR CI is a separate check record.
+
+## Earlier direct validation preflight and accounting retention — 2026-11-13
 
 Owner asked Kurotchi itself to validate, without workers. A read-only catalog
 inspect for `xiaomi/mimo-v2.6-pro` returned **Model not found** for the configured
 agent. This is not an inference, an approval rejection, proof of globally missing
-credentials, or proof the historical binding was repaired. Live calls: **0**.
+credentials, or proof the historical binding was repaired. Live calls in that earlier preflight: **0**; the newer one-call connection observation above supersedes the availability diagnosis.
 The five-pair worksheet is not a frozen executable comparison or scored result.
 
 - Implemented [provider accounting retention](runtime-guide.md#provider-accounting-observations)
@@ -64,8 +113,8 @@ The five-pair worksheet is not a frozen executable comparison or scored result.
   or live acceptance. Current PR Python 3.11/3.13 CI is a separate check record.
   The reviewed public CLI contract may be newer than the installed CLI; actual
   emission and provider billing are still unverified.
-- Remaining: supported MiMo capability/binding restoration by the infrastructure
-  owner; established currency and all-phase billed-cost coverage; a separately
+- Remaining at that earlier checkpoint: supported MiMo capability/binding
+  restoration, established currency/all-phase billing and a separately
   reviewed real-data boundary with explicit source/scope/purpose/retention/deletion
   and actual later-task input/use receipts. No private trial code was searched or
   reconstructed, and real data was not relabelled synthetic.

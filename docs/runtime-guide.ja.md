@@ -124,8 +124,19 @@ agent-sleep-lab sleep --store-config private/store.json --manifest configs/sleep
 
 応答ごとの値があっても総費用計測は完成しません。capture・整理・独立検証・取得・
 タスク実行・評価の全段階と、通貨・課金の出所が必要です。既存比較の段階／総費用は
-unavailableを維持し、節約額を作りません。モデル利用不可・過去の実行binding・
-合成限定の実agent取込み境界は、別の未解決事項です。
+unavailableを維持し、節約額を作りません。過去の実行bindingと合成限定store境界は
+別事項です。新しい指定MiMo Lightは設定変更なしで1件成功しましたが、現local CLIは
+使用量／費用を返しませんでした。[現在の観測](implementation-status.ja.md)を参照してください。
+限定一覧を見る`infer model inspect`で見つからなくても、明示的な推論の利用不可とは
+断定できません。全catalog確認と、許可済みの有限呼出しは別の事実を確かめます。
+認証登録やcatalogの`available:true`だけでは実応答を証明できません。
+
+## 公開文書の取込み準備
+
+別の[公開文書staging API](public-source-intake.ja.md)で、確認済みの正確な原文／URL／scope、
+呼出し側が設定する有限許可と現在の有効性を、モデル呼出し・store受入なしで検査します。
+artifactは非公開・非合成です。上記runtime CLIの合成制限を緩めたり、
+削除を実施したり既存agentを接続したりするものではありません。
 
 ## 採用・取得
 
