@@ -77,6 +77,13 @@ flowchart LR
   A --> R["Another-task retrieval / explicit consumer"]
 ```
 
+The optional [model adapter](public-document-model.md) connects each prepared
+stage explicitly through [public_document_model.py](../src/agent_sleep_lab/public_document_model.py).
+It does not turn the pure parser into a transport or automatically chain stages.
+Library-only invocation deliberately leaves permission, submission, independent
+review, adoption, consumer dispatch and semantic review with separate host roles;
+there is no new CLI. Current acceptance is recorded only in [status](implementation-status.md).
+
 Quotation fidelity and mechanical snapshot checks do not establish abstraction
 quality or usefulness. Consumer dispatch is a separate explicit host choice:
 unknown intent is durable before entry; input observation, returned result and

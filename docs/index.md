@@ -14,6 +14,7 @@ proposals; dated reports describe their tested versions, not current instruction
 | Invoke sleep, review, adoption, retrieval or comparison explicitly | [Runtime guide](runtime-guide.md) |
 | Stage reviewed public bytes without admitting them to a runtime store | [Public-source intake](public-source-intake.md) |
 | Use the separate one-document store and its review/deletion/consumer boundaries | [Public-document lifecycle](public-document-lifecycle.md) |
+| Connect Light/Deep explicitly, with separate permission, review and adoption roles | [Public-document model contract](public-document-model.md) |
 | Prepare paired OSS inputs offline from adopted synthetic memories, without sending | [OSS request preparation](oss-prepare.md) |
 | Account for a predeclared synthetic multi-task cohort, not live/holdout evidence | [Fixture cohort](oss-fixture-cohort.md) |
 | Select an issue and inspect forced-judge provenance separately from the default v1 route | [Selected-issue offline probe](oss-selected-issue-probe.md) |
@@ -55,15 +56,21 @@ This repository is not an official implementation or reproduction of those syste
 After installing from the repository as shown in the [quick start](../README.md#quick-start):
 
 ```sh
-.venv/bin/python tests/run_tests.py
+.venv/bin/python tests/run_tests.py test_public_document_model.PublicDocumentModelTests.test_document_text_cannot_supply_permission
 .venv/bin/python tools/check_docs.py
 ```
 
-The regression runner deduplicates imported fixture aliases by test ID; explicit
-affected test names can be supplied during repair. PR and main CI run Python 3.11
-and 3.13 regression, relative documentation file links and wheel build, with no
-paid model calls. The documentation checker does not validate anchors or external
-URLs. See [repository instructions](../AGENTS.md) and [test policy (日本語)](testing-budget.ja.md).
+The named test is an example of explicit affected-case selection, not a command
+to repeat this trial's completed checks. Select normally 3–5 meaningful cases,
+with at most 10 case executions across local runs, CI, retries and subagents;
+UNKNOWN outcomes retain their reservation. Documentation-only edits normally need
+review, not regression execution. Never use the runner's unbounded default.
+PR and main CI use Python 3.13 AST syntax checks without imports or tests, plus
+relative documentation file-link checks: no dependency install, regression suite,
+version matrix, wheel build or paid model calls. Exact-head CI evidence belongs
+in [current status](implementation-status.md). The documentation checker does not
+validate anchors or external URLs. See [repository instructions](../AGENTS.md)
+and [test policy (日本語)](testing-budget.ja.md).
 
 ## License
 

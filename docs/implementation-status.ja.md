@@ -2,7 +2,89 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
-## 現在の評価 — 2026-11-13
+## 現在の準備状況 — 2026-11-14
+
+本ページと英語訳だけが現在の状況の正本です。公開文書1件の限定的なend-to-end開発検証は
+成功しました。文書化された協調的sidecar契約の下で独立source reviewはblocking defectを
+認めませんでした。本featureは所有者review向けに提出するもので、公開exact headの
+static CIは別gateです。マージ済みとも、研究プロジェクト全体の完了とも主張しません。
+
+### 確認した限定経路
+
+- 別libraryの明示的な`invoke_stage` adapterで、review済みの固定公開READMEに
+  Light／Deepを各1回成功させました（公開source commit
+  `6b352768aa165722be6a77d9d15f05e79632dc52`）。
+  strict応答からできるのは未検証案であり、モデルがreview受領を発行するものではありません。
+- 独立した原文照合で意味のある第1引用だけを選び、見出しだけの第2引用は除外しました。
+  設定済みの別verifier／snapshot evaluatorの受領を経て、guard付き原子的採用を1回確認しました。
+- 別taskに、出典付きでuntrustedな参照1件を含む1454-byte requestを準備しました。
+  既存の明示consumer境界で固定`xiaomi/mimo-v2.6-pro`経路をちょうど1回呼び、
+  実際に300-byteの応答を得ました。別reviewerがこの引用・課題について
+  `semantic_use_confirmed=true`を記録しました。local送信境界観測はprovider認証済みの
+  remote入力受領ではありません。意味reviewは別の記録を正本とし、legacy top-levelの
+  未review既定値と混同しません。
+- 確認済みは**架空fixtureの限定5ケースPASS／2起動**です。先行3ケース（0.016秒）と
+  再利用consumerの2ケース（0.022秒）で、後者はbyte境界・許可・no-retry、および
+  timeout後の再open・request改名時の予約保持をmock transportで確認しました。
+  新helper自体のlive検証ではありません。以前の**5ケースUNKNOWNを予約に保持**し、
+  **10/10予約 = 5 PASS + 5 UNKNOWN**です。10件合格ではありません。
+  元のUNKNOWNは再実行せず、reviewer作成stageテストの結果もUNKNOWNのままです。
+  この試行に追加の回帰実行枠はありません。
+
+### 初期4能力の基点と残る制限
+
+| 能力 | 限定的な証拠 | 残る制限 |
+|---|---|---|
+| 記録・独立review・採用・取得・lifecycle制御 | 別の公開文書libraryでreview済み1件を受け入れ、guard付き受領で引用1件を採用 | 一般データ取込や本番認証の展開ではなく、期限時の本文・派生物の手動削除が残る |
+| 実モデルLight／Deepと独立採用 | 明示2段階の成功、strictな未検証案、別操作の採用 | 引用忠実性は抽象的な知識統合品質の証明ではない |
+| 固定5課題A/B比較 | 合成基点にplan／journal・検査コードあり | 実測10応答・token／通貨／全段階請求は未確認。元の合成準備はUNKNOWN |
+| 別taskのconsumer利用 | 別課題1回の実呼出しと独立した意味利用確認 | agent全般への展開・独立holdout評価・性能改善の実測ではない |
+
+usage／last-call usageは欠測、costはnull、通貨は不明で、ゼロではありません。
+性能・費用削減・抽象統合品質を主張しません。合成用interfaceと公開fixtureは合成専用のままで、
+公開文書は別library／storeを使います。過去のUNKNOWNを再利用・再実行して証拠を補いません。
+
+### 接続とreleaseの境界
+
+[モデル接続契約](public-document-model.ja.md)から
+[lifecycle契約](public-document-lifecycle.ja.md)、
+[構成図](architecture-overview.ja.md)へ進めます。libraryのみなのは意図的です。
+host許可・各stageの提出・独立verifier／evaluator・guard付き採用・consumer dispatch・
+意味reviewを明示的に分離します。新CLI・自動stage連結・自動採用・retry・常駐loopはありません。
+
+期限・撤回は管理本文へのアクセスを制御します。本文と派生exportのcleanupはhostが手動で行い、
+scheduleは追加しません。remote／provider複製・backupはstore削除の対象外です。
+内容を持たないno-retry metadata tombstoneは保持し、アクセスと保持期間を別途管理します。
+
+独立source reviewは完了しました。所有者reviewと公開exact headのstatic CIは別のrelease gateです。
+設定済みworkflowはPython 3.13でimport／testなしのAST構文検査と文書file link検査だけを行い、
+依存install・回帰全件・version matrix・wheel・有料推論を実行しません。
+未完gateや将来のcleanupを完了扱いしません。
+
+## 過去のcheckpoint — 現在の状況・作業指示ではない
+
+以下は各時点の状況と制限を残す履歴です。公開文書のlive利用・別task受入が未実施、
+3ケースの修正が未実行という過去の記述は、上記の現在の準備状況に置き換わります。
+元のUNKNOWN実行はUNKNOWNのままです。過去の全件・matrix件数は証拠として保持し、
+現在必須の確認や新たなテスト枠にはしません。
+
+## 過去のlocal任意接続 — 2026-11-14
+
+[明示的モデル接続契約](public-document-model.ja.md)に、公開storeの現在束縛requestを
+既存MiMo経路へ送る別のopt-in adapterを追加。送信前にmetadata-only no-retry予約を
+永続化し、実際のprompt hashとresponse・会計可用性を記録します。parser/storeの権限、
+合成経路、自動採用・consumerは変更しません。PR54のmergeは
+`6b352768aa165722be6a77d9d15f05e79632dc52`です。
+
+架空のmock scenarioを3件作成。限定test invocationを1回提出しましたが、native exec toolが
+90000msでtimeoutし、test結果・terminal受領は未取得。実行件数・結果はUNKNOWNで、
+PASSや未dispatchとは断定せず再実行していません。その後静的reviewでtestのargv indexを
+修正しましたが未実行です。live/provider呼出し・実store操作はありません。独立review、
+元test実行の照合、許可された公開文書1件のlive acceptanceは未了。旧合成準備の結果不明は
+そのままで再利用していません。
+
+
+## 当時の評価 — 2026-11-13
 
 **受入優先とし、裏付けのない完成率は示しません。** 2026-11-12の所有者レビューは
 下記4能力で追跡します。初期目標は記録→採用→取得→Light／Deep→比較評価→既存agent一つの接続です。
@@ -416,7 +498,7 @@ Python 3.11／3.13の[main CI合格](https://github.com/moruku36/agent-sleep-lab
 coordinatorのGitHub照会で2026-11-11T04:35:30ZのMERGEDと同一merge commitを確認しました。
 以下の費用reportの検証数値は履歴です。
 
-## 今回のローカルゲート：読み取り専用OSS準備
+## 過去のローカルゲート：読み取り専用OSS準備
 
 [PR #43](https://github.com/moruku36/agent-sleep-lab/pull/43)は所有者により
 `736988a0cb243da9c263ce28232ec5f44d0e3ea7`へマージ済み
@@ -1003,7 +1085,7 @@ PR CIのPython 3.11／3.13両check合格を確認しました。
   PR #29の295項目＋先行8件、実空参考pipeline復旧受入も履歴であり、今回は再実行していません。
 - 空でない採用記憶の意味的利用、実比較評価、既知のfilesystem変更guard補強は未完です。
 
-## 本当に残っていること
+## 当時残っていたこと
 
 1. MiMoの実行承認・binding拒否を解消し、実provider／モデルの受領を得ること。
    保存済みレビューcommandは所有者が承認しましたが、同一commandの

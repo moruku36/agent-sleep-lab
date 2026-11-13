@@ -2,7 +2,103 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-## Current assessment — 2026-11-13
+## Current readiness — 2026-11-14
+
+This page and its Japanese translation are the ONLY current-status authority.
+The bounded one-public-document end-to-end development verification succeeded;
+independent source review found no blocking defect under the documented cooperative
+sidecar contract. This feature is being submitted for owner review; exact-head
+static CI is a separate publication gate. It is not claimed merged or a completed
+research project.
+
+### Verified bounded path
+
+- The separate library's explicit `invoke_stage` adapter called Light and Deep
+  successfully once each on one reviewed, pinned public README (public source
+  commit `6b352768aa165722be6a77d9d15f05e79632dc52`). Strict replies produced
+  unverified proposals, not model-issued review receipts.
+- Independent quotation review accepted only the first meaningful quotation;
+  the second, title-only quotation was excluded. Separate configured verification
+  and snapshot-evaluation receipts preceded one guarded atomic adoption.
+- A different task received one source-attributed, untrusted reference in a
+  1454-byte prepared request. The existing explicit consumer boundary called the
+  fixed `xiaomi/mimo-v2.6-pro` route exactly once and returned 300 output bytes.
+  A separate reviewer recorded `semantic_use_confirmed=true` for that quotation
+  and task. Local outgoing-input observation is not a provider-authenticated
+  remote-input receipt; the separate semantic-review record is authoritative,
+  not the legacy top-level semantic-use default.
+- Confirmed: **5 focused fictional cases PASS / 2 invocations**: the earlier
+  three cases (0.016s) and exactly two reusable-consumer cases (0.022s). The latter
+  check bounded boundary return/permission/no-retry and timeout/reopen/renamed-request
+  reservation using mocked transport, not live execution of the new helper.
+  The prior **5 UNKNOWN case outcomes remain reserved**: **10/10 reserved =
+  5 PASS + 5 UNKNOWN**, not ten passes. No historical UNKNOWN was replayed;
+  review-authored stage-test outcomes remain UNKNOWN. No further regressions are
+  allocated in this trial.
+
+### Initial four-capability baseline and remaining gaps
+
+| Capability | Bounded evidence | Remaining limit |
+|---|---|---|
+| Capture, independent review, adoption, retrieval and lifecycle controls | Separate public-document library admitted one reviewed document and adopted one quotation with guarded receipts | Not a general data-ingestion or production-authentication rollout; manual expiry/derivative cleanup remains due |
+| Real-model Light/Deep with independent adoption | Two explicit successful stages, strict unverified proposals and separate adoption | Quotation fidelity does not establish abstract-consolidation quality |
+| Frozen five-task A/B comparison | Plan/journal and inspection code exist in the synthetic baseline | Ten measured responses and full token/currency/all-phase billing are NOT verified; original synthetic preparation remains UNKNOWN |
+| Later-task consumer use | One different-task call and separate semantic-use confirmation | Not general agent rollout, independent holdout evaluation or measured improvement |
+
+Usage and last-call usage are absent; cost is null and currency unknown, never
+zero. No performance, savings or abstract-consolidation-quality claim follows.
+Synthetic interfaces and public fixtures remain synthetic-only; this public
+document uses a separate library/store. Do not reuse or replay historical unknown
+runs to fill evidence gaps.
+
+### Integration and release boundary
+
+Start with the [model connection contract](public-document-model.md), then the
+[lifecycle contract](public-document-lifecycle.md) and
+[component map](architecture-overview.md). The library-only interface intentionally
+keeps host permission, stage submission, independent verifier/evaluator, guarded
+adoption, consumer dispatch and semantic reviewer explicit. There is no new CLI,
+automatic stage chain, automatic adoption, retry or background agent loop.
+
+Expiry/withdrawal gates managed content. The host must manually clean content and
+derivative exports; no cleanup schedule was added. Remote/provider copies and
+backups are outside store deletion. Retain content-free no-retry metadata
+tombstones and manage their access/retention separately.
+
+Independent source review is complete; owner review and the exact published
+head's static CI remain separate release gates. The configured workflow uses Python 3.13 AST
+parsing without imports/tests and documentation file-link checks; it does not
+install dependencies, run regression/matrix/wheel checks or paid inference.
+These pending gates and future cleanup are not silently marked complete.
+
+## Historical checkpoints — not current status or instructions
+
+Everything below records earlier checkpoints and their then-current limitations.
+Statements that public-document live use or later-task acceptance had not occurred,
+or that the three-case correction was unexecuted, are superseded by the current
+readiness section above. Original UNKNOWN executions remain UNKNOWN. Historical
+full-suite/matrix totals are preserved as evidence, not required checks or a new
+testing budget.
+
+## Historical local optional public-document connection — 2026-11-14
+
+[Explicit connection contract](public-document-model.md) adds a separate opt-in
+one-stage MiMo adapter around the public store's current-bound requests. It
+reserves a durable metadata-only no-retry tombstone before transport, checks the
+actual outgoing prompt hash, and records response/accounting availability.
+No parser/store authority, synthetic route, automatic adoption or consumer changes.
+PR #54 baseline is merged at `6b352768aa165722be6a77d9d15f05e79632dc52`.
+
+Three focused fictional mocked scenarios are authored. One bounded test invocation
+was submitted, but the native exec tool timed out after 90000ms without a test or
+terminal receipt. Execution/count outcomes are UNKNOWN, not PASS or non-dispatch;
+it was NOT replayed. A static review then corrected a test argv-index assertion;
+that correction is unexecuted. No live/provider calls or real-store operations
+were performed. Independent review, focused execution reconciliation and authorized
+one-public-document live acceptance remain pending. The old synthetic preparation
+outcome stays unknown and is not reused.
+
+## Historical assessment — 2026-11-13
 
 **Acceptance first; no supported completion percentage.** The 2026-11-12 owner
 review tracks four capabilities below. The initial target remains capture →
@@ -494,7 +590,7 @@ at `791e8f540db0b4ca549ffec79a96925e907e804b`, the baseline for this demo draft.
 A coordinator GitHub query confirmed MERGED at 2026-11-11T04:35:30Z with
 that exact merge commit. The cost-report checks below are historical.
 
-## Current local gate — read-only OSS preparation
+## Historical local gate — read-only OSS preparation
 
 [PR #43](https://github.com/moruku36/agent-sleep-lab/pull/43) is owner-merged at
 `736988a0cb243da9c263ce28232ec5f44d0e3ea7` (2026-11-11T23:00:41Z),
@@ -1187,7 +1283,7 @@ Already merged in PR #24:
 - Nonempty adopted-memory semantic use, live comparison/evaluation and the
   known filesystem mutation guard gaps remain unverified/unfixed.
 
-## Genuine remaining work
+## Remaining work at the historical checkpoint
 
 1. Resolve the MiMo execution approval/binding failure and obtain a real
    provider/model receipt. The owner approved the saved review command, but the

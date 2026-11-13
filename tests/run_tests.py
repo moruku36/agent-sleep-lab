@@ -1,7 +1,9 @@
-"""Run all unique regression cases by default, or explicit affected names.
+"""Run explicit affected regression names; no names selects all historical cases.
 
-Owner authorized full regression on 2026-11-10. Imported fixture TestCase
-aliases are deduplicated by unittest ID; no test body is silently filtered.
+Personal-development policy: normally select 3-5 relevant cases, at most 10 case
+executions per trial across local runs, CI, retries and subagents. The historical
+full-suite default is retained for compatibility, not recommended for routine use.
+Imported fixture aliases are deduplicated by ID; no test body is silently filtered.
 """
 import argparse
 from pathlib import Path
