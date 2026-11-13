@@ -33,10 +33,19 @@ live process-time/byte measurements; it does not publish the separate trial code
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
 
+Published baseline for this increment is `bb95abf28fbde0a7490e843be4a4187c274c0363`:
+[PR #52](https://github.com/moruku36/agent-sleep-lab/pull/52) added the isolated
+public-document lifecycle (merge `361beb2`), followed by the bilingual overview in
+[PR #53](https://github.com/moruku36/agent-sleep-lab/pull/53).
+The published **483-case baseline CI passed**; that supersedes the earlier
+unpinned local-environment failure as the published baseline gate. It is historical
+evidence, not a pass for the new saved-output handoff below. This implementation
+worker ran no tests, documentation checker, wheel build or CI.
+
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
 |---|---|---|---|---|---|---|
-| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store unchanged; separate one-document public lifecycle library | 27 fictional lifecycle cases PASS in current unpinned full run; mandatory dependency-pin check FAIL; pinned full regression pending | Not performed | Independent review, full regression and actual document acceptance; public-data resurrection deliberately absent | Review the isolated lifecycle implementation | [Public lifecycle](public-document-lifecycle.md) |
-| Real-model Light/Deep → independent adoption → retrieval | Body-bound generator, process-time/byte receipts, separate verifier/writer | 451-case regression below | New synthetic body-bound Light and Deep returned; two exact-source candidates, adoption unverified | Original corrected preparation approved, execution outcome unresolved; real-data binding still absent | Recover original execution evidence without replay | [Partial observation](live-development-measurement.md) |
+| Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store unchanged; published separate public lifecycle library | Published 483-case baseline CI PASS; new handoff not yet tested | Not performed | New-increment review/regression and actual document acceptance; public-data resurrection deliberately absent | Independently review/test the saved-output increment | [Public lifecycle](public-document-lifecycle.md) |
+| Real-model Light/Deep → independent adoption → retrieval | Existing synthetic generator unchanged; new separate offline body-bound public-document saved-output handoff | Five new fictional scenarios authored, UNEXECUTED; historical baseline separate | Only prior synthetic Light/Deep responses; original adoption unverified; no public-document model use | New handoff verification, actual authorized model integration/accounting; original preparation outcome unresolved | Review/test the offline public-document handoff without replaying old execution | [Lifecycle contract](public-document-lifecycle.md); [partial observation](live-development-measurement.md) |
 | Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus optional read-only byte/time projection | Five new local reader cases below; historical regression separate | Not performed; task/rubric fixed, executable plan not registered | Original preparation execution outcome; token/currency/all-phase billing remain absent | Reconcile original preparation before adoption/comparison; saved observations are inspectable without dispatch | [Protocol](live-development-measurement.md) |
 | One real-agent capture → retrieval on another task → input / execution | Synthetic bridge unchanged; separate explicit public-document consumer boundary | Fictional different-task input/return/semantic-review separation below | No real-agent later-task use | Actual authorized adapter integration and independent semantic/performance review | Review the bounded offline consumer boundary | [Lifecycle](public-document-lifecycle.md); no real-agent use claim |
 
@@ -44,7 +53,43 @@ Paid-use consent was already received; missing generic consent is not the blocke
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
 
-## Local worker implementation — one-document public lifecycle
+## Local implementation — offline public-document Light/Deep handoff
+
+- Added pure canonical request builders and strict saved-reply parsers in
+  [public_document_sleep.py](../src/agent_sleep_lab/public_document_sleep.py).
+  No transport imports, model invocation, synthetic coordinator relabeling,
+  receipt issuance, migration, automatic adoption or live options.
+- `prepare_sleep`, `submit_light_result`, `submit_deep_result` use the separate
+  store's current-control guard and SQLite writer transaction. Requests bind exact
+  admitted source/artifact, current generation, scope, origin and parent. Deep
+  receives selected original line units only, with exact selection/unit hashes.
+  Explicit request/reply/quotation byte and unit/candidate counts are enforced.
+- Entire strict Deep replies validate before writes; valid exact-source excerpts
+  become UNVERIFIED proposals atomically, not head/memory/review changes. Empty
+  Light is terminal no-change. Exact raw-byte replay is idempotent across reopen
+  while bindings remain current; conflicting output/binding rejects.
+- Immutable stage requests, raw replies, result summaries and proposals are in the
+  existing managed content inventory and purge; external exports/caller buffers,
+  remote copies and stopped-program deadlines remain outside deletion guarantees.
+- [Five fictional offline scenarios](../tests/test_public_document_sleep.py)
+  are authored: UTF-8 selected-only roundtrip, mixed valid/authority-bearing invalid
+  atomic rejection (including injected mid-write rollback), expiry/purge,
+  empty-Light no-change and reopen/replay/conflict. **UNEXECUTED: zero test
+  cases / zero invocations by this worker.** Independent review, pinned full unique
+  regression, documentation validation and exact-head PR CI/wheel remain pending.
+  The published 483-case CI result is not future acceptance for this increment.
+- Changes are locally committed for parent review only, not pushed, PR-published
+  or merged. No actual public/private document, old live bundle, paid/model call,
+  original unknown execution, A/B run, real agent, environment/config change,
+  lounge message or schedule was used. No completion percentage is asserted.
+  Live model generation, abstract consolidation quality, full accounting and
+  real-agent later-task/performance acceptance remain unfinished.
+
+## Historical implementation observations — one-document public lifecycle
+
+The following local observations predate published PR #52. Its passing 483-case
+baseline CI supersedes the historical environment/CI gate below; it does not
+retroactively turn the failed local invocation into a pass.
 
 - Added a separate versioned private one-document store; no synthetic contracts,
   RuntimeStore, retrieval or CollectOnlyBridge behavior changed. Persisted current
@@ -99,8 +144,9 @@ does not replay them or change host/account controls.
   not independent approval. No actual public document/private live bundle, model,
   provider or real agent was used; no live acceptance, paid call, original-operation
   replay, publication, push, merge, configuration change or schedule occurred.
-  Public-data Light/Deep, actual adapter use, accounting and performance evidence
-  remain unfinished. The historical observations below predate this offline slice.
+  Live public-data Light/Deep, actual adapter use, accounting and performance evidence
+  remain unfinished; the newer offline saved-output handoff is described above.
+  The historical observations below predate this offline slice.
 
 ## Local worker implementation — saved comparison measurements
 

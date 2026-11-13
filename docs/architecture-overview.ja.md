@@ -68,6 +68,11 @@ flowchart LR
   A --> R["別taskの取得 / 明示consumer"]
 ```
 
+[public_document_sleep.py](../src/agent_sleep_lab/public_document_sleep.py)は
+純粋な本文束縛Light／Deep要求作成とoffline保存応答の厳密な検査を加えます。
+guard付きstore APIは選択原文の引用を未検証案へ保存するだけで、受領や採用記憶にはしません。
+合成coordinatorやmodel transportではなく、全段階byteは管理削除inventoryに入ります。
+
 引用の忠実性と機械的snapshot検査は、抽象化の品質や有用性を保証しません。
 consumer呼出しはhost側の別の明示選択です。入口へ入る前にunknown intentを永続化し、
 実入力の観測・返却結果・別の意味reviewを異なる記録として扱います。暗黙のfetch、
