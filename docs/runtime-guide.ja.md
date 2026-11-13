@@ -129,6 +129,23 @@ retrievalの`max_bytes`は1 MiB以下、`scan_limit`は1,024以下、`max_raw`�
 欠測・失敗・不明結果で縮めません。返答byteは**生成後の検査**で、token・金額上限ではありません。
 MiMoを含む使用量・実費はunavailableのままで、0費用・性能・受入完了を主張しません。
 
+追加の`input_volume`で、計画した入力の増加量を明示します。
+
+- `pairs`はAB／BAのdispatch位置ではなく、0始まりの`task_index`順です。
+  各組に`a_request_bytes`、`b_request_bytes`、`delta_bytes`（B−A）と
+  `delta_percent`（100 × (B−A) / A）を返します。
+- `totals`はAとBを別々に合計し、`combined_request_bytes`（A+B）と
+  合計間の差・増加率を返します。**各組の増加率の平均ではありません**。
+  増加率は小数第2位へhalf-upで丸め、正確な整数byte数を正本とします。
+- `task_pairs`と`total_arms`は実行状態によらず全計画枠を含みます。
+  計画を1巡する入力量であり、実送信・再試行・全工程の消費量ではありません。
+  固定した各課題にA・B各1件と正の整数長が揃うことを検査します。
+- `basis: "planned_serialized_utf8_json_request_bytes"`は、hash検証した
+  正確な直列化要求の長さです。既存packerは`ensure_ascii=True`でUnicodeを
+  ASCII escapeし、その出力はUTF-8としても有効です。元の文章・ファイルの大きさ、
+  provider／system wrapper、実送信byte、token、金額ではありません。
+  入力の追加だけで同量文脈の公平性・品質改善・節約を示すものではありません。
+
 準備では評価器identityとprotocol hashだけを読み、解答keyは読みません。後で既存の明示的な
 `compare --provider script`（`fake-model-1`用）、または`--provider mimo --agent ...`へ
 同じmanifest／journalとhash一致する別`--rubric`を渡せます。model・予算・課題の束縛は同一必須です。

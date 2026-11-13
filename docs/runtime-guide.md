@@ -179,6 +179,26 @@ denominator. Reply bytes are checked **after generation**, not token or monetary
 caps. Usage/cost measurements remain unavailable, including MiMo; no zero-cost,
 performance or completed-acceptance claim follows.
 
+The additive `input_volume` field makes planned input growth explicit:
+
+- `pairs` is ordered by zero-based `task_index`, not AB/BA dispatch position.
+  Each pair reports `a_request_bytes`, `b_request_bytes`, `delta_bytes` (B−A)
+  and `delta_percent` (100 × (B−A) / A).
+- `totals` sums A and B separately, adds `combined_request_bytes` (A+B),
+  and calculates the difference and percentage from those totals, **not the mean
+  of pair percentages**. Percentages round half-up to two decimal places;
+  exact integer byte counts are authoritative.
+- `task_pairs` and `total_arms` include every planned slot, regardless of
+  execution status. This measures one planned traversal, not actual sends,
+  retries or whole-pipeline consumption. Arm identities and positive integer
+  lengths must form exactly one A and one B for each frozen task.
+- `basis: "planned_serialized_utf8_json_request_bytes"` means the length of
+  the exact hash-checked serialized request. The existing packer uses ASCII
+  Unicode escapes (`ensure_ascii=True`); its output is also valid UTF-8.
+  These are not original text/file sizes, provider/system-wrapper bytes, actual
+  transmitted bytes, tokens or money. Extra input is not evidence of equal-context
+  fairness, quality improvement or savings.
+
 Preparation reads only evaluator identity and its protocol hash, never an answer
 key. Later, the existing explicit `compare --provider script` (for `fake-model-1`)
 or `--provider mimo --agent ...` route can consume the same manifest/journal with

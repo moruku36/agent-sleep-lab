@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from contextlib import closing
 from dataclasses import asdict
+from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 from agent_sleep_lab.ab_comparison import (
@@ -74,6 +75,46 @@ def _journal(value, source):
     return path
 
 
+def _input_volume(plan_id, tasks, arms):
+    """Project every planned A/B request, independent of execution state/order."""
+    if (not _id(plan_id) or type(tasks) is not list or not 1 <= len(tasks) <= 5
+            or any(type(t) is not dict or not _id(t.get("task_id")) for t in tasks)
+            or len({t["task_id"] for t in tasks}) != len(tasks)
+            or type(arms) is not list or len(arms) != 2 * len(tasks)):
+        raise ValueError("invalid planned request-volume identities")
+    lengths = {}
+    for entry in arms:
+        if type(entry) is not dict:
+            raise ValueError("invalid planned request-volume arm")
+        index, arm, size = (entry.get(k) for k in ("task_index", "arm", "request_bytes"))
+        if (type(index) is not int or not 0 <= index < len(tasks)
+                or type(arm) is not str or arm not in ("A", "B")
+                or entry.get("plan_id") != plan_id
+                or entry.get("task_id") != tasks[index]["task_id"]
+                or (index, arm) in lengths
+                or type(size) is not int or not 1 <= size <= MAX_INPUT_BYTES):
+            raise ValueError("invalid planned request-volume arm")
+        lengths[index, arm] = size
+
+    def volume(a, b):
+        delta = b - a
+        percent = (Decimal(delta) * 100 / Decimal(a)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return dict(a_request_bytes=a, b_request_bytes=b,
+                    delta_bytes=delta, delta_percent=float(percent))
+
+    pairs = [dict(task_index=i, **volume(lengths[i, "A"], lengths[i, "B"]))
+             for i in range(len(tasks))]
+    a_total = sum(p["a_request_bytes"] for p in pairs)
+    b_total = sum(p["b_request_bytes"] for p in pairs)
+    return dict(
+        basis="planned_serialized_utf8_json_request_bytes",
+        percentage_rounding="half_up_2_decimal_places",
+        task_pairs=len(tasks), total_arms=len(arms), pairs=pairs,
+        totals=dict(**volume(a_total, b_total),
+                    combined_request_bytes=a_total + b_total))
+
+
 def execute(manifest_path, *, store_config_path, journal_path, model):
     """Freeze/reopen, audit and recheck; return bounded metadata, never requests.
 
@@ -103,7 +144,10 @@ def execute(manifest_path, *, store_config_path, journal_path, model):
             # Audit is the existing hash/membership projection. Do not return its
             # optional ranking rules (contain query text), or private reason text.
             arms = audit["arms"]
-            for a, b in zip(arms[::2], arms[1::2]):
+            input_volume = _input_volume(plan_id, plan["tasks"], arms)
+            by_identity = {(entry["task_index"], entry["arm"]): entry for entry in arms}
+            for index in range(len(plan["tasks"])):
+                a, b = by_identity[index, "A"], by_identity[index, "B"]
                 if (not a["raw_present"] or a["raw_present"] != b["raw_present"]
                         or a["memories_present"] or not b["memories_present"]
                         or a["request_sha256"] == b["request_sha256"]):
@@ -134,5 +178,6 @@ def execute(manifest_path, *, store_config_path, journal_path, model):
                 byte_caps_are_token_caps=False, byte_caps_are_monetary_caps=False,
                 generation_token_cap=None, monetary_cap=None,
                 cost={"label": "unavailable", "value": None}, usage=None,
-                arms=arms, current_validity=dict(valid=True, **current),
+                arms=arms, input_volume=input_volume,
+                current_validity=dict(valid=True, **current),
                 performance_claim=None, acceptance_complete=False)

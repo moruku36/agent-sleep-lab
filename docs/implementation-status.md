@@ -2,7 +2,7 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
-## Current assessment — 2026-11-12
+## Current assessment — 2026-11-13
 
 **Acceptance first; no supported completion percentage.** The 2026-11-12 owner
 review tracks four capabilities below. The initial target remains capture →
@@ -12,11 +12,13 @@ prepared interfaces are not completed acceptance.
 This page and its Japanese translation are the ONLY current status authority;
 dated gate reports are historical evidence.
 
-Fresh GitHub reads for this documentation update confirmed main
-`9b6ecb59e266f157789af87d0b3ce5203fb32072` and merged
+Fresh GitHub reads confirmed main
+`19bcd6e669de57ace2372c716a4b8738acb4ec86` and merged
+[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46) (trial documentation only).
+The table below retains the merged runtime baseline from
 [PR #45](https://github.com/moruku36/agent-sleep-lab/pull/45).
-The table below describes that merged runtime baseline. A separate local public-source
-trial is recorded afterward; its implementation is not included in this documentation update.
+This follow-up adds the offline volume projection below; it does not publish the
+separate public-source trial implementation.
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
 
@@ -30,6 +32,27 @@ its prior PR creation is **UNKNOWN**, not reissued here.
 Paid-use consent was already received; missing generic consent is not the blocker.
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
+
+## Planned input-volume reporting — 2026-11-13 follow-up
+
+- Implemented additive `input_volume` in existing
+  [compare-prepare](runtime-guide.md#offline-comparison-preparation): exact planned
+  serialized request bytes for each A/B pair, totals, B−A and percentage growth.
+  Identity-based pairing validates every frozen task; all planned slots remain
+  counted even with missing/unknown outcomes. Totals use the ratio of sums,
+  with half-up percentage rounding to two decimals.
+- Only reporting and identity validation change. Frozen plans/hashes, journal
+  schema, statuses and explicit dispatch/adoption boundaries are unchanged.
+  No provider, evaluator, answer key, live inference or real-data path is added.
+  Byte growth is not token usage, measured money or evidence of benefit.
+- Four new [behavior cases](../tests/test_compare_prepare_volume.py) passed in
+  one focused invocation (0.443s). Full regression passed **429 unique cases /
+  one invocation** (36.025s), using retained Python 3.13.18 and project-pinned
+  dependencies: **433 verified case executions / two local invocations**.
+  A prior four-case attempt returned no completion receipt after a tool timeout;
+  its executions are unknown (0–4), excluded from those verified totals.
+- These are local checks, not independent approval or completed live acceptance.
+  PR CI/wheel validation and merge are separate, not established by these results.
 
 ## Local public-source trial — 2026-11-12
 
