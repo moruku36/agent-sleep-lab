@@ -46,6 +46,7 @@ providerは記憶案を生成しますが、検証受領や実行権限は発行
 | 現在の能力・検証結果・残る課題 | [実装状況](docs/implementation-status.ja.md) — 現在地の唯一の正本 |
 | コマンドと実行条件 | [ランタイム手順](docs/runtime-guide.ja.md) |
 | 公開文書1件の受入・offline Light／Deep handoff・review・再利用・削除 | [公開文書lifecycle](docs/public-document-lifecycle.ja.md) — 別のlibrary／store |
+| libraryのみの明示Light／Deepモデル呼出しとhost役割分離 | [モデル接続契約](docs/public-document-model.ja.md) |
 | 接続・評価・研究背景・開発時の確認 | [文書索引](docs/index.ja.md) |
 
 ## 境界

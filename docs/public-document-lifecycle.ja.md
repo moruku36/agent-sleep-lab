@@ -4,7 +4,10 @@
 
 既存の合成provenance・RuntimeStore・取得・CollectOnlyBridgeを緩めず、
 **別の版付きライブラリ／専用SQLite store**で公開文書1件を扱います。
-取得、provider client、自動dispatch、timer、有料model接続はありません。
+core storeにfetch・provider client・自動dispatch・timerはありません。
+別のopt-in[model段階adapter](public-document-model.ja.md)と
+[後続タスクconsumer adapter](public-document-consumer.ja.md)は、独立した要求hash束縛の
+有料呼出し選択を必要とします。importだけでは実行しません。
 テストは架空の公開byteと注入したoffline consumerだけです。
 
 ## 信頼境界と現在許可
@@ -197,6 +200,7 @@ consumerの複製、remote要求／応答はinventory外で、host側に別の�
 実行中の撤回は渡したbyteを回収できませんが、local再読取りを拒否／purgeし、
 戻った結果を利用不可にします。
 
-実公開文書・既存の私的bundle・元の不明準備・provider・有料model・実agentは使いません。
-offline保存応答経路と、実環境受入・公開文書の実model生成・費用計測・独立した性能reviewは別です。
-検証結果の正本は[実装状況](implementation-status.ja.md)だけです。
+core storeと保存応答handoff自体はmodelを呼び出さず、過去の結果不明実行も解決しません。
+任意adapterは別の明示境界で、reviewや採用の権限を発行しません。
+実利用の観測、会計情報の可否、未実施の性能評価は
+[実装状況](implementation-status.ja.md)だけに記録します。

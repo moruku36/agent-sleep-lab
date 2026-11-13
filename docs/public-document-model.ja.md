@@ -6,6 +6,11 @@
 `xiaomi/mimo-v2.6-pro`を明示選択します。pure saved-output protocolと合成runtimeは
 変更しません。fetch、fallback、retry、自動stage連結・採用・agent loopはありません。
 
+現在の検証・release準備は[実装状況](implementation-status.ja.md)だけを参照してください。
+本書はlibrary契約であり、公開済み・性能受入の主張ではありません。libraryのみなのは意図的で、
+許可・stage提出・独立review・採用・別consumer選択はhostが担います。新CLI・自動連結はありません。
+[構成図](architecture-overview.ja.md)と[文書索引](index.ja.md)から関連契約へ進めます。
+
 ## 呼出し契約
 
 英語版の実行例は両言語共通APIです。`InvocationPermission`には、呼出し側が独立に

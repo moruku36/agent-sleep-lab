@@ -61,7 +61,7 @@ class PublicDocumentModelTests(unittest.TestCase):
         for receipt in receipts:
             self.assertEqual(receipt["status"], "returned_valid_untrusted")
             self.assertIsNone(receipt["transport_receipt"]["cost"])
-            self.assertEqual(receipt["transport_receipt"]["usage_state"], "not_observed")
+            self.assertEqual(receipt["transport_receipt"]["usage_state"], "absent")
         for call, request in zip(cli.call_args_list, (self.request, deep_request)):
             prompt = call.args[0][-1].encode("utf-8")
             observed = next(r for r in receipts if r["request_sha256"] == sha256_hex(request))

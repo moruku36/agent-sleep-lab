@@ -73,6 +73,12 @@ flowchart LR
 guard付きstore APIは選択原文の引用を未検証案へ保存するだけで、受領や採用記憶にはしません。
 合成coordinatorやmodel transportではなく、全段階byteは管理削除inventoryに入ります。
 
+任意の[モデルadapter](public-document-model.ja.md)は
+[public_document_model.py](../src/agent_sleep_lab/public_document_model.py)で各stageを明示接続します。
+純粋parserをtransportへ変えず、自動連結しません。libraryのみなのは意図的で、
+許可・提出・独立review・採用・consumer dispatch・意味reviewをhostの別役割に残します。
+新CLIはありません。現在の受入結果は[実装状況](implementation-status.ja.md)だけを参照してください。
+
 引用の忠実性と機械的snapshot検査は、抽象化の品質や有用性を保証しません。
 consumer呼出しはhost側の別の明示選択です。入口へ入る前にunknown intentを永続化し、
 実入力の観測・返却結果・別の意味reviewを異なる記録として扱います。暗黙のfetch、

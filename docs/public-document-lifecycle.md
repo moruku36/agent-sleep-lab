@@ -5,7 +5,10 @@
 This is a **separate versioned library/store**, not a relaxation of synthetic
 provenance, RuntimeStore, retrieval or CollectOnlyBridge. It admits exactly one
 already-reviewed public document, with source-attributed excerpts only. There is
-no fetching, provider client, CLI auto-dispatch, timer or paid-model integration.
+no fetching, provider client, CLI auto-dispatch or timer in this core store.
+The separate opt-in [model stage adapter](public-document-model.md) and
+[later-task consumer adapter](public-document-consumer.md) require independent,
+request-bound paid-call choices; importing the library invokes neither.
 Tests use fictional public bytes and injected offline consumers.
 
 ## Trusted host configuration
@@ -258,8 +261,8 @@ responsible for their deletion and any remote retention contract. Revocation
 during execution cannot recall already delivered bytes, but it blocks/purges
 local access and makes the returned result unusable.
 
-No actual public document, existing private staging/live bundle, original unknown
-preparation, provider, paid model or real agent is exercised by this slice.
-Live acceptance, actual public-data model generation, cost accounting and
-independent performance review remain separate from this offline saved-output path. Current verification is recorded
-only in [implementation status](implementation-status.md).
+The core store and saved-output handoff do not themselves invoke models or
+resolve historical unknown executions. The optional adapters remain separate
+explicit boundaries; they never issue review or adoption authority. Live-use
+observations, accounting availability and outstanding performance evaluation are
+recorded only in [implementation status](implementation-status.md).

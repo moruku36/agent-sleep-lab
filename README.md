@@ -46,6 +46,7 @@ Providers propose memories, not verification receipts or execution permissions.
 | Current capabilities, verification and open gaps | [Implementation status](docs/implementation-status.md) — the sole current-status authority |
 | Commands and their execution conditions | [Runtime guide](docs/runtime-guide.md) |
 | One-document admission, offline Light/Deep handoff, review, reuse and deletion | [Public-document lifecycle](docs/public-document-lifecycle.md) — a separate library/store |
+| Explicit library-only Light/Deep model calls and host role separation | [Model connection contract](docs/public-document-model.md) |
 | Integration, evaluation, research or development checks | [Documentation index](docs/index.md) |
 
 ## Boundaries

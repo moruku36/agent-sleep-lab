@@ -14,6 +14,7 @@
 | sleep・review・採用・取得・比較を明示的に呼ぶ | [ランタイム手順](runtime-guide.ja.md) |
 | review済み公開byte列を、実行storeへ受け入れずに準備する | [公開資料の受入準備](public-source-intake.ja.md) |
 | 別の公開文書1件storeとreview・削除・consumer境界を使う | [公開文書lifecycle](public-document-lifecycle.ja.md) |
+| Light／Deepを明示接続し、許可・review・採用を分離する | [公開文書モデル契約](public-document-model.ja.md) |
 | 採用済み合成記憶から比較用のOSS入力をofflineで作る（送信なし） | [OSSリクエスト準備](oss-prepare.ja.md) |
 | 事前登録した合成の複数課題を集計する（実モデル・holdoutの証拠ではない） | [Fixture cohort (English)](oss-fixture-cohort.md) |
 | 既定v1と別に、課題の明示選択と強制judgeの来歴を調べる | [選択課題offline probe (English)](oss-selected-issue-probe.md) |
@@ -53,14 +54,18 @@ OpenClawの[Dreaming](https://docs.openclaw.ai/concepts/dreaming)があります
 [クイックスタート](../README.ja.md#クイックスタート)に従ってリポジトリからインストールした後：
 
 ```sh
-.venv/bin/python tests/run_tests.py
+.venv/bin/python tests/run_tests.py test_public_document_model.PublicDocumentModelTests.test_document_text_cannot_supply_permission
 .venv/bin/python tools/check_docs.py
 ```
 
-回帰runnerはfixture用import aliasによる同一テストIDの重複を除き、修正中は具体的な
-テスト名を指定できます。PR・main CIはPython 3.11／3.13の回帰、文書の相対ファイルリンク、
-wheelビルドを確認します。有料モデルは呼びません。文書checkerはanchorや外部URLを
-検査しません。[repo指示](../AGENTS.md)と[テスト方針](testing-budget.ja.md)も参照してください。
+上のテスト名は影響ケースの明示選択例であり、今回の確認を再実行する指示ではありません。
+通常3〜5件の意味あるケースを選び、local・CI・retry・子agentを合算して最大10ケース実行とし、
+UNKNOWNも予約枠に保持します。文書だけの変更は通常reviewで確認し、回帰実行を増やしません。
+runnerの無指定全件実行は使いません。PR・main CIはPython 3.13でimport・testなしのAST構文検査と
+文書の相対file link検査だけです。依存install・回帰全件・version matrix・wheel・有料推論はありません。
+exact headの結果は[現在の実装状況](implementation-status.ja.md)で確認します。
+文書checkerはanchorや外部URLを検査しません。[repo指示](../AGENTS.md)と
+[テスト方針](testing-budget.ja.md)も参照してください。
 
 ## ライセンス
 

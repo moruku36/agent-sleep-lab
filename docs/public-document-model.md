@@ -7,6 +7,14 @@ registered OpenClaw route, explicitly selecting `xiaomi/mimo-v2.6-pro`. It does 
 change the pure saved-output protocol or synthetic runtime. No CLI auto-dispatch,
 fetch, fallback, retry, automatic adoption or agent loop is introduced.
 
+For current verification and release readiness, use only
+[implementation status](implementation-status.md). This page defines the library
+contract, not a release or performance claim. The library-only surface is
+intentional: the host owns each permission, stage submission, independent review,
+adoption and later consumer choice; there is no new CLI or automatic chain.
+See the [component map](architecture-overview.md) and
+[documentation index](index.md) for navigation.
+
 ## Host invocation contract
 
 Import `InvocationPermission`, `invoke_stage`, `inspect_journal` from
