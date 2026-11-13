@@ -124,6 +124,50 @@ stopped, `recover_stopped_provider(run_id)` or
 unknown. Preparation recovery never re-executes the trusted callback. Reconcile
 any independently registered artifacts/receipts before a separate new operation.
 
+
+## Provider accounting observations
+
+The paper-pilot `OpenClawMimoProvider` retains allowlisted observations from the
+[documented model.run JSON envelope](https://docs.openclaw.ai/cli/infer#json-output),
+when the selected CLI actually returns them. This is compatibility support for
+that public contract, **not proof the installed CLI/account emits it**.
+Reference implementation reviewed:
+[usage normalization](https://github.com/openclaw/openclaw/blob/db4b2edd6d0882dd93ce2fdc670a5861e42621f3/src/agents/usage.ts)
+and [CLI contract tests](https://github.com/openclaw/openclaw/blob/db4b2edd6d0882dd93ce2fdc670a5861e42621f3/src/cli/capability-cli/model.run-outcomes.test.ts).
+
+- `usage` keeps only supplied normalized token fields (`input`, `output`,
+  `cacheRead`, `cacheWrite`, `cacheWrite1h`, `cacheWrite5m`, `reasoningTokens`,
+  `total`), finite nonnegative cost totals/components, enumerated cost status and
+  usage-availability labels. No token totals or prices are calculated.
+- `last_call_usage` is a separate snapshot of `lastCallUsage`. It never fills
+  missing aggregate usage or cost. Gateway totals can span multiple calls.
+- `usage_state` / `last_call_usage_state` distinguish `not_observed` (no
+  validated envelope yet), `absent`, `unavailable`, `invalid` and `observed`.
+  Missing/default zero snapshots are not measured zeros. Explicit available
+  zero counts and provider-billed zero cost are preserved.
+- The receipt's `cost` uses `provider_billed` only for the CLI's explicit
+  `totalOrigin: "provider-billed"`; otherwise it uses
+  `recorded_unverified_billing`, not an assertion that the value was charged.
+  This records runtime provenance, not an independently reconciled invoice.
+  `costStatus: "unavailable"` or unavailable usage suppresses cost.
+  Currency is null because this envelope does not establish it.
+- Unknown/account/free-text metadata is discarded. Malformed recognized fields
+  mark that snapshot invalid without discarding an otherwise valid response.
+  Accounting is captured after model/no-fallback validation but before text/byte
+  validation, so a rejected answer can still retain incurred-usage observations.
+- Existing Light/Deep checkpoints (`sleep-status`) and A/B private journal
+  `provider_receipts` persist these fields, including across reopen. No schema
+  migration, dispatch, retry, adoption, capture permission or model switch is
+  added. Injected transport receipts remain explicitly non-live evidence.
+  The separate OSS adapter and `compare-inspect` are unchanged.
+
+Per-response observations do **not** complete total accounting: capture,
+consolidation, verification, retrieval, execution and evaluation must all be
+covered with established currency and billing provenance. Existing comparison
+phase/total costs remain unavailable; no measured savings are emitted. Missing
+live model availability, historical execution binding and the synthetic-only
+real-agent boundary remain separate blockers.
+
 ## Adoption and retrieval
 
 ```sh
@@ -176,8 +220,9 @@ prompt, query, reply and answer-key text. Each B must include consolidated memor
 after the same complete raw prefix as A. **Five tasks fix all ten planned arm
 slots** (five per arm); missing, failed or unknown outcomes never shrink this
 denominator. Reply bytes are checked **after generation**, not token or monetary
-caps. Usage/cost measurements remain unavailable, including MiMo; no zero-cost,
-performance or completed-acceptance claim follows.
+caps. Preparation performs no usage/cost measurement. Later MiMo response
+observations can be retained as described above, but total cost remains
+unavailable; no zero-cost, performance or completed-acceptance claim follows.
 
 The additive `input_volume` field makes planned input growth explicit:
 
@@ -281,8 +326,9 @@ or increase the request cap. Library `diagnostic_only=True` permits byte/audit
 inspection, but reports `comparable:false` and `comparison:null`. It is not a
 performance trial. Entire records and the strict raw-prefix audit are preserved.
 Receipts and unknown outcomes persist in the private journal; resume skips
-completed arms and never repeats an intent with unknown outcome. MiMo cost is
-reported unavailable, not synthetic zero. No savings/performance claim follows.
+completed arms and never repeats an intent with unknown outcome. MiMo receipts
+retain available usage/cost observations as described above, while phase/total
+cost remains unavailable, not synthetic zero. No savings/performance claim follows.
 
 The [five-task development fixture](../examples/paper-pilot/README.md) is preparation
 for a real-response run, not a completed experiment or an independent holdout.

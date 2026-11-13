@@ -13,7 +13,11 @@ REM・日記・横展開は含めません。ファイル数・テスト数・�
 所有者によるマージを確認しました。2026-11-13のmerge commitは
 `82729e8dff6ce5b3967fd406490a058c5f265b70`です。
 同一headの[PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43347223453)も成功し、
-計画入力byte集計が基点へ入りました。今回の継続開発は保存済み比較の読取り専用確認を追加します。
+計画入力byte集計が基点へ入りました。[PR #48](https://github.com/moruku36/agent-sleep-lab/pull/48)も
+所有者マージ済みで、merge commitは`2ab948bebbdcdf14d4ffeca0a2a071cf1db16af8`です。
+同一headの[CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43350754976)は
+Python各版435件・文書・wheelが合格しました。読取り専用確認が入ったこの基点から、
+今回はproviderの計測値保存を追加します。
 文書だけの[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46)に記載した
 別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
 `1e636d8`は別途保全済みで、過去のPR作成は**UNKNOWN**です。その操作は再送しません。
@@ -21,15 +25,40 @@ REM・日記・横展開は含めません。ファイル数・テスト数・�
 | 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
 |---|---|---|---|---|---|---|
 | 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store向け実装済み | 既存回帰。今回の結果は下記 | 未実施 | 実データ境界と運用受入 | 許可された実データ境界を一つ定義 | 既存store／writer／retrieval契約 |
-| 実model Light／Deep→独立採用→取得 | 本文束縛生成・別verifier／writer。先行の同run CLI branchは別途保全 | 既存契約。新たなmodel呼出しなし | 未実施 | hostの実行bindingと実生成候補の独立確認 | binding解消後、総枠内の最小1呼出しで受領確認 | [実行手順](runtime-guide.ja.md)、上記先行branch |
-| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journal、offline準備・byte集計に読取り専用確認を追加 | 準備・集計の基点は合格。確認機能の検証は下記 | 未実施 | 実10結果と総実費の実測 | 5組のmanifestを固定し、実行障害を解消 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
-| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeとoffline handoffのみ | 既存合成接続契約 | 未実施 | 実データ許可・保持／削除・scope・秘密情報契約と実利用の追跡 | OSS Contributorの実データ受入契約を定義 | 既存bridge／実行journal。実agent受領なし |
+| 実model Light／Deep→独立採用→取得 | 本文束縛生成・別verifier／writer。先行の同run CLI branchは別途保全 | 既存契約。新たなmodel呼出しなし | 未実施 | 現agentのcatalogにMiMo不在、未解決の実行binding、実生成候補の独立確認 | binding解消後、総枠内の最小1呼出しで受領確認 | [実行手順](runtime-guide.ja.md)、上記先行branch |
+| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journal・準備・byte集計・確認にprovider計測値保存を追加 | 基点と新しい計測契約は下記 | 未実施 | 実10結果、live使用量、通貨と全段階の請求実費 | 実行前に正式なMiMo能力を復旧 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
+| 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeとoffline handoffのみ | 既存合成接続契約 | 未実施 | 実データ許可・保持／削除・scope・秘密情報契約と実利用の追跡 | クロッチ向けの明示的な公開資料取込み受入をscope化 | 既存bridge／実行journal。実agent受領なし |
 
 有料利用の許可は受領済みで、一般的な再承認が障害ではありません。
 保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
 host／アカウント制御を変更したりしません。
 
-## 保存済み比較の読取り専用確認 — 2026-11-13の継続開発
+## 本人による検証前チェックと計測値保存 — 2026-11-13
+
+所有者はworkerを使わずクロッチ本人での検証を依頼しました。
+設定済みagentで`xiaomi/mimo-v2.6-pro`を読取り専用inspectすると
+**Model not found**でした。推論や承認拒否ではなく、認証情報の世界的な不在や
+過去bindingの修復を示しません。実呼出しは**0件**です。
+5組の検証票は固定実行planでも採点結果でもありません。
+
+- 既存論文pilot adapterへ[provider計測値保存](runtime-guide.ja.md#provider計測値の保存)を実装。
+  aggregate／最後の1呼出しのtoken、記録済み費用、可用性・課金出所をallowlistで分離します。
+  欠測・既定0・unavailable・不正値を架空の計測値にせず、通貨・単価・総費用・節約額を推測しません。
+- 既存Light／Deep checkpointとA/B受領journalへ保存し、生成後の返答拒否や
+  再open後も保持します。schema・権限・合成限定・dispatch・モデル・独立検証・採用は
+  変更しません。別OSS adapterと確認専用inspectorも変更しません。
+- 新しい[offline behavior 7件](../tests/test_provider_usage.py)が1起動で合格（0.052秒）。
+  全回帰は既存Python 3.13.18・固定依存で**重複なし442件／1起動で合格**（36.809秒）。
+  **確認済み449ケース実行／ローカル2起動**です。focused実行後に課金未確認labelを
+  明確化し、その変更も全回帰に含めています。過去の結果不明・拒否操作は再送・リセットしません。
+- coordinator自身のレビューと模擬transportは独立レビュー・実環境受入ではありません。
+  今回のPRのPython 3.11／3.13 CIは別のcheck記録です。参照した公開CLI契約は
+  現行インストールより新しい可能性があり、実際の出力・課金は未確認です。
+- 残りはインフラ担当による正式MiMo能力／binding復旧、通貨と全段階の請求実費、
+  出典・scope・目的・保持／削除を明示した別の実データ境界と別taskへの実入力／利用受領です。
+  未公開の試用コードを検索・復元せず、実データを合成扱いに変更していません。
+
+## 保存済み比較の読取り専用確認 — PR #48マージ済み基点
 
 - 既存の独立raw journal向けに[compare-inspect](runtime-guide.ja.md#保存済み比較の読取り専用確認)を追加。
   初期化・plan／contact登録・provider／評価器呼出し・返答読出し・受領原文の出力・

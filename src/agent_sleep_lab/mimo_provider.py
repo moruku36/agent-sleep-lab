@@ -9,6 +9,7 @@ import json
 import subprocess
 from agent_sleep_lab.strictjson import loads_strict_bytes
 from agent_sleep_lab.provenance import sha256_hex
+from agent_sleep_lab.provider_usage import accounting_fields
 
 MODEL = "xiaomi/mimo-v2.6-pro"
 
@@ -41,6 +42,10 @@ class OpenClawMimoProvider:
         self.calls += 1  # reserve BEFORE dispatch, including exceptions/unknown outcomes
         receipt = {"model_requested": MODEL, "request_sha256": sha256_hex(request),
                    "status": "outcome_unknown", "cost": None, "usage": None,
+                   "usage_state": "not_observed", "last_call_usage": None,
+                   "last_call_usage_state": "not_observed",
+                   "transport_source": ("registered_openclaw_cli" if self.transport is subprocess.run
+                                        else "injected_transport_not_live_verified"),
                    "generation_token_cap": None, "post_output_byte_cap": max_output_bytes}
         self.receipts.append(receipt)
         try:
@@ -57,6 +62,11 @@ class OpenClawMimoProvider:
                 or envelope.get("provider") != "xiaomi" or envelope.get("model") != "mimo-v2.6-pro"
                 or envelope.get("attempts") != []):
             raise ValueError("unverified model or fallback receipt")
+        # Retain accounting even when returned text later fails validation.
+        # Do not copy arbitrary metadata or use last-call usage as aggregate.
+        receipt.update(accounting_fields(envelope))
+        if envelope.get("transport") in ("local", "gateway"):
+            receipt["envelope_transport"] = envelope["transport"]
         outputs = envelope.get("outputs")
         if (type(outputs) is not list or len(outputs) != 1 or type(outputs[0]) is not dict
                 or type(outputs[0].get("text")) is not str
