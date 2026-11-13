@@ -152,6 +152,13 @@ refuses preparation. Limits are positive integers: request/reply bytes at most
 512 KiB each, source units at most 256, candidates at most 32 and an individual
 quotation at most 65,536 UTF-8 bytes. These are not token or money limits.
 
+An optional bounded `SelectionContext(task, rubric, max_bytes)` can guide Light
+selection using public development-task data. It is explicitly untrusted and
+non-authoritative; the exact context is bound into the request/hash and managed
+deletion. Default `None` preserves existing bytes. Deep omits the context but binds
+its Light request hash. See [context and prompt permission contract](public-document-model.md#optional-light-taskrubric-context)
+for the 8192-byte combined text cap, exact prompt pinning and evaluation-data limits.
+
 The strict Light reply has **only** these fields:
 
 ```json
@@ -196,7 +203,14 @@ Immutable managed content kinds are `sleep_light_request`, `sleep_light_reply`,
 also retain Deep-request, selected-source and source-unit hashes. All live in the
 existing `content` inventory and are covered by the same purge; no schema/table
 migration or external file is created. Invalid submissions leave no proposal or
-reply artifact. Accepted exact byte replay is idempotent across reopen **only while
+accepted reply artifact. The separate explicit
+[rejected-reply quarantine](public-document-model.md#opt-in-managed-rejected-reply-quarantine)
+can retain bounded rejected bytes as `sleep_rejected_reply` plus a content-free
+`sleep_rejection` record, with one immutable slot per stage in this store. These
+are managed untrusted diagnostics, never proposals, evidence or receipts. Successful
+quarantine is terminal for submission under that exact request. Default submission
+does not retain rejected bytes, and quarantine never grants model retry credit.
+Accepted exact byte replay is idempotent across reopen **only while
 the original bindings remain current**; a different binding or raw reply, including
 different whitespace, conflicts. Deletion does not resurrect artifacts or permit
 replay. Caller buffers/exported saved files remain outside managed deletion.
@@ -238,7 +252,8 @@ There is no rollback/resurrection API for a withdrawn public document.
 ## Managed deletion and limits
 
 The dedicated bundle inventories source/evidence, proposal, adopted memory,
-snapshot, request/result and all saved Light/Deep stage bytes. On expiry, withdrawal or integrity/current
+snapshot, request/result, optional selection context and all saved Light/Deep stage
+bytes, including rejected-reply quarantine. On expiry, withdrawal or integrity/current
 generation failure it first durably records exclusion as `purge_pending`.
 `purge()` removes managed text, approval URL/body, origin task and review/dispatch
 derivatives with SQLite `secure_delete=ON`, DELETE journaling and `VACUUM`, then

@@ -114,6 +114,12 @@ origin task・現在parent・全上限を要求byteに束縛します。unit数�
 source unitは256以下、candidateは32以下、引用1件はUTF-8で65,536 byte以下です。
 tokenや金額の上限ではありません。
 
+任意の`SelectionContext(task, rubric, max_bytes)`で公開開発taskの情報をLight選別へ
+渡せます。明示的にuntrusted・非権威的なdataとし、exact contextを要求／hashと管理削除へ
+束縛します。既定`None`では従来byteを維持します。Deepはcontextを除き、Light要求hashを
+束縛します。合計8192-byte上限・exact prompt許可・評価dataの制限は
+[context契約](public-document-model.ja.md#任意のlight-taskrubric-context)を参照してください。
+
 Light応答は次のfield**だけ**です。
 
 ```json
@@ -150,7 +156,12 @@ Deep全候補を**書込み前**に検査し、raw応答・host生成IDの**UNVE
 不変の管理本文kindは`sleep_light_request`・`sleep_light_reply`・`sleep_deep_request`・
 `sleep_deep_reply`・`sleep_result`です。生成proposalにもDeep要求／選択／unit hashを
 保存します。全て既存`content` inventoryとpurgeの対象で、schema／table移行や外部fileは
-ありません。不正submitは応答artifact／proposalを残しません。
+ありません。不正submitは受理済み応答artifact／proposalを残しません。
+別の明示的な[拒否応答quarantine](public-document-model.ja.md#拒否応答の任意managed-quarantine)は、
+上限付き拒否byteを`sleep_rejected_reply`と内容なし`sleep_rejection`へ保存できます。
+store内の各stageに不変slotを1つだけ持つ管理untrusted診断dataで、proposal・原証拠・受領では
+ありません。保存成功後は同exact要求のsubmitを終端拒否します。既定submitでは拒否byteを
+保存せず、quarantineもモデルretry枠を増やしません。
 **元の束縛が現在も有効な間だけ**、再open後もexact byte replayは冪等です。
 別bindingや空白だけ異なるraw応答でも競合します。削除後は復活／再送できません。
 caller bufferやexportした保存fileは管理削除の対象外です。
@@ -183,7 +194,8 @@ unknown以外の既存attemptにも同じ再試行防止を適用します。
 
 ## 管理対象の削除と限界
 
-source／evidence、proposal、memory、snapshot、request／resultと全Light／Deep段階byteを専用DBでinventory化します。
+source／evidence、proposal、memory、snapshot、request／result、任意選別contextと
+拒否応答quarantineを含む全Light／Deep段階byteを専用DBでinventory化します。
 期限・撤回・整合性／generation不一致でまず除外を`purge_pending`として永続化します。
 `purge`は本文、許可URL／body、origin task、review／dispatch派生物を
 SQLite secure_delete・DELETE journal・VACUUMで除去し、圧縮成功後だけ`deleted`にします。
