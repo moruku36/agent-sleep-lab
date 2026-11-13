@@ -1,5 +1,21 @@
 # 実装状況
 
+## 新しいlocal任意接続 — 2026-11-14
+
+[明示的モデル接続契約](public-document-model.ja.md)に、公開storeの現在束縛requestを
+既存MiMo経路へ送る別のopt-in adapterを追加。送信前にmetadata-only no-retry予約を
+永続化し、実際のprompt hashとresponse・会計可用性を記録します。parser/storeの権限、
+合成経路、自動採用・consumerは変更しません。PR54のmergeは
+`6b352768aa165722be6a77d9d15f05e79632dc52`です。
+
+架空のmock scenarioを3件作成。限定test invocationを1回提出しましたが、native exec toolが
+90000msでtimeoutし、test結果・terminal受領は未取得。実行件数・結果はUNKNOWNで、
+PASSや未dispatchとは断定せず再実行していません。その後静的reviewでtestのargv indexを
+修正しましたが未実行です。live/provider呼出し・実store操作はありません。独立review、
+元test実行の照合、許可された公開文書1件のlive acceptanceは未了。旧合成準備の結果不明は
+そのままで再利用していません。
+
+
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
 ## 現在の評価 — 2026-11-13

@@ -2,6 +2,24 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
+## New local optional public-document connection — 2026-11-14
+
+[Explicit connection contract](public-document-model.md) adds a separate opt-in
+one-stage MiMo adapter around the public store's current-bound requests. It
+reserves a durable metadata-only no-retry tombstone before transport, checks the
+actual outgoing prompt hash, and records response/accounting availability.
+No parser/store authority, synthetic route, automatic adoption or consumer changes.
+PR #54 baseline is merged at `6b352768aa165722be6a77d9d15f05e79632dc52`.
+
+Three focused fictional mocked scenarios are authored. One bounded test invocation
+was submitted, but the native exec tool timed out after 90000ms without a test or
+terminal receipt. Execution/count outcomes are UNKNOWN, not PASS or non-dispatch;
+it was NOT replayed. A static review then corrected a test argv-index assertion;
+that correction is unexecuted. No live/provider calls or real-store operations
+were performed. Independent review, focused execution reconciliation and authorized
+one-public-document live acceptance remain pending. The old synthetic preparation
+outcome stays unknown and is not reused.
+
 ## Current assessment — 2026-11-13
 
 **Acceptance first; no supported completion percentage.** The 2026-11-12 owner
