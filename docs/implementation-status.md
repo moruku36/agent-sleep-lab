@@ -12,13 +12,13 @@ prepared interfaces are not completed acceptance.
 This page and its Japanese translation are the ONLY current status authority;
 dated gate reports are historical evidence.
 
-Fresh GitHub reads confirmed main
-`19bcd6e669de57ace2372c716a4b8738acb4ec86` and merged
-[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46) (trial documentation only).
-The table below retains the merged runtime baseline from
-[PR #45](https://github.com/moruku36/agent-sleep-lab/pull/45).
-This follow-up adds the offline volume projection below; it does not publish the
-separate public-source trial implementation.
+Fresh GitHub reads confirmed [PR #47](https://github.com/moruku36/agent-sleep-lab/pull/47)
+owner-merged at `82729e8dff6ce5b3967fd406490a058c5f265b70` on 2026-11-13.
+Its exact-head [PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43347223453)
+succeeded. That baseline includes planned input-volume reporting.
+This follow-up adds a read-only saved-comparison inspector; it does not publish
+the separate public-source trial implementation from the documentation-only
+[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46).
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
 
@@ -26,14 +26,39 @@ its prior PR creation is **UNKNOWN**, not reissued here.
 |---|---|---|---|---|---|---|
 | Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic-store path implemented | Historical baseline regression; current results below | Not performed | Real-data boundary and operational acceptance | Define one authorized real-data boundary | Existing store/writer/retrieval contracts |
 | Real-model Light/Deep → independent adoption → retrieval | Body-bound generation and separate verifier/writer implemented; prior same-run CLI branch preserved separately | Existing contracts; no new model call | Not performed | Supported host execution binding and real generated-candidate verification | After binding resolution, one bounded receipt call within total budget | [Runtime guide](runtime-guide.md), prior branch noted above |
-| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus new offline preparation | Seven new preparation contracts pass; current regression below | Not performed | Ten real outcomes and total measured costs | Prepare fixed five-pair manifest, then resolve execution gate | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
+| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal, offline preparation/volume, new read-only inspection | Preparation/volume baseline passes; inspection verification below | Not performed | Ten real outcomes and total measured costs | Prepare fixed five-pair manifest, then resolve execution gate | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
 | One real-agent capture → retrieval on another task → input / execution | Synthetic bridge and offline handoff only | Existing synthetic integration contracts | Not performed | Real-data permission, retention/deletion/scope/secrets contract and tracked actual use | Define OSS Contributor real-data acceptance contract | Existing bridge and execution journal; no real-agent receipt |
 
 Paid-use consent was already received; missing generic consent is not the blocker.
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
 
-## Planned input-volume reporting — 2026-11-13 follow-up
+## Read-only saved comparison inspection — 2026-11-13 follow-up
+
+- Added [compare-inspect](runtime-guide.md#read-only-saved-comparison-inspection)
+  over existing independent-raw journals, without initialization, plan/contact
+  registration, provider/evaluator calls, reply reads, raw receipt export or
+  state mutation. Both databases use SQLite read-only/query-only controls;
+  journal inspection uses one read transaction.
+- Preserves planned per-arm denominators, every saved arm state and existing 0/1
+  fixture scores. Reuses the hash/membership audit and planned-byte projection.
+  Stale/revoked context returns a separate false validity observation without
+  invalidating or recovering the saved plan. No origin authentication,
+  measured cost, performance conclusion or live acceptance is established.
+- Six new [behavior cases](../tests/test_compare_inspect_cli.py) cover no-write
+  guarantees/privacy, mixed unknown/partial states, a complete scripted run,
+  changed/revoked eligibility, corruption refusal and strict existing-file/CLI
+  gates. Local execution has **no verified result**: one six-case attempt timed
+  out without a completion receipt (0–6 executions unknown; scoped process
+  subsequently absent). A later log-retaining command was refused before
+  execution by native approval binding, not by automatic risk review.
+  No further local test command was submitted after that refusal.
+- Code/documents were reviewed directly by the coordinator, without workers.
+  Normal PR CI supplies full Python 3.11/3.13 regression, documentation links
+  and wheel checks; its current result is a separate PR check record.
+  These checks do not exercise a live model or a real-agent connection.
+
+## Planned input-volume reporting — PR #47 merged baseline
 
 - Implemented additive `input_volume` in existing
   [compare-prepare](runtime-guide.md#offline-comparison-preparation): exact planned
@@ -51,8 +76,10 @@ does not replay them or change host/account controls.
   dependencies: **433 verified case executions / two local invocations**.
   A prior four-case attempt returned no completion receipt after a tool timeout;
   its executions are unknown (0–4), excluded from those verified totals.
-- These are local checks, not independent approval or completed live acceptance.
-  PR CI/wheel validation and merge are separate, not established by these results.
+- The local figures above are not independent approval or live acceptance.
+  The subsequently verified exact-head PR CI succeeded, including Python
+  3.11/3.13 regression, documentation and wheel checks; PR #47 is owner-merged
+  as recorded above. These later gates do not complete live acceptance.
 
 ## Local public-source trial — 2026-11-12
 

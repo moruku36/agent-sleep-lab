@@ -9,25 +9,48 @@
 REM・日記・横展開は含めません。ファイル数・テスト数・入口の準備は受入完了ではありません。
 本ページと英語訳だけを現在の状態の正本とし、Gate文書は日付付き履歴とします。
 
-今回のGitHub読取りでmain
-`19bcd6e669de57ace2372c716a4b8738acb4ec86`と
-[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46)のマージを確認しました（試用文書のみ）。
-下表は[PR #45](https://github.com/moruku36/agent-sleep-lab/pull/45)のマージ済みruntime基点です。
-今回の継続開発は下記のoffline入力集計を追加し、別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
+今回のGitHub読取りで[PR #47](https://github.com/moruku36/agent-sleep-lab/pull/47)の
+所有者によるマージを確認しました。2026-11-13のmerge commitは
+`82729e8dff6ce5b3967fd406490a058c5f265b70`です。
+同一headの[PR CI](https://github.com/moruku36/agent-sleep-lab/actions/runs/43347223453)も成功し、
+計画入力byte集計が基点へ入りました。今回の継続開発は保存済み比較の読取り専用確認を追加します。
+文書だけの[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46)に記載した
+別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
 `1e636d8`は別途保全済みで、過去のPR作成は**UNKNOWN**です。その操作は再送しません。
 
 | 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
 |---|---|---|---|---|---|---|
 | 記録／独立検証／原子的採用／取得／撤回・復元 | 合成store向け実装済み | 既存回帰。今回の結果は下記 | 未実施 | 実データ境界と運用受入 | 許可された実データ境界を一つ定義 | 既存store／writer／retrieval契約 |
 | 実model Light／Deep→独立採用→取得 | 本文束縛生成・別verifier／writer。先行の同run CLI branchは別途保全 | 既存契約。新たなmodel呼出しなし | 未実施 | hostの実行bindingと実生成候補の独立確認 | binding解消後、総枠内の最小1呼出しで受領確認 | [実行手順](runtime-guide.ja.md)、上記先行branch |
-| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journalにoffline準備を接続 | 新7契約合格。全回帰は下記 | 未実施 | 実10結果と総実費の実測 | 5組のmanifestを固定し、実行障害を解消 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
+| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journal、offline準備・byte集計に読取り専用確認を追加 | 準備・集計の基点は合格。確認機能の検証は下記 | 未実施 | 実10結果と総実費の実測 | 5組のmanifestを固定し、実行障害を解消 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
 | 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeとoffline handoffのみ | 既存合成接続契約 | 未実施 | 実データ許可・保持／削除・scope・秘密情報契約と実利用の追跡 | OSS Contributorの実データ受入契約を定義 | 既存bridge／実行journal。実agent受領なし |
 
 有料利用の許可は受領済みで、一般的な再承認が障害ではありません。
 保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
 host／アカウント制御を変更したりしません。
 
-## 計画入力のbyte集計 — 2026-11-13の継続開発
+## 保存済み比較の読取り専用確認 — 2026-11-13の継続開発
+
+- 既存の独立raw journal向けに[compare-inspect](runtime-guide.ja.md#保存済み比較の読取り専用確認)を追加。
+  初期化・plan／contact登録・provider／評価器呼出し・返答読出し・受領原文の出力・
+  状態変更はしません。両DBをSQLite read-only／query-onlyで開き、
+  journalは1読取りtransactionで確認します。
+- 各群の固定計画分母、全保存状態、既存の0/1合成採点を保持します。
+  hash／membership監査と計画byte集計を再利用し、文脈変更・許可撤回は
+  別のfalse有効性観測として返し、保存planを失効・復旧させません。
+  出自認証、実費測定、性能結論、実環境受入の証拠ではありません。
+- 新しい[behavior 6件](../tests/test_compare_inspect_cli.py)は、無変更・非公開性、
+  不明／部分状態、台本応答の全完了、文脈変更／撤回、破損拒否、
+  既存ファイル・厳密CLIを確認します。ローカル実行の**確認済み結果はありません**。
+  6件の1試行はtool timeoutで完了受領がなく、実行数は不明（0〜6件）です。
+  その後に対象process不在を確認しました。結果保持付きの後続commandは実行前に
+  native approval bindingで拒否され、automatic risk reviewによる拒否ではありません。
+  拒否後にローカルtest commandは再送していません。
+- workerを使わずcoordinator自身がコード・文書をレビューしました。
+  通常のPR CIでPython 3.11／3.13全回帰・文書リンク・wheelを確認し、
+  最新結果は別のPR check記録とします。実model・実agent接続の検証ではありません。
+
+## 計画入力のbyte集計 — PR #47マージ済み基点
 
 - 既存の[compare-prepare](runtime-guide.ja.md#オフライン比較準備)へ
   `input_volume`を追加しました。各A/B組の正確な直列化要求byte、合計、B−A、
@@ -41,8 +64,9 @@ host／アカウント制御を変更したりしません。
   既存Python 3.13.18・固定依存を使い、**確認済み433ケース実行／ローカル2起動**です。
   先行した4件の試行はtool timeoutで完了結果を得られず、実行数は不明（0〜4件）のため、
   この確認済み集計に含めません。
-- ローカル検証であり、独立承認や実環境受入の完了ではありません。
-  PR CI／wheel検証とmergeは別の確認で、ここでは未確認です。
+- 上記ローカル結果は独立承認・実環境受入の完了ではありません。
+  その後、同一headのPR CIでPython 3.11／3.13回帰・文書・wheel成功を確認し、
+  PR #47は上記の通り所有者がマージしました。これも実環境受入を完了するものではありません。
 
 ## ローカルの公開情報試用 — 2026-11-12
 

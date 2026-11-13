@@ -42,8 +42,11 @@ class RetrievalComparison:
             if type(scope) is dict and set(scope) == {"project", "task_family"} else scope
         self.params = dict(partition=partition, max_bytes=max_bytes, query=query,
                            max_records=max_records)
-        comparisons.db.execute("""CREATE TABLE IF NOT EXISTS frozen_contexts (
-            plan_id TEXT PRIMARY KEY, context BLOB NOT NULL, context_sha256 TEXT NOT NULL)""")
+        if comparisons.read_only:
+            comparisons.db.execute("SELECT plan_id, context, context_sha256 FROM frozen_contexts LIMIT 0")
+        else:
+            comparisons.db.execute("""CREATE TABLE IF NOT EXISTS frozen_contexts (
+                plan_id TEXT PRIMARY KEY, context BLOB NOT NULL, context_sha256 TEXT NOT NULL)""")
 
     # ---- live read-only observation -----------------------------------------
     def _bundle(self):
