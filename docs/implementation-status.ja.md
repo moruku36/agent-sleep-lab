@@ -19,7 +19,9 @@ REM・日記・横展開は含めません。ファイル数・テスト数・�
 Python各版435件・文書・wheelが合格しました。読取り専用確認が入ったこの基点から、
 [PR #49](https://github.com/moruku36/agent-sleep-lab/pull/49)も所有者マージ済みで、
 merge commitは`529ba8d7abdd282db3280e496db6d77b146d3b96`です。provider計測値保存が入り、
-今回は公開文書の明示的なstagingを追加します。
+[PR #50](https://github.com/moruku36/agent-sleep-lab/pull/50)も所有者マージ済みで、
+mergeは`d90e3036c6440e34901a65659fe1096057f110f8`、公開文書stagingが入りました。
+今回はCLI経過時間・byte数の実部分計測を記録します。
 文書だけの[PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46)に記載した
 別の公開情報試用の実装は公開しません。先行`feat/live-acceptance-path`のcommit
 `1e636d8`は別途保全済みで、過去のPR作成は**UNKNOWN**です。その操作は再送しません。
@@ -27,13 +29,35 @@ merge commitは`529ba8d7abdd282db3280e496db6d77b146d3b96`です。provider計測
 | 能力 | コード | オフライン検証 | 実環境受入 | 不足 | 次の1アクション | 根拠 |
 |---|---|---|---|---|---|---|
 | 記録／独立検証／原子的採用／取得／撤回・復元 | 合成storeと別の公開文書staging | 今回の検証は下記 | 未実施 | 非合成store受入と保持／削除の実施 | 受入／削除をレビューし現在許可を伝播 | [取込み境界](public-source-intake.ja.md) |
-| 実model Light／Deep→独立採用→取得 | 既存本文束縛生成・別verifier／writer | 既存契約 | 単独MiMo Lightの応答1件。全鎖は未実施 | 実Deep、実データ束縛、候補の独立確認 | 実データsleep前に非合成受入契約を整備 | 下記接続確認 |
-| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journal・準備・byte集計・計測値保存 | 既存計測契約 | 未実施 | 実10結果、現local CLIが返さない使用量／費用、通貨と全段階請求 | 追加評価前に使用量を返すCLIと課金計測を確立 | [比較準備](runtime-guide.ja.md#オフライン比較準備)、[契約](../tests/test_compare_prepare_cli.py) |
+| 実model Light／Deep→独立採用→取得 | 本文束縛生成・経過時間／byte記録・別verifier／writer | 下記451件回帰 | 新しい合成本文束縛Light／Deepが応答、原文一致候補2件。採用なし | local準備の日時形式失敗、修正版はネイティブ実行承認待ち。実データ束縛も未整備 | 元のpending準備を回収。再推論しない | [部分観測](live-development-measurement.ja.md) |
+| 固定論文5課題のA/B実応答・欠測・費用 | 既存plan／journalと経過時間／byte観測 | focused 3件・全回帰 | 未実施。task／rubric選択固定、比較plan未登録 | 採用とlocal実行承認、token／通貨／全phase請求は欠測 | 保存候補の採用後にbyte／時間／応答の部分比較を固定・実行。会計受入とは分ける | [プロトコル](live-development-measurement.ja.md) |
 | 実agent一つのcapture→別taskの取得・入力・実行 | 合成bridgeと別の非合成staging API | 取込み契約は下記 | 別taskへの実利用なし | store受入、lifecycleの実施、利用追跡 | 合成制限を緩めず公開文書境界を接続 | [取込み](public-source-intake.ja.md)。利用受領なし |
 
 有料利用の許可は受領済みで、一般的な再承認が障害ではありません。
 保存済みのhost binding拒否と結果不明の操作は未解決です。準備で再送したり、
 host／アカウント制御を変更したりしません。
+
+## 実モデルの開発用部分計測 — 2026-11-13
+
+- 基点はオーナーマージ済みPR #50です。既定・認証・model・host・経路の変更はありません。
+- 新しい指定MiMo 2呼出しが応答しました。本文束縛Light **12.986秒**、Deep
+  **9.766秒**。CLI transport前後の経過時間で、model単体遅延ではありません。
+  要求2,495／2,537bytes、CLI prompt 2,643／3,020bytes、応答47／471bytesです。
+  Lightは両eventを選び、Deepは原文一致の合成候補2件を返しました。
+  抽出的な開発試用で、実データの統合品質・独立holdoutではありません。
+- local準備は最初のreceipt登録前に、私的callerのISO期限の文字数超過で失敗しました。
+  schemaやcoordinatorの失敗状態は変更していません。修正したlocalコマンドは
+  **ネイティブ実行承認待ち**で、実行未確認です。ツール待機はtimeoutしましたが元の承認は
+  pendingのままで、local intent／完了artifactは未観測です。再発行・別writer／経路の実行はしません。
+  採用・10枠A/Bは未実施です。
+- token・通貨・請求実費は欠測です。まだblockedの会計受入と、進められるbyte／時間／応答の
+  部分計測を明示的に分けます。
+- focused **3件／1起動合格**（0.005秒）、全回帰**451件／1起動合格**
+  （34.812秒）、local **454ケース実行／2起動**。PR CIは別記録です。
+- [プロトコル／結果](live-development-measurement.ja.md)、
+  [本文なし集計](measurements/2026-11-13-live-development.json)。
+  非合成受入・削除の実施・別taskでのagent実利用は未完です。
+  worker再開・古い不明操作の再送・mergeはありません。
 
 ## 指定modelの接続確認と公開文書staging — 2026-11-13
 

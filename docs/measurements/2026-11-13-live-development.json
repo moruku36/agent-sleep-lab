@@ -1,0 +1,43 @@
+{
+  "schema": "agent-sleep-live-development-observation/1",
+  "date": "2026-11-13",
+  "baseline": "d90e3036c6440e34901a65659fe1096057f110f8",
+  "model": "xiaomi/mimo-v2.6-pro",
+  "synthetic": true,
+  "independent_holdout": false,
+  "acceptance_complete": false,
+  "new_model_calls": 2,
+  "call_limit": 12,
+  "retries": 0,
+  "stages": [
+    {
+      "stage": "light",
+      "status": "returned",
+      "request_bytes": 2495,
+      "cli_prompt_bytes": 2643,
+      "output_bytes": 47,
+      "transport_elapsed_ns": 12986363959
+    },
+    {
+      "stage": "deep",
+      "status": "returned",
+      "request_bytes": 2537,
+      "cli_prompt_bytes": 3020,
+      "output_bytes": 471,
+      "transport_elapsed_ns": 9766081375
+    }
+  ],
+  "timing_basis": "monotonic_cli_process_including_startup_not_provider_latency",
+  "input_tokens": null,
+  "output_tokens": null,
+  "actual_billed_cost": null,
+  "currency": null,
+  "candidate_count": 2,
+  "verification": "exact_source_quote_candidates; registration not completed",
+  "adoption": "no_receipt_observed_not_verified",
+  "comparison": "not_prepared_or_executed",
+  "local_preparation": "failed_timestamp_format_before_first_registration",
+  "corrected_preparation": "native_approval_pending_tool_wait_timed_out_no_intent_or_completion_observed",
+  "performance_claim": null,
+  "measured_savings": null
+}

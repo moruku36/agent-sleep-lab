@@ -89,6 +89,12 @@ agent-sleep-lab sleep --store-config private/store.json --manifest configs/sleep
 中断したprovider／準備callbackは再実行しません。古いworkerの停止を確認した後だけrecover_stopped_provider／recover_stopped_preparationを呼ぶと、結果不明のincompleteへ進めます。登録済みartifact・受領は別途照合し、新しい操作で二重実行しないでください。
 
 
+## 実モデルの部分計測
+
+指定adapterは要求／CLI promptの正確なUTF-8 byte数と、失敗を含めた単調時計のCLI経過時間を保存します。
+これはtoken数・model単体遅延・請求額ではありません。
+[部分計測のプロトコルと観測](live-development-measurement.ja.md)を参照してください。
+
 ## provider計測値の保存
 
 論文pilotの`OpenClawMimoProvider`は、

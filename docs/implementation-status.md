@@ -23,7 +23,9 @@ at `2ab948bebbdcdf14d4ffeca0a2a071cf1db16af8`. Its exact-head
 That baseline adds read-only comparison inspection.
 [PR #49](https://github.com/moruku36/agent-sleep-lab/pull/49) is owner-merged at
 `529ba8d7abdd282db3280e496db6d77b146d3b96`, retaining provider accounting observations.
-This follow-up adds explicit public-document staging; it does not publish the separate trial code from
+[PR #50](https://github.com/moruku36/agent-sleep-lab/pull/50) is owner-merged at
+`d90e3036c6440e34901a65659fe1096057f110f8`, adding public-document staging.
+This follow-up records partial live process-time/byte measurements; it does not publish the separate trial code from
 [PR #46](https://github.com/moruku36/agent-sleep-lab/pull/46).
 Prior `feat/live-acceptance-path` commit `1e636d8` remains preserved elsewhere;
 its prior PR creation is **UNKNOWN**, not reissued here.
@@ -31,13 +33,38 @@ its prior PR creation is **UNKNOWN**, not reissued here.
 | Capability | Code | Offline verification | Live acceptance | Gap | Next action | Evidence |
 |---|---|---|---|---|---|---|
 | Record / independent verification / atomic adoption / retrieval / withdrawal / restore | Synthetic store plus separate public-document staging | Current intake checks below | Not performed | Non-synthetic store admission and lifecycle enforcement | Review admission/deletion and propagate current approval | [Intake boundary](public-source-intake.md) |
-| Real-model Light/Deep → independent adoption → retrieval | Existing body-bound generator and separate verifier/writer | Existing offline contracts | One standalone MiMo Light response; full chain not performed | Live Deep, current real-data binding and independent candidate verification | Complete the non-synthetic admission contract before a real-data sleep | [Connection result below](#selected-model-connection-and-public-document-staging--2026-11-13) |
-| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal, preparation/volume/inspection; provider accounting retention | Historical accounting contracts | Not performed | Ten real outcomes; installed local CLI omits usage/cost, currency and all-phase billing absent | Establish usage-emitting CLI and billing coverage before more evaluation calls | [Preparation](runtime-guide.md#offline-comparison-preparation), [contracts](../tests/test_compare_prepare_cli.py) |
+| Real-model Light/Deep → independent adoption → retrieval | Body-bound generator, process-time/byte receipts, separate verifier/writer | 451-case regression below | New synthetic body-bound Light and Deep returned; two exact-source candidates, no adoption | Local preparer date-format failure; corrected command native approval pending; real-data binding still absent | Collect the original pending local preparation, without model replay | [Partial observation](live-development-measurement.md) |
+| Fixed five-task paper A/B, missing outcomes and costs | Existing plan/journal plus process-time/byte observations | Three focused measurement cases and full regression | Not performed; task/rubric fixed, executable plan not registered | Adoption/local native approval; token/currency/all-phase billing remain absent | Finish saved-candidate adoption and freeze/run the partial byte/time/response comparison; do not claim cost acceptance | [Protocol](live-development-measurement.md) |
 | One real-agent capture → retrieval on another task → input / execution | Synthetic bridge; separate non-synthetic staging API | Intake contracts below | No actual later-task use | Store admission, enforced lifecycle and tracked actual use | Integrate the staged public-document boundary without weakening synthetic gates | [Intake](public-source-intake.md); no real-agent use receipt |
 
 Paid-use consent was already received; missing generic consent is not the blocker.
 The saved host-binding denial and unknown outcomes remain unresolved. Preparation
 does not replay them or change host/account controls.
+
+## Partial live development measurements — 2026-11-13
+
+- Baseline: owner-merged PR #50; no new default/auth/model/host/route changes.
+- Two new selected-MiMo calls returned: body-bound Light **12.986s**, Deep
+  **9.766s**, measured around the CLI transport, not provider-only latency.
+  Requests: 2,495 / 2,537 bytes; CLI prompts: 2,643 / 3,020 bytes;
+  replies: 47 / 471 bytes. Light selected both events; Deep produced two
+  exact-source synthetic candidates. This is extractive development, not real-data
+  consolidation quality or an independent holdout.
+- Local preparation then failed before first receipt registration: the private
+  caller's ISO expiry string exceeded the receipt schema length. No schema was
+  changed, coordinator failure retained. A corrected one-shot local command is
+  **native execution approval pending**, without confirmed execution. The tool
+  wait timed out; the original approval remains pending and local intent/completion
+  artifacts were not observed. Do not resubmit. No alternate writer/route
+  is run while it waits. Adoption and ten-arm A/B remain not performed.
+- Tokens, currency and billed cost remain unavailable; partial byte/time/response
+  measurement is now explicitly separate from still-blocked accounting acceptance.
+- Focused **3 cases / one invocation PASS** (0.005s), full unique regression
+  **451 cases / one invocation PASS** (34.812s), local **454 executions / two
+  invocations**. No injected transport test is live evidence. PR CI is separate.
+- [Protocol/results](live-development-measurement.md), [content-free summary](measurements/2026-11-13-live-development.json).
+  Non-synthetic admission, enforced deletion and actual cross-task agent use
+  remain unfinished. No worker resumption, old unknown replay or merge action.
 
 ## Selected-model connection and public-document staging — 2026-11-13
 

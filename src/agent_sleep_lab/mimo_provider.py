@@ -7,6 +7,7 @@ NOT a financial/token cap. Unknown transport outcomes must never be retried.
 from __future__ import annotations
 import json
 import subprocess
+import time
 from agent_sleep_lab.strictjson import loads_strict_bytes
 from agent_sleep_lab.provenance import sha256_hex
 from agent_sleep_lab.provider_usage import accounting_fields
@@ -46,13 +47,19 @@ class OpenClawMimoProvider:
                    "last_call_usage_state": "not_observed",
                    "transport_source": ("registered_openclaw_cli" if self.transport is subprocess.run
                                         else "injected_transport_not_live_verified"),
-                   "generation_token_cap": None, "post_output_byte_cap": max_output_bytes}
+                   "generation_token_cap": None, "post_output_byte_cap": max_output_bytes,
+                   "request_bytes": len(request), "cli_prompt_bytes": len(prompt.encode("utf-8")),
+                   "transport_elapsed_ns": None,
+                   "timing_basis": "monotonic_cli_process_including_startup_not_provider_latency"}
         self.receipts.append(receipt)
+        started = time.monotonic_ns()
         try:
             result = self.transport(argv, capture_output=True, timeout=self.timeout, check=False)
         except Exception:
             # Do not include stderr/exception strings: they may contain account metadata.
             raise RuntimeError("inference outcome unknown; do not retry") from None
+        finally:
+            receipt["transport_elapsed_ns"] = time.monotonic_ns() - started
         if result.returncode != 0:
             raise RuntimeError("inference failed; outcome/cost may be unknown; do not retry")
         if type(result.stdout) is not bytes or len(result.stdout) > 1048576:
