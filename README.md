@@ -11,12 +11,15 @@ Python 3.11+, from a local repository checkout:
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install .
-.venv/bin/agent-sleep-lab demo
+.venv/bin/agent-sleep-lab demo --format text
 ```
 
 The demo uses built-in synthetic fixtures, scripted responses and disposable
-temporary stores; it prints JSON. It accepts no data, store or provider options
-and makes no live-model calls. [Demo contract →](docs/runtime-guide.md#built-in-offline-demo)
+temporary stores; `--format text` opts into a readable summary. The default
+`demo` (or `demo --format json`) still prints the full JSON report. Installation
+may download packages; the installed demo runtime is offline. It accepts no data,
+store or provider options and makes no live-model calls.
+[First-run guide: output, cleanup and the separate live-library path →](docs/first-run.md) [Demo contract →](docs/runtime-guide.md#built-in-offline-demo)
 
 ## Architecture
 

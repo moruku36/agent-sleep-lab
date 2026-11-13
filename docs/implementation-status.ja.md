@@ -2,6 +2,40 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
+## 現在の要約 — PR56マージ済み
+
+本ページと英語訳だけが現在地の正本です。
+[PR56](https://github.com/moruku36/agent-sleep-lab/pull/56)はPR55の後、
+mainの`c3cba95c60113e24c85c4f15bb60626ba00c1967`へマージ済みです。
+
+| 利用できるもの | 証拠と境界 |
+|---|---|
+| 台本式offline demo | 使い捨て合成store。実モデル評価ではない。[初回手順](first-run.ja.md) |
+| 任意task-aware Light、内容なしの拒否分類、上限付き拒否応答quarantine | PR56でマージ済み。quarantineはopt-inで、既定無効 |
+| 別の公開文書library | 下記の固定README1件で実モデルLight／Deep、独立review／採用、別task利用を確認 |
+| 以前の実モデルhandoff試用 | [2026-11-12報告](public-source-trial-2026-11-12.ja.md)。別のlocal拡張であり台本demoではない |
+
+**PR56の確認：** local **4 PASS／1起動**と
+[PR CI run 43514753903](https://github.com/moruku36/agent-sleep-lab/actions/runs/43514753903)
+**4 PASS／1起動**。対象PR headは
+`1773113e996cf9fec5cc47df1dfe6b8e7ffe044c`、checkoutは合成PR merge
+`54a56f331b0bed6724f6636c021738e3731ab52d`で、mainの実mergeとは別です。
+当時の試行合計は**8ケース／2起動**で、全件suiteではありません。
+AST・相対file link検査も合格、anchorは未検査。合成回帰でありPR56のlive受入ではありません。
+
+**未確認：** PR56修正／新consumer helperのlive受入、一般的改善、独立holdout／5課題比較、
+token・通貨・全段階の完全費用。費用不明はゼロではありません。
+過去の失敗とUNKNOWNは変えず、再実行しません。
+
+### 入口と履歴の扱い
+
+[初回手順](first-run.ja.md) · [限定live基点](#以前に確認した限定基点経路) ·
+[能力と残る制限](#初期4能力の基点と残る制限) · [接続境界](#接続とreleaseの境界)。
+
+以下の元の見出し以降は、当時の準備状況・未マージ・確認待ち・残予算も含めた保存履歴です。
+release状態はこの要約に置き換わります。既存の外部fragment linkを壊さないよう、
+元の見出しと履歴は同じfileへ保持します。契約とtrust境界は維持し、履歴を現在の指示にしません。
+
 ## 現在の準備状況 — 2026-11-14
 
 本ページと英語訳だけが現在の状況の正本です。公開文書1件の限定的なend-to-end開発検証は

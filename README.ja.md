@@ -11,11 +11,14 @@ Python 3.11以上を用意し、ローカルのリポジトリで実行します
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install .
-.venv/bin/agent-sleep-lab demo
+.venv/bin/agent-sleep-lab demo --format text
 ```
 
-demoは組込みの合成fixture・台本応答・使い捨ての一時storeで動き、JSONを出力します。
+demoは組込みの合成fixture・台本応答・使い捨ての一時storeで動きます。
+`--format text`は読みやすい要約の任意指定で、既定の`demo`（または`demo --format json`）は
+詳細JSONのままです。installにはpackage downloadが必要な場合があり、install後のdemo実行はofflineです。
 データ・store・providerの指定は受け付けず、実モデルを呼びません。
+[初回手順：出力・cleanup・別のlive library経路 →](docs/first-run.ja.md)
 [demo契約 →](docs/runtime-guide.ja.md#組込みオフラインdemo)
 
 ## アーキテクチャ
