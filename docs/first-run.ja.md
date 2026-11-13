@@ -51,6 +51,12 @@ errorは成功reportなしのexit 2です。診断を読み、途中出力を採
 demoの回数・UTF-8 byte上限は生成token・通貨上限ではありません。
 synthetic-zero／unavailableは実測の節約額ではありません。
 
+## 実試用前にofflineで撤回まで追う
+
+[最小の合成採用→利用→撤回trace](offline-lifecycle-trace.ja.md)を読みます。
+既存1ケースfixtureを再利用し、操作・確認点とpurge失敗／回復まで示します。
+demoの一時cleanupは許可撤回ではありません。入口の文書化で自動実行はせず、実行には別の残枠が必要です。
+
 ## 実際の公開文書試用へ進む場合
 
 これは**別library／store経路**です。demo optionや新しい自動CLIではありません。

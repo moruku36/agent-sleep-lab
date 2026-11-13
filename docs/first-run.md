@@ -54,6 +54,13 @@ partial output as adoption or retry an unknown live operation.
 The demo bounds calls and UTF-8 bytes; these are not generated-token or currency
 caps. Synthetic-zero/unavailable labels are not measured savings.
 
+## Trace withdrawal offline before a real trial
+
+Read the [minimum synthetic adoption → use → withdrawal trace](offline-lifecycle-trace.md).
+It reuses an existing one-case fixture, with exact operations and checks including
+purge failure/recovery. Temporary demo cleanup is not authorization withdrawal.
+The documented trace is not automatically executed and consumes its own test allocation.
+
 ## If you want a real public-document trial
 
 This is a **separate library/store path**, not a demo option or a new automatic CLI.
