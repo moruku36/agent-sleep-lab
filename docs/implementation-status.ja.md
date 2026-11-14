@@ -27,6 +27,41 @@ AST・相対file link検査も合格、anchorは未検査。合成回帰であ�
 token・通貨・全段階の完全費用。費用不明はゼロではありません。
 過去の失敗とUNKNOWNは変えず、再実行しません。
 
+### 永続公開文書の日常利用command — 記述済みdraft・未実行
+
+基点はmain `73af93896632d460689fa9b6e6846d607dd40c2b`（PR58）です。
+`agent-sleep-lab public-document <action>`と、read-onlyの
+`PublicDocumentStore.metadata_status`を追加しました。使い方は
+[初回手順](first-run.ja.md#永続store1つの日常利用offline-command)です。
+offline専用で、model・network・dispatch・schedule・自動採用はありません。
+
+| 境界 | draftの動作 |
+|---|---|
+| 作成と既存open | storeを作るのは`init`だけ。他のactionは既存storeを開き、無ければ拒否 |
+| status／cleanup preview | SQLite `mode=ro`＋`query_only`を1つの明示的read transaction内で使用（整合した単一snapshot、全経路でrollback）。store instance・sweep・purge・期限切れによる副作用・本文読取りなし。保存状態・実効access・cleanup状態を分離。metadataのみのためintegrityは`not_assessed`で、cleanup処理をすべて予測はできず、除外後の原因は`unknown` |
+| roleと受領 | hostが用意する互いに異なるrole。role actionごとにidentityを1組明示。`approve`は渡された許可を登録、`verify`／`evaluate`は機械的な受領のみ登録。admit・propose・CAS adoptを分離。取得は同scopeの別task |
+| cleanup | 副作用がないのはstatus／previewだけ。`cleanup`は明示的な期限／integrityのsweep（有効で無傷のdataは残り、検査失敗のdataは除外・purge）で保留中purgeも完了。`withdraw`（`--purge`か`--exclude-only`が必須）は自分の除外を確認してから別段階のpurgeを行い、競合または古い撤回は拒否（終了code 2）。終了code 0＝完了、1＝未完了または未確認、2＝拒否／失敗。繰り返す前に新しい`status`を確認。purge例外時は削除済みでも保守的に`purge_pending`と出力する場合があり、これは保存状態の再読取りではない。操作記録・no-retry tombstone・exportは保持 |
+| metrics | 既定無効。新規作成専用で、操作の前に排他的・no-followで予約し、同じdescriptorで1回だけ書込み。既存のpath（store・sidecar・export・hardlink・symlink・directory）や親の不在は操作前に拒否（終了code 2）し、追記・切詰め・削除・作成はしない。親は信頼する前提。操作後の書込み失敗は終了codeを変えず、再実行の理由にしない。allowlistの内容なし項目のみ。費用は`null`／`unavailable_not_measured`でゼロにしない |
+
+**確認状況 — 公開前checkpoint、2026-11-15：** `tests/test_public_document_daily.py`に
+選択4ケースを記述し（最初の独立static review後にselectorを増やさず内容を強化）、
+PR workflowもこの4件だけを指定しました。独立static再reviewでは限定試行を妨げる欠陥は
+ありませんでしたが、上記の保守的なpurge状態出力とsnapshot probeの精度に制限が残ります。
+static reviewは動作検証でもmerge承認でもありません。
+
+唯一のlocal runner起動はPython 3.15で`jsonschema`が不足し、module読込み中に
+**終了code 2**となりました。**test本体の実行は0件、合格も0件**です。
+localの4枠／1起動は消費扱いのまま、local再実行はしません。この既知の環境不備を親が
+確認した上で、既存予約の**PR CI 4ケース／1起動だけ**を開きました。Python 3.13で
+repositoryの直接依存pinをinstallしてから、この4件を実行します。推移的依存はlockしていません。
+このcheckpointではCI未実行で、後の結果はPRのexact-head checkを確認してください。
+同じ試行の上限は**計8枠／2起動**のままで追加配分ではなく、全件suite・matrix・自動再実行・
+追加model呼出しは含みません。新commandのbuild・demo・live受入も未実行です。
+
+identity文字列は照合される設定であり認証ではありません。機械的な受領が示すのは
+exactな引用一致とsnapshot検査で、事実の真偽・有用性・性能・費用削減・実agent利用ではありません。
+過去のUNKNOWNは再実行しません。
+
 ### 入口と履歴の扱い
 
 [初回手順](first-run.ja.md) · [限定live基点](#以前に確認した限定基点経路) ·
@@ -114,7 +149,8 @@ usage／last-call usageは欠測、costはnull、通貨は不明で、ゼロで�
 [lifecycle契約](public-document-lifecycle.ja.md)、
 [構成図](architecture-overview.ja.md)へ進めます。libraryのみなのは意図的です。
 host許可・各stageの提出・独立verifier／evaluator・guard付き採用・consumer dispatch・
-意味reviewを明示的に分離します。新CLI・自動stage連結・自動採用・retry・常駐loopはありません。
+意味reviewを明示的に分離します。CLIは上記の明示的なoffline `public-document`（未実行draft）だけで、
+自動stage連結・自動採用・retry・常駐loopはありません。
 
 期限・撤回は管理本文へのアクセスを制御します。本文と派生exportのcleanupはhostが手動で行い、
 scheduleは追加しません。remote／provider複製・backupはstore削除の対象外です。

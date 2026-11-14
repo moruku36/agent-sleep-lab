@@ -305,6 +305,102 @@ class PublicDocumentStore:
                     "managed_records": db.execute("SELECT count(*) FROM content").fetchone()[0],
                     "operation_count": db.execute("SELECT count(*) FROM operations").fetchone()[0]}
 
+    @classmethod
+    def metadata_status(cls, path, *, clock=lambda: datetime.now(timezone.utc)):
+        """Strictly read-only, content-free summary of an EXISTING store.
+
+        Opens SQLite ``mode=ro`` with ``query_only`` and never constructs a store
+        instance, so it cannot initialize, migrate, sweep, purge, expire or commit
+        anything. It does not call ``_live``/``_guard`` or any content accessor and
+        returns no source, proposal, task, result or approval-reference text.
+
+        Every query runs inside ONE explicit deferred read transaction on that
+        read-only connection, so the returned summary is a single coherent snapshot:
+        in this DELETE-journal store the shared lock is held until the transaction is
+        rolled back (always, including on error), so no writer can commit between the
+        control, content and operation reads. It takes no writer lock.
+
+        Stored state, effective time eligibility and cleanup state are separate.
+        ``approved`` alone never means active. Managed-byte integrity and the exact
+        admitted artifact are NOT assessed here (``integrity: not_assessed``), so
+        ``admitted_in_window`` is not a retrieval-readiness claim. After exclusion the
+        persisted schema retains no cause, so the cause is reported unknown. ``deleted``
+        means this library's managed purge completed, not file/forensic erasure.
+        """
+        now = _now(clock)
+        try:
+            db = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True,
+                                 timeout=10, factory=_Connection)
+        except (sqlite3.Error, OSError, ValueError):
+            raise PublicDocumentError("existing public document database required") from None
+        with db:
+            try:
+                db.row_factory = sqlite3.Row
+                db.isolation_level = None  # explicit transaction control; no implicit BEGIN
+                db.execute("PRAGMA query_only=ON")
+                db.execute("BEGIN")  # deferred read snapshot for ALL queries below
+                if db.execute("PRAGMA journal_mode").fetchone()[0] != "delete":
+                    raise PublicDocumentError("dedicated DELETE-journal store required")
+                config = _json(db.execute("SELECT body FROM config").fetchone()[0])
+                if config.get("schema_version") != VERSION:
+                    raise PublicDocumentError("unsupported public document store")
+                c = db.execute("SELECT * FROM control").fetchone()
+                kinds = {row[0]: row[1] for row in db.execute(
+                    "SELECT kind,count(*) FROM content GROUP BY kind ORDER BY kind")}
+                operations = db.execute("SELECT count(*) FROM operations").fetchone()[0]
+                state = c["state"]
+                window = scope = None
+                access = {"empty": "no_approval", "purge_pending": "suppressed_purge_pending",
+                          "deleted": "suppressed_deleted"}.get(state)
+                expired = False
+                if state == "approved":
+                    approval = PublicDocumentApproval(**_json(c["body"]))
+                    window = {"approved_at": approval.approved_at,
+                              "expires_at": approval.expires_at}
+                    scope = {"project": approval.project, "task_family": approval.task_family}
+                    if now < _stamp(approval.approved_at):
+                        access = "approval_not_yet_valid"
+                    elif now >= _stamp(approval.expires_at):
+                        access, expired = "approval_expired", True
+                    elif c["admitted_generation"] != c["generation"]:
+                        access = "approved_not_admitted"
+                    else:
+                        access = "admitted_in_window"
+                elif access is None:
+                    access = "unassessable"
+                if state == "purge_pending":
+                    cleanup = {"state": "purge_pending", "intended_action": "complete_purge"}
+                elif state == "deleted":
+                    cleanup = {"state": "managed_purge_completed", "intended_action": "none"}
+                elif expired:
+                    cleanup = {"state": "due_expired", "intended_action": "exclude_and_purge"}
+                elif state == "approved":
+                    cleanup = {"state": "not_due", "intended_action": "none"}
+                else:
+                    cleanup = {"state": "not_applicable", "intended_action": "none"}
+                return {
+                    "schema_version": VERSION, "stored_state": state,
+                    "generation": c["generation"], "revision": c["revision"],
+                    "access": access, "integrity": "not_assessed",
+                    "evaluated_at": now.isoformat(), "approval_window": window, "scope": scope,
+                    "admitted": c["admitted_generation"] is not None
+                                and c["admitted_generation"] == c["generation"],
+                    "head_sha256": c["head"], "adopted_head_present": c["head"] != EMPTY_HEAD,
+                    "cause": "unknown" if state in ("purge_pending", "deleted") else None,
+                    "managed_records": sum(kinds.values()), "managed_by_kind": kinds,
+                    "operation_count": operations, "cleanup": cleanup,
+                }
+            except PublicDocumentError:
+                raise
+            except (sqlite3.Error, ValueError, KeyError, TypeError, AttributeError):
+                raise PublicDocumentError("existing public document database required") from None
+            finally:
+                if db.in_transaction:  # release the shared lock; nothing was written
+                    try:
+                        db.rollback()
+                    except sqlite3.Error:
+                        pass
+
     def inventory(self):
         """No text; still requires current eligibility."""
         with self._live() as (db, _):

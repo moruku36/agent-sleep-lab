@@ -59,7 +59,9 @@ demoの一時cleanupは許可撤回ではありません。入口の文書化で
 
 ## 実際の公開文書試用へ進む場合
 
-これは**別library／store経路**です。demo optionや新しい自動CLIではありません。
+これは**別の永続store経路**で、demo optionではありません。明示的なoffline command
+`agent-sleep-lab public-document`（下記）がありますが、自動連結・model呼出し・network・
+schedule・agent接続はありません。model利用は別のlibrary adapterのままです。
 host接続を作る前に[lifecycle](public-document-lifecycle.ja.md)と
 [モデル接続](public-document-model.ja.md)を読みます。
 
@@ -76,6 +78,91 @@ host接続を作る前に[lifecycle](public-document-lifecycle.ja.md)と
 held-outの解答／rubricをLight contextへ入れません。
 拒否応答の保持は既定無効です。任意quarantineは上限付き管理contentであり、
 拒否応答logや再試行の権限ではありません。
+
+### 永続store1つの日常利用（offline command）
+
+以下はすべて`--store`でstoreを指定します。storeとその親directoryを作るのは`init`だけで、
+他は**既存**storeを開き、無ければ拒否します。model呼出し・network・再試行はありません。
+
+```sh
+agent-sleep-lab public-document init --store lib/store.sqlite --roles roles.json
+agent-sleep-lab public-document approve --store lib/store.sqlite \
+  --identity CONTROL_ID --identity-version 1 --approval approval.json \
+  --artifact staged.json --origin-task ORIGIN --expected-generation 0
+agent-sleep-lab public-document admit --store lib/store.sqlite --artifact staged.json
+agent-sleep-lab public-document propose --store lib/store.sqlite \
+  --proposal-id p1 --quotation-file quote.txt
+agent-sleep-lab public-document verify --store lib/store.sqlite \
+  --identity VERIFIER_ID --identity-version 1 --proposal-id p1 --expires-at WHEN
+agent-sleep-lab public-document evaluate --store lib/store.sqlite \
+  --identity EVALUATOR_ID --identity-version 1 --proposal-id p1 \
+  --expected-parent HEAD --verification-receipt V --expires-at WHEN
+agent-sleep-lab public-document adopt --store lib/store.sqlite --operation-id op1 \
+  --proposal-id p1 --expected-parent HEAD --expected-generation N \
+  --verification-receipt V --evaluation-receipt E
+agent-sleep-lab public-document retrieve --store lib/store.sqlite --target-task OTHER \
+  --project P --task-family F --max-bytes 2048
+```
+
+- **roleはhostが用意します。** `roles.json`に、互いに異なる4 authority（control・verifier・
+  evaluator・semantic reviewer）とconsumer設定1つ（ここではdispatchしません）を書きます。
+  role付きactionは`--identity`／`--identity-version`を1組だけ受け取り、libraryが保存済み設定と
+  照合します。この文字列は**認証ではなく**、秘密でも別人の証明でもありません。roleを自動選択しません。
+- **許可は別操作です。** `approval.json`は、exactな準備済みartifact
+  （[公開文書staging](public-source-intake.ja.md)）に対してhostがreview済みの許可です。
+  `approve`は渡されたfileを登録するだけで、ownerの許可を作ったり、review・推定したりしません。
+  schemaが正しいfileは、そのbyteをownerが許可した証拠ではありません。
+- **受領は機械的な確認です。** `verify`と`evaluate`は、指定した1つのrole identityに対して
+  libraryの機械的な受領を登録するだけで、意味の判断はしません。`verify`はexactな引用一致、`evaluate`は候補snapshotの機械的検査で、
+  `adopt`は両方と現在の親版（`status`の`head_sha256`。新規storeは`[]`のhash）・generationが必要です。
+  合格は事実の真偽・意味的な有用性・性能の証明ではありません。provider出力は受領を発行しません。
+- **取得は利用ではありません。** 同じ許可scopeの*別*taskへ、`--max-bytes`内でrecord全体を
+  untrusted dataとして返すだけです。consumerを呼ばず、利用の実証にもなりません。
+  `propose`のfileはbyteそのまま使うため、末尾の改行を足さないでください。
+
+#### status・preview・cleanup
+
+`status`と`cleanup-preview`はstoreをread-onlyで、1つのread transactionの中で開くため、
+途中で別のclientが撤回しても1回の出力は整合した単一のsnapshotです。期限切れ処理も含め何も変更せず、
+文書本文・URI・参照名・role名を出しません。保存状態（`empty`・`approved`・`purge_pending`・
+`deleted`）、実効`access`（`approval_not_yet_valid`・`approval_expired`・
+`approved_not_admitted`・`admitted_in_window`・`suppressed_purge_pending`・
+`suppressed_deleted`）、cleanup状態を分けて示します。期限ちょうどでは保存状態が
+`approved`のままでも`access`は`approval_expired`です。`integrity`は常に`not_assessed`で、
+previewはmetadataのみを見て、受入済みbyteや派生物を検査しないため、`cleanup`が行い得る
+処理をすべて予測できず、`admitted_in_window`は後の取得成功の約束でもありません。除外後の原因は`unknown`
+（storeは理由を記録しません）。`deleted`はこのlibraryの管理purge完了で、fileや
+forensicな消去ではありません。
+
+副作用がないと保証されるのは`status`と`cleanup-preview`だけです。`cleanup`は明示的な
+期限／integrityのsweepで、保留中purgeも完了させます。approvalが現在有効か、管理byteが
+無傷かを検査し、有効で無傷の期間内dataは残しますが、検査に失敗したdataは除外・purgeします。
+有効なcontentを消すには`--purge`か`--exclude-only`を明示する`withdraw`を使います。
+管理contentを読む他の変更系action（`verify`・`evaluate`・`adopt`・`retrieve`など）も同じguardを
+通り、失敗時は拒否する前に除外・purgeします。`withdraw`はまず`--expected-generation`に対する
+自分自身の除外を確認し、その後に（`--purge`のとき）別段階のpurgeを試みます。別のclientが先に
+撤回していた場合、古いcompare-and-setは拒否（終了code 2）で、自分で確認していない除外を
+報告することはありません。操作記録・内容なしのno-retry tombstone・外部export／backupは保持され、
+保証の対象外です。
+
+**終了code。** `0`：完了、または対象なし。`1`：実行したが未完了。`purge_pending_incomplete`は
+除外はcommit済みで物理purgeが終わっていない状態（同じstoreで`cleanup`を再実行）、
+`failed_state_unchanged`は除外前のerror、`purge_attempted_state_unconfirmed`は最終状態を読み戻せなかった
+状態です。`2`：拒否または失敗で、そのcallが完了した影響を確認していません。
+0以外の後は、何かを繰り返す前に`status`で保存された状態を確認してください。
+
+#### 任意の最小metrics
+
+既定は無効で、**新規作成専用**です。`--metrics-out FILE`は、store操作の前に、既存directory内で
+FILEを排他的（no-follow・mode 0600）に作成し、その同じfile handleで後に1回だけ上限付きで書きます。
+既存のpath（store・SQLiteのsidecar／journal・export・hardlink／symlink・directory）や親の不在は、
+操作の前に終了code 2で拒否し、追記・切詰め・削除・作成はしません。親directoryは同時に差し替えられない
+と信頼しており、他のprocessが先に同名を作った場合も拒否されます。1行にはaction・結果・経過ms・
+管理record数または参照byte数・`model_calls: 0`・`cost: null`（`cost_state:
+unavailable_not_measured`）だけを書きます。予約したfileは、操作や書込みが失敗しても（空のまま）残ります。
+操作後のmetrics書込み失敗は警告を出しますが、操作の結果や終了codeは変えません。
+**metricsを得るために操作を繰り返さないでください。** 費用不明はゼロではなく、節約額は測りません。
+fileは回転も削除もされないため自分で消します。metricsは配線のlocal観測で、有用性・性能ではありません。
 
 ### live呼出しの前に費用を確認
 

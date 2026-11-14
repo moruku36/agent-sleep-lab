@@ -29,6 +29,45 @@ improvement, independent holdout/five-task comparison and complete token/currenc
 all-phase cost accounting. Unknown cost is not zero. Historical failures and
 UNKNOWN outcomes remain unchanged and must not be replayed.
 
+### Persistent public-document daily-use commands — authored draft, NOT executed
+
+Based on main `73af93896632d460689fa9b6e6846d607dd40c2b` (PR58). The source adds
+`agent-sleep-lab public-document <action>` and a read-only
+`PublicDocumentStore.metadata_status` seam; usage is in
+[first run](first-run.md#daily-use-of-one-persistent-store-offline-commands).
+Offline only: no model, network, dispatch, schedule or automatic adoption.
+
+| Boundary | Draft behavior |
+|---|---|
+| Open vs create | Only `init` creates a store; every other action opens an existing store and refuses a missing one |
+| Status / cleanup preview | SQLite `mode=ro` and `query_only` inside one explicit read transaction (a single coherent snapshot, rolled back on every path); no store instance, sweep, purge, expiry side effect or content read; stored state, effective access and cleanup state are separate; metadata-only, so integrity is `not_assessed` and not every cleanup action can be predicted; post-exclusion cause is `unknown` |
+| Roles and receipts | Host-provisioned distinct roles; one explicit identity pair per role action; `approve` registers the supplied approval, `verify`/`evaluate` register mechanical receipts only; separate admit, propose and CAS adopt; retrieval needs a different task in the same scope |
+| Cleanup | Only status/preview are side-effect free. `cleanup` is the explicit expiry/integrity sweep (valid intact data stays, failing data is excluded and purged) and finishes a pending purge; `withdraw` (`--purge` or `--exclude-only` required) confirms its own exclusion before any separate purge, and a competing or stale withdrawal is a refusal (exit 2). Exit 0 completed, 1 incomplete or unconfirmed, 2 refused/failed: read fresh `status` before repeating. A purge exception may conservatively report `purge_pending` even after deletion; that recovery output is not persisted-state readback. Operations, no-retry tombstones and exports are kept |
+| Metrics | Off by default; NEW-ONLY exclusive no-follow file reserved before the action and written once through the same descriptor; every existing destination (store, sidecar, export, hardlink, symlink, directory) or missing parent is refused (exit 2) before the action, with no append, truncate, unlink or mkdir; parent assumed trusted; a post-action write failure keeps the exit code and must not trigger a replay; allowlisted content-free fields; cost `null`/`unavailable_not_measured`, never zero |
+
+**Verification status — prepublication checkpoint, 2026-11-15:** four selected
+cases are authored in `tests/test_public_document_daily.py` (strengthened in place
+after the first independent static review, with no added selector); the PR workflow
+names exactly those four. Independent static re-review found no blocking defect for
+the bounded trial, with the conservative purge-state output caveat above and limited
+snapshot-probe precision. Static review is not behavioral verification or merge approval.
+
+The sole local runner invocation exited **2** during module loading on Python 3.15
+because `jsonschema` was missing. **Zero test bodies executed; no case passed.**
+The local four slots / one invocation remain charged, with no local retry. After
+inspecting that known environment failure, the parent opened only the existing
+reserved **PR CI four cases / one invocation**: Python 3.13 installs the repository's
+pinned direct requirements before running those selectors. Transitive dependencies
+are not locked. CI was unexecuted at this checkpoint; inspect the exact-head PR check
+for its later result. The same trial maximum remains **eight charged slots / two
+invocations**, not an extra allocation; no full suite, matrix, automatic retry or
+additional model call is included. Builds, demos and live acceptance of these new
+commands remain unexecuted.
+
+Identity strings are checked configuration, not authentication. Mechanical receipts
+establish exact-quotation fidelity and snapshot checks, not factual truth, usefulness,
+performance, cost savings or real-agent use. Historical UNKNOWN outcomes are not replayed.
+
 ### Navigation and history policy
 
 [First run](first-run.md) · [Bounded live baseline](#previously-verified-bounded-baseline-path) ·
@@ -134,7 +173,8 @@ Start with the [model connection contract](public-document-model.md), then the
 [lifecycle contract](public-document-lifecycle.md) and
 [component map](architecture-overview.md). The library-only interface intentionally
 keeps host permission, stage submission, independent verifier/evaluator, guarded
-adoption, consumer dispatch and semantic reviewer explicit. There is no new CLI,
+adoption, consumer dispatch and semantic reviewer explicit. The only CLI is the
+explicit offline `public-document` namespace above (unexecuted draft); there is no
 automatic stage chain, automatic adoption, retry or background agent loop.
 
 Expiry/withdrawal gates managed content. The host must manually clean content and
