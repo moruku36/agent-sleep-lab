@@ -63,9 +63,11 @@ The documented trace is not automatically executed and consumes its own test all
 
 ## If you want a real public-document trial
 
-This is a **separate library/store path**, not a demo option or a new automatic CLI.
-Read [lifecycle](public-document-lifecycle.md) and
-[model connection](public-document-model.md) before writing a host integration.
+This is a **separate persistent store path**, not a demo option. It has an explicit
+offline command namespace, `agent-sleep-lab public-document`, described below; it has
+no automatic chain, model call, network access, schedule or agent connection. Model
+use stays the separate library adapter: read [lifecycle](public-document-lifecycle.md)
+and [model connection](public-document-model.md) before writing a host integration.
 
 | Order | Explicit host responsibility |
 |---|---|
@@ -80,6 +82,109 @@ Source, task context and generated text remain untrusted data, never permission.
 Do not put held-out answers/rubrics in Light context. Rejected-response retention
 is disabled by default; optional quarantine is bounded managed content, not a log
 of rejected responses or authority to retry.
+
+### Daily use of one persistent store (offline commands)
+
+Every action below names its store with `--store`. Only `init` creates a store (and
+its parent directories); all others open an **existing** store and refuse a missing
+one. Nothing here calls a model, uses the network, or retries anything.
+
+```sh
+agent-sleep-lab public-document init --store lib/store.sqlite --roles roles.json
+agent-sleep-lab public-document approve --store lib/store.sqlite \
+  --identity CONTROL_ID --identity-version 1 --approval approval.json \
+  --artifact staged.json --origin-task ORIGIN --expected-generation 0
+agent-sleep-lab public-document admit --store lib/store.sqlite --artifact staged.json
+agent-sleep-lab public-document propose --store lib/store.sqlite \
+  --proposal-id p1 --quotation-file quote.txt
+agent-sleep-lab public-document verify --store lib/store.sqlite \
+  --identity VERIFIER_ID --identity-version 1 --proposal-id p1 --expires-at WHEN
+agent-sleep-lab public-document evaluate --store lib/store.sqlite \
+  --identity EVALUATOR_ID --identity-version 1 --proposal-id p1 \
+  --expected-parent HEAD --verification-receipt V --expires-at WHEN
+agent-sleep-lab public-document adopt --store lib/store.sqlite --operation-id op1 \
+  --proposal-id p1 --expected-parent HEAD --expected-generation N \
+  --verification-receipt V --evaluation-receipt E
+agent-sleep-lab public-document retrieve --store lib/store.sqlite --target-task OTHER \
+  --project P --task-family F --max-bytes 2048
+```
+
+- **Roles are host-provisioned.** `roles.json` holds four distinct authorities
+  (control, verifier, evaluator, semantic reviewer) and one consumer
+  configuration (never dispatched here). Each role-bearing action takes exactly one
+  `--identity`/`--identity-version` pair. The library compares it with the stored
+  configuration; these strings are **not authentication**, a secret or proof of
+  different people. Nothing selects a role for you.
+- **Approval is a separate step.** `approval.json` must be the host-reviewed
+  approval for the exact staged artifact (see [public-source staging](public-source-intake.md));
+  `approve` only registers the file you supply and never invents, reviews or infers an
+  owner approval. A schema-valid file is not evidence that the owner approved those bytes.
+- **Receipts are mechanical.** `verify` and `evaluate` register the library's own
+  mechanical receipts for the one role identity you name; they never judge meaning.
+  `verify` checks exact quotation fidelity;
+  `evaluate` checks the candidate snapshot mechanically; `adopt` needs both plus the
+  current parent (`head_sha256` from `status`; a new store starts at the hash of `[]`)
+  and generation. Passing them is **not factual truth, semantic usefulness or
+  performance**. Provider output never issues them.
+- **Retrieval is not use.** It returns whole untrusted references for a *different*
+  task in the same approved scope within `--max-bytes`. It calls no consumer and shows
+  no demonstrated use. The file passed to `propose` is used byte for byte; avoid an
+  added trailing newline.
+
+#### Status, preview and cleanup
+
+`status` and `cleanup-preview` open the store read-only inside ONE read transaction, so
+one output is a single consistent snapshot even if another client withdraws meanwhile.
+They change nothing (not even by expiry) and print no document text, URI, reference or
+role name. They keep three things
+apart: the stored state (`empty`, `approved`, `purge_pending`, `deleted`), the effective
+`access` (`approval_not_yet_valid`, `approval_expired`, `approved_not_admitted`,
+`admitted_in_window`, `suppressed_purge_pending`, `suppressed_deleted`) and the cleanup
+state. At the exact expiry instant access is `approval_expired` while the stored state
+may still read `approved`. `integrity` is always `not_assessed`: the preview is
+metadata-only, does not check the admitted bytes or derivatives, and so cannot predict
+every action `cleanup` may take, and `admitted_in_window` does not promise a later
+retrieval. After exclusion the cause is `unknown`: the store
+does not record why. `deleted` means this library's managed purge finished, not file or
+forensic erasure.
+
+Only `status` and `cleanup-preview` are guaranteed side-effect free. `cleanup` is the
+explicit expiry/integrity sweep and also finishes a pending purge. It checks whether the
+approval is currently valid and the managed bytes are intact; valid, intact in-window
+data stays, but data that fails those checks is excluded and purged. `withdraw` is the
+explicit way to remove still-valid content and requires `--purge` or `--exclude-only`.
+Other mutating actions that read managed content (such as `verify`, `evaluate`, `adopt`
+and `retrieve`) run the same guard and, when it fails, also exclude and purge before they
+refuse. `withdraw` first confirms its own exclusion against `--expected-generation`, and
+only then (with `--purge`) attempts the separate purge. If another client withdrew first,
+the stale compare-and-set is a refusal (exit 2); the command never reports an exclusion it
+did not itself confirm. Operation records, content-free no-retry tombstones
+and any external export or backup are kept and are outside this guarantee.
+
+**Exit codes.** `0`: completed or nothing due. `1`: attempted but incomplete.
+`purge_pending_incomplete` means exclusion is committed and the physical purge did not
+finish (run `cleanup` again on the same store); `failed_state_unchanged` means an error
+before any exclusion; `purge_attempted_state_unconfirmed` means the final state could
+not be read back. `2`: refused or failed with no completed effect confirmed by that call.
+After any nonzero code read the persisted state with `status` before repeating anything.
+
+#### Optional minimal metrics
+
+Off by default. `--metrics-out FILE` is **new-only**. Before any store action the tool
+creates FILE exclusively (no-follow, mode 0600) in an already existing directory and
+keeps that same file handle for one bounded write afterwards. Any existing path (the
+store, a SQLite sidecar or journal, an export, a hardlink or symlink, a directory) or a
+missing parent is refused with exit 2 before the action; nothing is appended, truncated,
+unlinked or created. The parent directory is trusted not to be swapped concurrently, and
+if another process creates the name first you are refused. The one line has only: action,
+outcome, elapsed milliseconds, managed-record or
+reference byte counts, `model_calls: 0` and `cost: null` with
+`cost_state: unavailable_not_measured`. The reserved file stays (possibly empty) even if
+the action or the write fails. A metrics-write failure after the action prints a warning
+but never changes the action's result or exit code; **do not repeat the action to obtain
+metrics**. Unknown cost is not zero and nothing here
+measures savings. The file is never rotated or deleted by the tool; remove it yourself.
+Metrics describe local wiring only, not usefulness or performance.
 
 ### Cost before any live call
 

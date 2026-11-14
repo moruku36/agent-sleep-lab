@@ -105,7 +105,84 @@ def build_parser() -> argparse.ArgumentParser:
             cmd.add_argument("--rubric", required=True, help="local evaluator key, never sent to provider")
         if name == "sleep-status":
             cmd.add_argument("--run-id", required=True)
+    _add_public_document_parser(sub)
     return parser
+
+
+def _add_public_document_parser(sub) -> None:
+    """Daily-use namespace for one persistent public-document store (no model, no network)."""
+    root = sub.add_parser(
+        "public-document", allow_abbrev=False,
+        help="explicit actions on one persistent public-document store; offline, no model",
+        description=(
+            "Explicit offline actions on one persistent public-document store. "
+            "Role identities are checked configuration, not authentication. approve "
+            "registers the host-supplied approval; verify and evaluate register "
+            "MECHANICAL receipts only. Exit 0: completed or nothing due. Exit 1: "
+            "attempted but cleanup incomplete (rerun cleanup, or inspect with status). "
+            "Exit 2: refused or failed with no effect confirmed by this call; check "
+            "status for the persisted state before repeating anything."))
+    actions = root.add_subparsers(dest="pd_action", required=True)
+
+    def action(name, help_text, *, role=False):
+        cmd = actions.add_parser(name, allow_abbrev=False, help=help_text)
+        cmd.add_argument("--store", required=True, help="path of the public-document store")
+        cmd.add_argument("--metrics-out", help="opt-in: create a NEW file (any existing path, "
+                         "including the store, a sidecar, an export, a link or a missing parent, "
+                         "is refused before the action) and write one content-free metrics line "
+                         "to it afterwards (default: no metrics)")
+        if role:
+            cmd.add_argument("--identity", required=True,
+                             help="this action's configured role identity (not authentication)")
+            cmd.add_argument("--identity-version", required=True, help="configured role version")
+        return cmd
+
+    init = action("init", "create a NEW store from a host-provisioned roles JSON file")
+    init.add_argument("--roles", required=True,
+                      help="JSON with control, verifier, evaluator, semantic_reviewer, consumer")
+    action("status", "read-only content-free status of an existing store (one read snapshot)")
+    action("cleanup-preview", "read-only, metadata-only preview; it does not assess integrity "
+           "and cannot predict every action cleanup may take")
+    action("cleanup", "explicit expiry/integrity sweep: excludes and purges managed content "
+           "that fails the eligibility or integrity checks, and completes a pending purge")
+    withdraw = action("withdraw", "control role: confirm this call's own exclusion, then "
+                      "optionally purge; choose --purge or --exclude-only", role=True)
+    withdraw.add_argument("--expected-generation", type=int, required=True)
+    choice = withdraw.add_mutually_exclusive_group(required=True)
+    choice.add_argument("--purge", action="store_true", help="exclude and purge managed content now")
+    choice.add_argument("--exclude-only", action="store_true",
+                        help="exclude access only; purge stays pending until cleanup")
+    approve = action("approve", "control role: bind one exact approval to one artifact", role=True)
+    approve.add_argument("--approval", required=True, help="approval JSON file (host-reviewed)")
+    approve.add_argument("--artifact", required=True, help="staged artifact file to bind by hash")
+    approve.add_argument("--origin-task", required=True)
+    approve.add_argument("--expected-generation", type=int, required=True)
+    admit = action("admit", "admit the exact artifact bound by the current approval")
+    admit.add_argument("--artifact", required=True)
+    propose = action("propose", "save one UNVERIFIED exact-source quotation from a file")
+    propose.add_argument("--proposal-id", required=True)
+    propose.add_argument("--quotation-file", required=True)
+    verify = action("verify", "verifier role: register an exact-quotation receipt", role=True)
+    verify.add_argument("--proposal-id", required=True)
+    verify.add_argument("--expires-at", required=True)
+    evaluate = action("evaluate", "evaluator role: register a mechanical snapshot receipt",
+                      role=True)
+    evaluate.add_argument("--proposal-id", required=True)
+    evaluate.add_argument("--expected-parent", required=True)
+    evaluate.add_argument("--verification-receipt", required=True)
+    evaluate.add_argument("--expires-at", required=True)
+    adopt = action("adopt", "atomically adopt using existing receipts and current parent/generation")
+    adopt.add_argument("--operation-id", required=True)
+    adopt.add_argument("--proposal-id", required=True)
+    adopt.add_argument("--expected-parent", required=True)
+    adopt.add_argument("--expected-generation", type=int, required=True)
+    adopt.add_argument("--verification-receipt", required=True)
+    adopt.add_argument("--evaluation-receipt", required=True)
+    retrieve = action("retrieve", "retrieve whole adopted references for a DIFFERENT task")
+    retrieve.add_argument("--target-task", required=True)
+    retrieve.add_argument("--project", required=True)
+    retrieve.add_argument("--task-family", required=True)
+    retrieve.add_argument("--max-bytes", type=int, required=True)
 
 
 def _cmd_validate(args: argparse.Namespace, out: TextIO, err: TextIO) -> int:
@@ -169,7 +246,7 @@ def main(
     parser = build_parser()
     arguments = list(sys.argv[1:] if argv is None else argv)
     private_command = arguments[0] if arguments[:1] in (
-        ["oss-prepare"], ["compare-prepare"], ["compare-inspect"]) else None
+        ["oss-prepare"], ["compare-prepare"], ["compare-inspect"], ["public-document"]) else None
     try:
         # argparse otherwise echoes unknown options/values from untrusted input.
         if private_command:
@@ -185,6 +262,9 @@ def main(
         return _cmd_validate(args, out, err)
     if args.command == "schemas":
         return _cmd_schemas(out, err)
+    if args.command == "public-document":
+        from agent_sleep_lab.public_document_daily import execute as run_public_document
+        return run_public_document(args, out, err)
     if args.command == "compare-inspect":
         try:
             from agent_sleep_lab.comparison_inspect import execute as inspect_comparison
