@@ -168,6 +168,141 @@ class DailyUseTests(unittest.TestCase):
                 PublicDocumentStore, name, side_effect=AssertionError(name)))
         return stack
 
+    def stage_args(self, *extra):
+        # Extract the already reviewed fictional source bytes from the fixture.
+        source = self.root / "source.txt"
+        if not source.exists():
+            source.write_text(json.loads(self.files["artifact"].read_bytes())["source"]["text"])
+        return ("stage", "--source-file", str(source), "--approval", str(self.files["approval"]),
+                "--event-id", "fictional-source", "--observed-at", self.start.isoformat(),
+                "--captured-at", self.start.isoformat(), *extra)
+
+    def test_stage_preview_and_exact_new_artifact(self):
+        argv = self.stage_args()
+        before = sorted(self.root.iterdir())
+        with self.forbid_mutating_paths():
+            preview = self.ok(*argv, "--preview")
+        self.assertTrue(preview["preview_only"])
+        self.assertFalse(preview["artifact_written"])
+        self.assertFalse(preview["admitted_to_store"])
+        self.assertEqual(before, sorted(self.root.iterdir()))
+        self.assertFalse(self.path.parent.exists())
+        target = self.root / "staged.json"
+        with self.forbid_mutating_paths():
+            written = self.ok(*argv, "--artifact-out", str(target))
+        self.assertTrue(written["artifact_written"])
+        self.assertEqual(target.read_bytes(), self.files["artifact"].read_bytes())
+        self.assertEqual(os.stat(target).st_mode & 0o077, 0)
+        self.assertEqual(written["artifact_sha256"], preview["artifact_sha256"])
+        self.assertEqual(written["model_calls"], 0)
+        for private in (QUOTE, "example.test", "public-fixture"):
+            self.assertNotIn(private, json.dumps(written))
+        code, out, err = self.run_cli(*argv, "--preview", "--format", "text")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn("Preview only: true", out)
+        self.assertIn("No approval was issued", out)
+
+    def test_stage_refuses_unsafe_locator_and_existing_destinations(self):
+        argv = self.stage_args()
+        source = self.root / "source.txt"
+        alias = self.root / "source-alias"
+        link = self.root / "source-link"
+        os.link(source, alias)
+        os.symlink(source, link)
+        before = source.read_bytes()
+        for target in (source, alias, link, self.files["approval"], self.root,
+                       self.root / "missing" / "out.json"):
+            code, out, err = self.run_cli(*argv, "--artifact-out", str(target))
+            self.assertEqual((code, out), (2, ""))
+            self.assertIn("artifact_destination_refused", err)
+        self.assertEqual(source.read_bytes(), before)
+        approval = json.loads(self.files["approval"].read_bytes())
+        for uri in ("https://example.test/doc#secret", "https://example.test/doc?token=secret",
+                    "https://user:secret@example.test/doc", "file:///secret"):
+            self.files["approval"].write_text(json.dumps(dict(approval, source_uri=uri)))
+            code, out, err = self.run_cli(*argv, "--preview")
+            self.assertEqual((code, out), (2, ""))
+            self.assertIn("source_locator_refused", err)
+            self.assertIn("No URL was normalized", err)
+            self.assertNotIn("secret", out + err)
+        self.assertFalse(self.path.parent.exists())
+
+    def test_stage_partial_write_and_approval_mismatch_stop_safely(self):
+        argv = self.stage_args()
+        target = self.root / "partial.json"
+        real_write = os.write
+        def partial_then_fail(fd, value):
+            real_write(fd, value[:8])
+            raise OSError("sensitive injected error")
+        with patch.object(os, "write", partial_then_fail):
+            code, out, err = self.run_cli(*argv, "--artifact-out", str(target))
+        self.assertEqual((code, out), (2, ""))
+        self.assertEqual(target.stat().st_size, 8)
+        self.assertIn("artifact_write_incomplete", err)
+        self.assertIn("do not admit", err)
+        self.assertNotIn("sensitive", out + err)
+        code, out, err = self.run_cli(*argv, "--artifact-out", str(target))
+        self.assertIn("artifact_destination_refused", err)
+        self.assertEqual(target.stat().st_size, 8)
+        (self.root / "source.txt").write_text("Different unapproved fictional bytes")
+        fresh = self.root / "must-not-create.json"
+        code, out, err = self.run_cli(*argv, "--artifact-out", str(fresh))
+        self.assertEqual((code, out), (2, ""))
+        self.assertFalse(fresh.exists())
+        self.assertFalse(self.path.parent.exists())
+
+    def test_stage_output_failure_retains_completed_artifact(self):
+        target = self.root / "complete.json"
+        args = build_parser().parse_args(["public-document", *self.stage_args(),
+                                         "--artifact-out", str(target)])
+        class BrokenOutput(io.StringIO):
+            def write(self, value):
+                raise OSError("sensitive broken pipe")
+        err = io.StringIO()
+        code = execute(args, BrokenOutput(), err, clock=lambda: self.now)
+        self.assertEqual(code, 2)
+        self.assertEqual(target.read_bytes(), self.files["artifact"].read_bytes())
+        self.assertIn("artifact_written_output_failed", err.getvalue())
+        self.assertIn("Do not repeat the write", err.getvalue())
+        self.assertNotIn("stage refused", err.getvalue())
+        self.assertNotIn("sensitive", err.getvalue())
+        self.assertFalse(self.path.parent.exists())
+
+    def test_receipt_file_handoff_preserves_explicit_adoption(self):
+        self.bring_up()
+        self.ok(*self.store("propose", "--proposal-id", "excerpt",
+                            "--quotation-file", str(self.files["quote"])))
+        v = self.ok(*self.store("verify", *self.role("excerpt-verifier"),
+                                "--proposal-id", "excerpt", "--expires-at", self.end.isoformat()))
+        vf, ef = self.root / "verify.json", self.root / "evaluate.json"
+        vf.write_text(json.dumps(v))
+        evaluate = self.store("evaluate", *self.role("mechanical-evaluator"),
+                             "--proposal-id", "excerpt", "--expected-parent", EMPTY_HEAD,
+                             "--verification-receipt-file", str(vf), "--expires-at", self.end.isoformat())
+        # A well-shaped but unissued receipt ID must still fail the store's own check.
+        vf.write_text(json.dumps(dict(v, verification_receipt="0" * 64)))
+        self.assertEqual(self.run_cli(*evaluate)[0], 2)
+        vf.write_text(json.dumps(v))
+        e = self.ok(*evaluate)
+        ef.write_text(json.dumps(e))
+        self.assertFalse(self.ok(*self.store("status"))["adopted_head_present"])
+        adopt = self.store("adopt", "--operation-id", "adopt-1", "--proposal-id", "excerpt",
+                           "--expected-parent", EMPTY_HEAD, "--expected-generation", "1",
+                           "--verification-receipt-file", str(vf), "--evaluation-receipt-file", str(ef))
+        ef.write_text(json.dumps(dict(e, action="verify")))
+        self.assertEqual(self.run_cli(*adopt)[0], 2)
+        ef.write_text(json.dumps(e))
+        self.ok(*adopt)
+        self.assertTrue(self.ok(*self.store("status"))["adopted_head_present"])
+        got = self.ok(*self.store("retrieve", "--target-task", "different", "--project", "fictional",
+                                  "--task-family", "reading", "--max-bytes", "2048"))
+        self.assertEqual(got["references"][0]["quotation"], QUOTE)
+        self.assertFalse(got["consumer_dispatched"])
+        # Direct-ID and file alternatives cannot both be supplied.
+        with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            build_parser().parse_args(["public-document", *adopt,
+                                       "--verification-receipt", v["verification_receipt"]])
+
     def test_readable_status_and_preview_do_not_mutate(self):
         self.bring_up(adopt=True)
         before = self.disk()

@@ -7,8 +7,10 @@ automatic-adoption path. It never invents owner approval or a semantic judgment:
 register the library's MECHANICAL receipts (exact-quotation fidelity, snapshot
 check) for the one explicitly named role identity.
 
-* Only ``init`` creates a store (and its parent directories). Every other action
-  opens an EXISTING store and refuses a missing one.
+* ``stage`` prepares an artifact from explicitly supplied bytes and existing approval,
+  without opening a store. Preview writes no artifact; output is new-only.
+* Only ``init`` creates a store (and its parent directories). All remaining actions
+  open an EXISTING store and refuse a missing one.
 * ``status`` and ``cleanup-preview`` use the library's read-only metadata seam (one
   consistent read snapshot) and never construct the mutating store, sweep, purge or
   read content. Explicit mutating actions are different: content-accessing actions,
@@ -26,8 +28,9 @@ check) for the one explicitly named role identity.
 * Exit codes: 0 completed or nothing due; 1 an incomplete, failed or unconfirmed
   attempt (including a late purge error whose readback observes deletion) (``purge_pending_incomplete``: exclusion committed, inspect ``status`` before choosing ``cleanup``;
   ``failed_state_unchanged``: an error before exclusion, inspect with ``status``); 2
-  refused or failed, with no completed effect confirmed by THIS call. After a nonzero
-  code, read the persisted state with ``status`` before repeating anything.
+  refused or failed. Stage may leave a partial artifact or confirm a completed
+  artifact with failed summary delivery: inspect its diagnostic before retrying.
+  For store actions, read fresh ``status`` after a nonzero code before repeating.
 * Metrics are OFF by default and NEW-ONLY. ``--metrics-out PATH`` is created
   exclusively (``O_CREAT|O_EXCL|O_NOFOLLOW``, mode 0600) BEFORE any store action, and
   that same held descriptor receives ONE bounded allowlisted, content-free JSON line
@@ -57,7 +60,10 @@ from agent_sleep_lab.provenance import canonical_json, sha256_hex
 from agent_sleep_lab.public_document_runtime import (
     MAX_CONTENT_BYTES, Authority, Consumer, PublicDocumentError, PublicDocumentStore,
 )
-from agent_sleep_lab.public_source_intake import PublicDocumentApproval
+from agent_sleep_lab.public_source_intake import (
+    MAX_SOURCE_BYTES, PublicDocumentApproval, PublicSourceLocatorError,
+    intake_summary, prepare_public_document,
+)
 from agent_sleep_lab.strictjson import loads_strict_bytes
 
 EXIT_OK = 0
@@ -118,6 +124,12 @@ def _classify(exc):
     if isinstance(exc, PublicDocumentError):
         code = getattr(exc, "code", "")
         return code if type(code) is str and _CODE.fullmatch(code) else "lifecycle_rejected"
+    if isinstance(exc, PublicSourceLocatorError):
+        return "source_locator_refused"
+    if isinstance(exc, _ArtifactDestinationRefused):
+        return "artifact_destination_refused"
+    if isinstance(exc, _ArtifactWriteFailed):
+        return "artifact_write_incomplete"
     if isinstance(exc, _MetricsRefused):
         return "metrics_destination_refused"
     if isinstance(exc, (ValueError, TypeError, KeyError)):
@@ -132,6 +144,65 @@ def _classify(exc):
 
 
 # ---------------------------------------------------------------- actions
+
+class _ArtifactDestinationRefused(ValueError):
+    """No artifact created; destination must be new with an existing parent."""
+
+
+class _ArtifactWriteFailed(OSError):
+    """Reserved file may be partial; never overwrite or retry automatically."""
+
+
+def _stage(args, clock):
+    approval = PublicDocumentApproval(**_object(_read(args.approval)))
+    artifact = prepare_public_document(
+        source_bytes=_read(args.source_file, MAX_SOURCE_BYTES),
+        source_uri=approval.source_uri,
+        scope={"project": approval.project, "task_family": approval.task_family},
+        event_id=args.event_id, observed_at=args.observed_at,
+        captured_at=args.captured_at, approval=approval, now=clock())
+    result = dict(intake_summary(artifact), action="stage", preview_only=bool(args.preview),
+                  artifact_written=False)
+    if args.preview:
+        return result, EXIT_OK
+    # Only after validation: NEW-ONLY, no symlink following, no truncation, no mkdir.
+    # Parent-directory stability is a caller trust assumption, as for metrics.
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        fd = os.open(args.artifact_out, flags, 0o600)
+    except (OSError, ValueError):
+        raise _ArtifactDestinationRefused() from None
+    try:
+        try:
+            remaining = memoryview(artifact)
+            while remaining:
+                count = os.write(fd, remaining)
+                if count <= 0:
+                    raise OSError()
+                remaining = remaining[count:]
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+    except Exception:
+        raise _ArtifactWriteFailed() from None
+    return dict(result, artifact_written=True), EXIT_OK
+
+
+def _receipt(args, kind):
+    """Untrusted handoff selects an existing ID, never issues a receipt or role."""
+    filename = getattr(args, kind + "_receipt_file", None)
+    if filename is None:
+        return getattr(args, kind + "_receipt")
+    value = _object(_read(filename, 8192))
+    key = kind + "_receipt"
+    action, meaning = (("verify", "exact_quotation_fidelity_only") if kind == "verification"
+                       else ("evaluate", "mechanical_snapshot_check_not_performance"))
+    if (set(value) != {"action", key, "meaning"} or value["action"] != action
+            or value["meaning"] != meaning or type(value[key]) is not str
+            or re.fullmatch(r"[0-9a-f]{64}", value[key]) is None):
+        raise ValueError("invalid receipt handoff")
+    return value[key]
+
 
 def _init(args, clock):
     config = _object(_read(args.roles))
@@ -256,7 +327,7 @@ def _evaluate(args, clock):
     store = _existing(args, clock)
     receipt = store.evaluator(_flag_authority(args)).issue(
         proposal_id=args.proposal_id, expected_parent=args.expected_parent,
-        verification_receipt=args.verification_receipt, expires_at=args.expires_at)
+        verification_receipt=_receipt(args, "verification"), expires_at=args.expires_at)
     return {"action": "evaluate", "evaluation_receipt": receipt,
             "meaning": "mechanical_snapshot_check_not_performance"}, EXIT_OK
 
@@ -265,8 +336,8 @@ def _adopt(args, clock):
     receipt = _existing(args, clock).adopt(
         operation_id=args.operation_id, proposal_id=args.proposal_id,
         expected_parent=args.expected_parent, expected_generation=args.expected_generation,
-        verification_receipt=args.verification_receipt,
-        evaluation_receipt=args.evaluation_receipt)
+        verification_receipt=_receipt(args, "verification"),
+        evaluation_receipt=_receipt(args, "evaluation"))
     return {"action": "adopt", "head_sha256": receipt["head"],
             "generation": receipt["generation"],
             "historical_replay": bool(receipt.get("historical_replay", False)),
@@ -285,7 +356,7 @@ def _retrieve(args, clock):
 
 
 _ACTIONS = {
-    "init": _init, "status": _status, "cleanup-preview": _cleanup_preview,
+    "stage": _stage, "init": _init, "status": _status, "cleanup-preview": _cleanup_preview,
     "cleanup": _cleanup, "withdraw": _withdraw, "approve": _approve, "admit": _admit,
     "propose": _propose, "verify": _verify, "evaluate": _evaluate, "adopt": _adopt,
     "retrieve": _retrieve,
@@ -346,6 +417,10 @@ def _next_step(result, rc):
     if rc != EXIT_OK:
         return "Read fresh status before any further action; do not repeat withdrawal or paid work."
     action = result["action"]
+    if action == "stage":
+        return ("Preview only; explicitly choose --artifact-out to write a NEW artifact. No approval was issued."
+                if result["preview_only"] else
+                "Artifact prepared, not admitted. Separately approve and admit it using the existing approval.")
     state = result.get("stored_state")
     cleanup = result.get("cleanup", {}).get("state")
     if state == "deleted":
@@ -378,6 +453,8 @@ def _render_text(result, rc):
     label = "Completed" if rc == EXIT_OK else "Incomplete or unconfirmed"
     lines = [f"{label}: {result['action']}"]
     labels = (
+        ("preview_only", "Preview only"), ("artifact_written", "Artifact written"),
+        ("source_bytes", "Source bytes"), ("admitted_to_store", "Admitted to store"),
         ("stored_state", "Stored state"), ("access", "Access eligibility"),
         ("approval_window", "Approval window"), ("scope", "Scope"),
         ("generation", "Generation"), ("admitted", "Document admitted"),
@@ -413,13 +490,30 @@ def execute(args, out: TextIO, err: TextIO, *, clock=_utcnow) -> int:
                     else json.dumps(result, ensure_ascii=True, sort_keys=True))
         print(rendered, file=out)
     except Exception as exc:
-        code = _classify(exc)
-        outcome = "refused" if isinstance(exc, ValueError) else "error"
+        artifact_written = action == "stage" and result is not None and result.get("artifact_written") is True
+        code = "artifact_written_output_failed" if artifact_written else _classify(exc)
+        outcome = "incomplete" if artifact_written else ("refused" if isinstance(exc, ValueError) else "error")
         rc = EXIT_ERROR
-        print(f"error[public-document]: {action} refused ({code}); "
-              "no document text, path or hash is echoed. "
-              "Check the explicit store path; only init creates a new store. "
-              "Read status before repeating an action", file=err)
+        if artifact_written:
+            advice = ("The artifact was written, but summary delivery failed. Do not repeat the write; "
+                      "inspect the existing artifact before separate approval/admission.")
+        elif code == "source_locator_refused":
+            advice = ("Use a separately reviewed HTTPS document URL with no credentials, query or "
+                      "fragment; keep a public comment ID in separate research notes. "
+                      "No URL was normalized or silently shortened.")
+        elif code == "artifact_destination_refused":
+            advice = "Choose a NEW artifact path in an existing trusted directory; nothing was overwritten."
+        elif code == "artifact_write_incomplete":
+            advice = "The new artifact may be partial; do not admit it or blindly repeat the write."
+        elif action == "stage":
+            advice = "Check exact source bytes, existing approval and observation/capture times; no store action ran."
+        else:
+            advice = ("Check the explicit store path; only init creates a new store. "
+                      "Read status before repeating an action")
+        state = "output failed" if artifact_written else "refused"
+        print(f"error[public-document]: {action} {state} ({code}); "
+              "no document text, path or hash is echoed. " + advice, file=err)
+
     if metrics_fd is not None:
         try:
             _write_metrics(metrics_fd, _metrics_record(

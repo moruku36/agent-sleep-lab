@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: src
         run: >-
           python tests/run_tests.py
-          test_public_document_daily.DailyUseTests.test_readable_status_and_preview_do_not_mutate
-          test_public_document_daily.DailyUseTests.test_readable_retrieval_and_default_json_compatibility
-          test_public_document_daily.DailyUseTests.test_withdraw_late_failure_and_unavailable_readback
-          test_public_document_daily.DailyUseTests.test_purge_recovery_preserves_unknown_and_private_metrics
+          test_public_document_daily.DailyUseTests.test_stage_preview_and_exact_new_artifact
+          test_public_document_daily.DailyUseTests.test_stage_refuses_unsafe_locator_and_existing_destinations
+          test_public_document_daily.DailyUseTests.test_stage_output_failure_retains_completed_artifact
+          test_public_document_daily.DailyUseTests.test_receipt_file_handoff_preserves_explicit_adoption

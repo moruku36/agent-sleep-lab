@@ -2,6 +2,40 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
+## Current summary — PR60 baseline; preparation/handoff follow-up
+
+[PR60](https://github.com/moruku36/agent-sleep-lab/pull/60) is merged on main at
+`922a55fe9142bf7dd8495481ad5868180bcad335`. Its exact-head
+[CI run 43756820633](https://github.com/moruku36/agent-sleep-lab/actions/runs/43756820633)
+passed four cases. This supersedes the dated prepublication statements below.
+
+The new preparation/handoff follow-up provides `public-document stage` with
+explicit source file, existing host-reviewed approval, event ID and timestamps.
+`--preview` validates without writing an artifact; `--artifact-out` creates a new
+private file only, never overwriting. Partial write and completed-file/failed-summary
+outcomes are distinguished. It does not issue approval, touch a store or fetch a URL.
+`evaluate`/`adopt` can consume bounded strict JSON files from the separate receipt
+steps, without bypassing the existing issuance, parent, generation or expiry checks.
+See [preparation](first-run.md#prepare-bytes-without-writing-python) and
+[receipt handoff](first-run.md#hand-off-receipt-json-without-copying-ids).
+
+**Locator limits remain intentional:** credentials, query and fragment URLs are
+still rejected. The new sanitized explanation offers a separately reviewed document
+URL and separate public comment-ID notes, never silent stripping or normalization.
+Fragments are not stored/returned. Source syntax is not an automatic secrets scan.
+
+**Prepublication verification:** five local selected case executions in two runner
+invocations PASS (four in 0.353s, one focused output-failure case in 0.007s).
+The fifth case addresses an independent static review finding; it confirms that a
+completed artifact is not misreported as refused when summary output fails.
+PR CI reserves four selected cases in one invocation, for **nine executions / three
+invocations total** if successful. Python 3.12.14 local has jsonschema 4.26.0; CI
+uses Python 3.13 with pinned direct requirements. No full suite, version matrix,
+provider call or live-document trial. Exact-head CI/merge remain pending at this
+checkpoint; follow the PR for subsequent evidence without another code push.
+
+### Preserved PR60 and earlier checkpoints
+
 ## Current summary — PR59 baseline and readability follow-up
 
 PR59 is merged on main at `b07626309b39ec1aaae56b0195abc8f5129851d0`.
