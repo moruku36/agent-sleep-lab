@@ -119,7 +119,7 @@ def _add_public_document_parser(sub) -> None:
             "Role identities are checked configuration, not authentication. approve "
             "registers the host-supplied approval; verify and evaluate register "
             "MECHANICAL receipts only. Exit 0: completed or nothing due. Exit 1: "
-            "attempted but cleanup incomplete (rerun cleanup, or inspect with status). "
+            "attempted but cleanup incomplete or unconfirmed; inspect with status first. "
             "Exit 2: refused or failed with no effect confirmed by this call; check "
             "status for the persisted state before repeating anything."))
     actions = root.add_subparsers(dest="pd_action", required=True)
@@ -127,6 +127,8 @@ def _add_public_document_parser(sub) -> None:
     def action(name, help_text, *, role=False):
         cmd = actions.add_parser(name, allow_abbrev=False, help=help_text)
         cmd.add_argument("--store", required=True, help="path of the public-document store")
+        cmd.add_argument("--format", choices=("json", "text"), default="json",
+                         help="JSON details (default), or readable summary and next-step guidance")
         cmd.add_argument("--metrics-out", help="opt-in: create a NEW file (any existing path, "
                          "including the store, a sidecar, an export, a link or a missing parent, "
                          "is refused before the action) and write one content-free metrics line "

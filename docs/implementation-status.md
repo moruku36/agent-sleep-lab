@@ -2,6 +2,34 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
+## Current summary — PR59 baseline and readability follow-up
+
+PR59 is merged on main at `b07626309b39ec1aaae56b0195abc8f5129851d0`.
+Its [CI run 43653126748](https://github.com/moruku36/agent-sleep-lab/actions/runs/43653126748)
+passed the four selected offline cases for head `d225b051a191aca1905046c23bb8d7b15be3cd82`.
+This supersedes the older prepublication status below; that checkpoint is preserved as history.
+
+The follow-up adds optional `public-document <action> --format text`, readable
+state/count/receipt/reference labels and safe next-step guidance. Default JSON
+remains compatible. Status and preview stay metadata-only and read-only, and text
+formatting does not dispatch an action twice. Withdrawal now performs fresh
+metadata readback even after a purge exception: observed deletion is distinct from
+unconfirmed state. A failed purge attempt still exits 1 even if deletion is observed.
+No lifecycle permission, automatic adoption, model call, schedule or external cleanup is added.
+See the [daily-use guide](first-run.md#readable-output-and-safe-next-steps).
+
+**Follow-up prepublication checkpoint:** local Python 3.12.14, **4 selected cases
+PASS / 1 invocation (0.372s)**. Installed jsonschema was 4.26.0, not the direct
+repository pin; the reserved PR CI uses pinned direct requirements on Python 3.13.
+The four selectors cover nonmutating text status/expiry, retrieval and JSON/escaping,
+late purge failure/unavailable readback, and existing purge/no-retry/metrics recovery.
+PR CI reserves the same **4 cases / 1 invocation**, for **8 total executions / 2
+invocations** if successful. No full suite, matrix, live model, timing-benefit or cost
+claim. Exact-head CI and merge are pending at this checkpoint; see the follow-up PR
+for later results without rerunning tests just to update this page.
+
+### Preserved PR56/PR59 checkpoints
+
 ## Current summary — PR56 merged
 
 This page and its Japanese translation remain the ONLY current-status authority.

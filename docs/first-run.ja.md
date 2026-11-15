@@ -120,6 +120,25 @@ agent-sleep-lab public-document retrieve --store lib/store.sqlite --target-task 
   untrusted dataとして返すだけです。consumerを呼ばず、利用の実証にもなりません。
   `propose`のfileはbyteそのまま使うため、末尾の改行を足さないでください。
 
+#### 読みやすい表示と次の操作
+
+日常commandはすべて`--format text`で、状態・件数・受領または取得した参照と、
+次の操作案内を表示できます。既定および`--format json`の詳細JSON形式は維持します。
+同じ1回の操作結果を整形するだけで、追加dispatchやstore読取りはありません。
+動的な値は端末制御文字も含めJSON escapeします。表示ラベルは英語です。
+
+```sh
+agent-sleep-lab public-document status --store lib/store.sqlite --format text
+agent-sleep-lab public-document cleanup-preview --store lib/store.sqlite --format text
+```
+
+`Stored state`は保存された状態、`Access eligibility`は期限による利用可否、
+`Adopted head present`は採用済みの版があるかを示します。`Approval window`（許可期間）、
+`Scope`（範囲）、`Managed records`（管理件数）を確認してから次の操作を選びます。
+取得時も上記の別task向けcommandに`--format text`を足すと、未信頼の引用と出典を表示します。
+採用・取得・削除は自動では行いません。storeのpathは出力・記憶されないので自分で保持します。
+表示形式を変えるだけのために、書込み操作を再実行しないでください。
+
 #### status・preview・cleanup
 
 `status`と`cleanup-preview`はstoreをread-onlyで、1つのread transactionの中で開くため、
@@ -146,10 +165,14 @@ forensicな消去ではありません。
 保証の対象外です。
 
 **終了code。** `0`：完了、または対象なし。`1`：実行したが未完了。`purge_pending_incomplete`は
-除外はcommit済みで物理purgeが終わっていない状態（同じstoreで`cleanup`を再実行）、
+除外はcommit済みで物理purgeが終わっていない状態（まず`status`を確認し、同じstoreで`cleanup`を選択）、
 `failed_state_unchanged`は除外前のerror、`purge_attempted_state_unconfirmed`は最終状態を読み戻せなかった
 状態です。`2`：拒否または失敗で、そのcallが完了した影響を確認していません。
 0以外の後は、何かを繰り返す前に`status`で保存された状態を確認してください。
+purge例外後も撤回commandは新しいmetadata snapshotを読み、実際に観測できたときだけ
+`deleted`、読み戻せなければ`unconfirmed`を表示します。遅い例外では
+`managed_purge_completed`を観測できても終了code 1を維持します。別clientが削除を完了した
+可能性もあるため、自分のcallが削除を実行した証拠とはしません。撤回を繰り返さないでください。
 
 #### 任意の最小metrics
 

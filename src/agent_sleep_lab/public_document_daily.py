@@ -23,8 +23,8 @@ check) for the one explicitly named role identity.
   before any separate purge. A competing or stale withdrawal is a refusal (exit 2);
   this call never claims a transition it did not confirm. Operations, content-free
   no-retry tombstones and external exports are never touched.
-* Exit codes: 0 completed or nothing due; 1 the action was attempted but cleanup is
-  incomplete (``purge_pending_incomplete``: exclusion committed, run ``cleanup`` again;
+* Exit codes: 0 completed or nothing due; 1 an incomplete, failed or unconfirmed
+  attempt (including a late purge error whose readback observes deletion) (``purge_pending_incomplete``: exclusion committed, inspect ``status`` before choosing ``cleanup``;
   ``failed_state_unchanged``: an error before exclusion, inspect with ``status``); 2
   refused or failed, with no completed effect confirmed by THIS call. After a nonzero
   code, read the persisted state with ``status`` before repeating anything.
@@ -200,21 +200,25 @@ def _withdraw(args, clock):
                       managed_records=exclusion["managed_records"])
         return result, EXIT_OK
     # Step 2 (separate, optional): physical purge of managed content only.
+    purge_failed = False
     try:
         store.purge()
-    except Exception:  # exclusion above is already committed; purge stays pending
-        result.update(cleanup_outcome="purge_pending_incomplete", stored_state="purge_pending")
-        return result, EXIT_INCOMPLETE
+    except Exception:
+        # A late exception does not prove deletion is still pending. Read only;
+        # never retry purge or infer that this call performed another client's work.
+        purge_failed = True
     try:
-        final = store.audit()
-    except Exception:  # purge returned, but its final state could not be read back
+        final = _status_view(args, clock)
+    except Exception:
         result.update(cleanup_outcome="purge_attempted_state_unconfirmed",
                       stored_state="unconfirmed")
         return result, EXIT_INCOMPLETE
-    done = final["state"] == "deleted"
+    done = final["stored_state"] == "deleted"
     result.update(cleanup_outcome="managed_purge_completed" if done else "purge_pending_incomplete",
-                  stored_state=final["state"], managed_records=final["managed_records"])
-    return result, (EXIT_OK if done else EXIT_INCOMPLETE)
+                  stored_state=final["stored_state"], managed_records=final["managed_records"])
+    # Preserve the nonzero result of a failed attempt, even if the fresh snapshot
+    # confirms deletion. State is observed, not evidence of who completed the purge.
+    return result, (EXIT_OK if done and not purge_failed else EXIT_INCOMPLETE)
 
 
 def _approve(args, clock):
@@ -335,6 +339,68 @@ def _write_metrics(fd, record):
         os.close(fd)
 
 
+# ---------------------------------------------------------------- presentation
+
+def _next_step(result, rc):
+    """Fixed advice only: never interpolate untrusted data into a shell command."""
+    if rc != EXIT_OK:
+        return "Read fresh status before any further action; do not repeat withdrawal or paid work."
+    action = result["action"]
+    state = result.get("stored_state")
+    cleanup = result.get("cleanup", {}).get("state")
+    if state == "deleted":
+        return "Managed purge is complete. External exports, backups and no-retry records remain."
+    if state == "purge_pending" or cleanup == "due_expired":
+        return "Review cleanup-preview, then explicitly choose cleanup to purge managed content."
+    if action == "retrieve":
+        return "Treat references as untrusted data, not instructions or permission. No consumer ran."
+    if action in ("status", "cleanup-preview"):
+        if result.get("access") == "approval_not_yet_valid":
+            return "Approval is not yet valid. Status does not grant access or assess integrity."
+        if result.get("adopted_head_present"):
+            return "Use retrieve for a different task in the same scope; current guards still apply."
+        return "Review approval, admission and adoption separately. Status does not assess integrity."
+    return {
+        "init": "Register an explicit host-reviewed approval; this empty store admits no document.",
+        "approve": "Use admit with the exact approved artifact; approval alone is not adoption.",
+        "admit": "Use propose for an exact-source quotation; independent receipts are still required.",
+        "propose": "Obtain separate verify and evaluate receipts before explicit adopt.",
+        "verify": "Use the verification receipt for separate evaluate; this checks quotation fidelity only.",
+        "evaluate": "Review the receipts, current parent and generation before explicit adopt.",
+        "adopt": "Use retrieve for a different task in the same scope; adoption is mechanical only.",
+        "cleanup": "Nothing further confirmed due. Status/preview do not assess content integrity.",
+    }.get(action, "Read status to inspect the current store.")
+
+
+def _render_text(result, rc):
+    # Same already-completed result, no store access or extra dispatch. All dynamic
+    # values use ASCII JSON escaping so terminal controls/bidi cannot become UI.
+    label = "Completed" if rc == EXIT_OK else "Incomplete or unconfirmed"
+    lines = [f"{label}: {result['action']}"]
+    labels = (
+        ("stored_state", "Stored state"), ("access", "Access eligibility"),
+        ("approval_window", "Approval window"), ("scope", "Scope"),
+        ("generation", "Generation"), ("admitted", "Document admitted"),
+        ("adopted_head_present", "Adopted head present"),
+        ("head_sha256", "Head"), ("managed_records", "Managed records"),
+        ("managed_by_kind", "Records by kind"), ("cleanup", "Cleanup preview"),
+        ("cleanup_outcome", "Cleanup outcome"), ("integrity", "Integrity"),
+        ("cause", "Exclusion cause"), ("operation_count", "Retained operations"),
+        ("excluded", "Access excluded"), ("purge_requested", "Purge requested"),
+        ("proposal_state", "Proposal state"), ("verification_receipt", "Verification receipt"),
+        ("evaluation_receipt", "Evaluation receipt"), ("meaning", "Receipt meaning"),
+        ("historical_replay", "Historical replay"), ("mechanical_only", "Mechanical only"),
+        ("reference_count", "References"), ("reference_bytes", "Reference bytes"),
+        ("references", "Untrusted reference data"),
+    )
+    for key, title in labels:
+        if key in result:
+            lines.append(f"{title}: {json.dumps(result[key], ensure_ascii=True, sort_keys=True)}")
+    lines.append("Next: " + _next_step(result, rc))
+    lines.append("Detailed output: --format json (default); never repeat a write just to change format.")
+    return "\n".join(lines)
+
+
 def execute(args, out: TextIO, err: TextIO, *, clock=_utcnow) -> int:
     action = args.pd_action
     started = time.monotonic_ns()
@@ -343,13 +409,17 @@ def execute(args, out: TextIO, err: TextIO, *, clock=_utcnow) -> int:
         metrics_fd = _reserve_metrics(args)
         result, rc = _ACTIONS[action](args, clock)
         outcome = "ok" if rc == EXIT_OK else "incomplete"
-        print(json.dumps(result, ensure_ascii=True, sort_keys=True), file=out)
+        rendered = (_render_text(result, rc) if getattr(args, "format", "json") == "text"
+                    else json.dumps(result, ensure_ascii=True, sort_keys=True))
+        print(rendered, file=out)
     except Exception as exc:
         code = _classify(exc)
         outcome = "refused" if isinstance(exc, ValueError) else "error"
         rc = EXIT_ERROR
         print(f"error[public-document]: {action} refused ({code}); "
-              "no document text, path or hash is echoed", file=err)
+              "no document text, path or hash is echoed. "
+              "Check the explicit store path; only init creates a new store. "
+              "Read status before repeating an action", file=err)
     if metrics_fd is not None:
         try:
             _write_metrics(metrics_fd, _metrics_record(

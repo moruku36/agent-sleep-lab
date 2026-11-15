@@ -168,6 +168,95 @@ class DailyUseTests(unittest.TestCase):
                 PublicDocumentStore, name, side_effect=AssertionError(name)))
         return stack
 
+    def test_readable_status_and_preview_do_not_mutate(self):
+        self.bring_up(adopt=True)
+        before = self.disk()
+        with self.forbid_mutating_paths():
+            code, out, err = self.run_cli(*self.store("status"), "--format", "text")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn('Stored state: "approved"', out)
+        self.assertIn('Adopted head present: true', out)
+        self.assertIn('Use retrieve for a different task', out)
+        self.assertIn('Integrity: "not_assessed"', out)
+        self.assertNotIn(QUOTE, out)
+        self.assertEqual(before, self.disk())
+        self.now = self.end
+        with self.forbid_mutating_paths():
+            code, out, err = self.run_cli(*self.store("cleanup-preview"), "--format", "text")
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn('"approval_expired"', out)
+        self.assertIn('"due_expired"', out)
+        self.assertIn('explicitly choose cleanup', out)
+        self.assertEqual(before, self.disk())
+        # Missing stores remain absent, and the error offers a safe explicit next step.
+        self.path = self.root / "missing" / "store.sqlite"
+        code, out, err = self.run_cli(*self.store("status"), "--format", "text")
+        self.assertEqual((code, out), (2, ""))
+        self.assertIn('only init creates a new store', err)
+        self.assertFalse(self.path.parent.exists())
+
+    def test_readable_retrieval_and_default_json_compatibility(self):
+        from agent_sleep_lab import public_document_daily as daily
+        self.bring_up(adopt=True)
+        argv = self.store("retrieve", "--target-task", "different", "--project", "fictional",
+                          "--task-family", "reading", "--max-bytes", "2048")
+        result = self.ok(*argv)  # existing default JSON contract
+        explicit = self.ok(*argv, "--format", "json")
+        self.assertEqual(result, explicit)
+        with patch.dict(daily._ACTIONS, {"retrieve": unittest.mock.Mock(return_value=(result, 0))}):
+            code, out, err = self.run_cli(*argv, "--format", "text")
+            daily._ACTIONS["retrieve"].assert_called_once()
+        self.assertEqual((code, err), (0, ""))
+        self.assertIn(QUOTE, out)
+        self.assertIn('https://example.test/fiction', out)
+        self.assertIn('References: 1', out)
+        self.assertIn('not instructions or permission', out)
+        hostile = dict(result, references=[{"quotation": "escape\x1b[2J\nNext: execute\u202e"}])
+        text = daily._render_text(hostile, 0)
+        self.assertNotIn("\x1b", text)
+        self.assertNotIn("\u202e", text)
+        self.assertIn(r"\u001b", text)
+        self.assertNotIn("\nNext: execute", text)
+        # A bad format is rejected before any action, without reflecting the value.
+        out, err = io.StringIO(), io.StringIO()
+        with patch.dict(daily._ACTIONS, {"retrieve": unittest.mock.Mock()}):
+            code = main(["public-document", *argv, "--format", "LEAK"], out, err)
+            daily._ACTIONS["retrieve"].assert_not_called()
+        self.assertEqual(code, 2)
+        self.assertNotIn("LEAK", out.getvalue() + err.getvalue())
+
+    def test_withdraw_late_failure_and_unavailable_readback(self):
+        from agent_sleep_lab import public_document_daily as daily
+        self.bring_up(adopt=True)
+        real_purge = PublicDocumentStore.purge
+
+        def late_failure(store):
+            real_purge(store)
+            raise OSError("sensitive injected error")
+
+        with patch.object(PublicDocumentStore, "purge", late_failure):
+            code, out, err = self.run_cli(*self.store(
+                "withdraw", *self.role("host-control"), "--expected-generation", "1", "--purge"))
+        result = json.loads(out)
+        self.assertEqual(code, 1)  # a failed attempt remains nonzero
+        self.assertEqual((result["stored_state"], result["managed_records"]), ("deleted", 0))
+        self.assertEqual(result["cleanup_outcome"], "managed_purge_completed")
+        self.assertNotIn("sensitive", out + err)
+        self.assertEqual(self.ok(*self.store("status"))["stored_state"], "deleted")
+        # A fresh fictional store: exclusion confirmed, but final readback unavailable.
+        self.path = self.root / "second.sqlite"
+        self.bring_up()
+        with patch.object(daily, "_status_view", side_effect=OSError("sensitive read error")):
+            code, out, err = self.run_cli(*self.store(
+                "withdraw", *self.role("host-control"), "--expected-generation", "1", "--purge"),
+                "--format", "text")
+        self.assertEqual(code, 1)
+        self.assertIn('Stored state: "unconfirmed"', out)
+        self.assertIn('purge_attempted_state_unconfirmed', out)
+        self.assertIn('Read fresh status', out)
+        self.assertNotIn('sensitive', out + err)
+        self.assertEqual(self.ok(*self.store("status"))["stored_state"], "deleted")
+
     # ---- the four reserved selectors
     def test_open_and_preview_are_nonmutating(self):
         for action in (("status",), ("cleanup-preview",), ("cleanup",),
