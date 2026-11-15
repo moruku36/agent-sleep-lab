@@ -2,6 +2,34 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
+## 現在の要約 — PR60基点と資料準備・受領引継ぎの追加改修
+
+[PR60](https://github.com/moruku36/agent-sleep-lab/pull/60)はmain
+`922a55fe9142bf7dd8495481ad5868180bcad335`へマージ済みで、exact-headの
+[CI run 43756820633](https://github.com/moruku36/agent-sleep-lab/actions/runs/43756820633)も4件合格です。
+以下の日付付き公開前checkpointの状態は、この要約で更新します。
+
+追加改修の`public-document stage`では、本文file・host確認済みの既存approval・event ID・
+日時を明示します。`--preview`はartifactを書かず検査し、`--artifact-out`は新規のprivate fileだけを
+作成して上書きしません。部分書込みと、file完成後の要約出力失敗も区別します。
+許可発行・store操作・URL取得は行いません。`evaluate`／`adopt`は、別段階で発行した受領の
+上限付きstrict JSON fileを受け取れますが、発行済みか・親版・generation・期限の検査は省略しません。
+[資料準備](first-run.ja.md#pythonを書かずに資料を準備)と
+[受領の引継ぎ](first-run.ja.md#idを転記せず受領jsonを渡す)を参照してください。
+
+**URL制限は意図的に維持します。** credentials・query・fragmentは引き続き拒否します。
+本文を漏らさない拒否理由と、別途確認した文書URL／別の公開コメントIDメモを使う案内を追加し、
+自動切捨て・正規化はしません。fragmentの保存・取得は未対応です。URL構文検査は秘密の自動検査ではありません。
+
+**公開前の確認：** localは選択5件／2起動で合格（4件0.353秒、出力失敗の重点1件0.007秒）。
+5件目は独立static reviewの指摘を修正し、artifact完成後の要約出力失敗を「拒否」と誤報しないことを
+確認しました。PR CIは選択4件／1起動だけを予約し、成功時は**合計9件／3起動**です。
+localはPython 3.12.14／jsonschema 4.26.0、CIはPython 3.13と直接依存pinです。
+全件suite・matrix・provider呼出し・実公開文書の試用は行いません。このcheckpointでは
+exact-head CI／mergeは未完了で、後の証跡は追加pushなしでPRに記録します。
+
+### 保存されたPR60以前のcheckpoint
+
 ## 現在の要約 — PR59基点と表示改善
 
 PR59はmain `b07626309b39ec1aaae56b0195abc8f5129851d0`へマージ済みです。

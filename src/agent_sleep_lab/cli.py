@@ -120,13 +120,14 @@ def _add_public_document_parser(sub) -> None:
             "registers the host-supplied approval; verify and evaluate register "
             "MECHANICAL receipts only. Exit 0: completed or nothing due. Exit 1: "
             "attempted but cleanup incomplete or unconfirmed; inspect with status first. "
-            "Exit 2: refused or failed with no effect confirmed by this call; check "
-            "status for the persisted state before repeating anything."))
+            "Exit 2: refused or failed; stage can leave a partial or completed artifact, "
+            "so inspect its diagnostic before retrying. For store actions read fresh status."))
     actions = root.add_subparsers(dest="pd_action", required=True)
 
-    def action(name, help_text, *, role=False):
+    def action(name, help_text, *, role=False, store=True):
         cmd = actions.add_parser(name, allow_abbrev=False, help=help_text)
-        cmd.add_argument("--store", required=True, help="path of the public-document store")
+        if store:
+            cmd.add_argument("--store", required=True, help="path of the public-document store")
         cmd.add_argument("--format", choices=("json", "text"), default="json",
                          help="JSON details (default), or readable summary and next-step guidance")
         cmd.add_argument("--metrics-out", help="opt-in: create a NEW file (any existing path, "
@@ -138,6 +139,27 @@ def _add_public_document_parser(sub) -> None:
                              help="this action's configured role identity (not authentication)")
             cmd.add_argument("--identity-version", required=True, help="configured role version")
         return cmd
+
+    stage = action("stage", "prepare exact public bytes using an EXISTING host-reviewed approval; "
+                   "no store, network, receipt or adoption", store=False)
+    stage.add_argument("--source-file", required=True, help="explicit UTF-8 public source file")
+    stage.add_argument("--approval", required=True, help="existing host-reviewed approval JSON; "
+                       "source_uri must not contain credentials, query or fragment")
+    stage.add_argument("--event-id", required=True)
+    stage.add_argument("--observed-at", required=True, help="actual observation time with timezone")
+    stage.add_argument("--captured-at", required=True, help="actual capture time with timezone")
+    destination = stage.add_mutually_exclusive_group(required=True)
+    destination.add_argument("--preview", action="store_true", help="validate and summarize without "
+                             "writing an artifact; optional metrics are still explicit")
+    destination.add_argument("--artifact-out", help="NEW private artifact file in an existing "
+                             "trusted directory; no overwrite, append, parent creation or cleanup")
+
+    def receipt_option(cmd, kind):
+        group = cmd.add_mutually_exclusive_group(required=True)
+        group.add_argument("--" + kind + "-receipt", help="receipt ID from a separate prior step")
+        group.add_argument("--" + kind + "-receipt-file", help="JSON stdout saved from the separate "
+                           + ("verify" if kind == "verification" else "evaluate") +
+                           " step; does not grant authority or bypass store checks")
 
     init = action("init", "create a NEW store from a host-provisioned roles JSON file")
     init.add_argument("--roles", required=True,
@@ -171,15 +193,15 @@ def _add_public_document_parser(sub) -> None:
                       role=True)
     evaluate.add_argument("--proposal-id", required=True)
     evaluate.add_argument("--expected-parent", required=True)
-    evaluate.add_argument("--verification-receipt", required=True)
+    receipt_option(evaluate, "verification")
     evaluate.add_argument("--expires-at", required=True)
     adopt = action("adopt", "atomically adopt using existing receipts and current parent/generation")
     adopt.add_argument("--operation-id", required=True)
     adopt.add_argument("--proposal-id", required=True)
     adopt.add_argument("--expected-parent", required=True)
     adopt.add_argument("--expected-generation", type=int, required=True)
-    adopt.add_argument("--verification-receipt", required=True)
-    adopt.add_argument("--evaluation-receipt", required=True)
+    receipt_option(adopt, "verification")
+    receipt_option(adopt, "evaluation")
     retrieve = action("retrieve", "retrieve whole adopted references for a DIFFERENT task")
     retrieve.add_argument("--target-task", required=True)
     retrieve.add_argument("--project", required=True)

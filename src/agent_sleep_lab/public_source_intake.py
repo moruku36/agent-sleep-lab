@@ -36,12 +36,16 @@ def _stamp(value):
         raise ValueError("timezone-aware timestamp required") from None
 
 
+class PublicSourceLocatorError(ValueError):
+    """Fixed category for a refused locator; never normalize or echo it."""
+
+
 def _public_uri(value):
     # This is a locator check, not SSRF protection: this module never fetches.
     if (type(value) is not str or not 1 <= len(value) <= 2048
             or not value.isascii() or not value.isprintable()
             or any(char.isspace() for char in value) or "\\" in value):
-        raise ValueError("public HTTPS source locator required")
+        raise PublicSourceLocatorError("public HTTPS source locator required")
     try:
         parts = urlsplit(value)
         valid = (parts.scheme == "https" and parts.hostname and not parts.username
@@ -50,7 +54,7 @@ def _public_uri(value):
     except ValueError:
         valid = False
     if not valid:
-        raise ValueError("public HTTPS locator must not contain credentials, query or fragment")
+        raise PublicSourceLocatorError("public HTTPS locator must not contain credentials, query or fragment")
     return value
 
 

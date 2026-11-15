@@ -81,8 +81,38 @@ held-outの解答／rubricをLight contextへ入れません。
 
 ### 永続store1つの日常利用（offline command）
 
-以下はすべて`--store`でstoreを指定します。storeとその親directoryを作るのは`init`だけで、
+`stage`を除く以下の操作は`--store`でstoreを指定します。storeとその親directoryを作るのは`init`だけで、
 他は**既存**storeを開き、無ければ拒否します。model呼出し・network・再試行はありません。
+
+#### Pythonを書かずに資料を準備
+
+最初に、公開原文のexactなbyte・HTTPS文書URL・scope・有限の期限に対応する、
+**hostが確認済みの既存approval JSON**を用意します。`stage`は許可を生成・推定せず、
+URL取得・store初期化・受領発行・採用もしません。UTF-8本文は改行を含めそのまま保持し、上限は65,536 bytesです。
+
+```sh
+agent-sleep-lab public-document stage --source-file source.txt --approval approval.json \
+  --event-id source-1 --observed-at OBSERVED_AT --captured-at CAPTURED_AT --preview --format text
+agent-sleep-lab public-document stage --source-file source.txt --approval approval.json \
+  --event-id source-1 --observed-at OBSERVED_AT --captured-at CAPTURED_AT --artifact-out staged.json
+```
+
+日時には実際の観測・取得時刻（timezone付き）を指定し、新しさを捏造しないでください。
+previewは検査と本文なし要約だけで、artifactを書きません。ただし任意の`--metrics-out`は
+明示指定されたmetrics fileを作ります。artifactの出力先は、既存の信頼できる親directory内の
+**新規pathのみ**です。既存file・link・directoryを拒否し、上書き・追記・親directory作成・
+削除をしません。成功したfileはmode 0600です。書込み失敗では部分fileが残り得るため、
+採用・無条件再実行をせず、fileがあるだけで成功と判断しないでください。
+artifact完成後に要約出力だけが失敗した場合は`artifact_written_output_failed`で知らせます。
+fileを確認し、出力を得るだけのために書込みを繰り返さないでください。
+準備fileには本文が入るため、後の明示cleanupに含めます。store purgeでは消えません。
+親directoryが同時に差し替わらないことは信頼上の前提です。
+
+**「#」付きURLの拒否は意図的です。** credentials・query・fragmentは秘密を含む場合があるため、
+既存制限を維持し、自動で切り捨てたり正規化したりしません。それらを含まない文書URLを
+*別途確認して*approvalへ指定し、公開コメント／節のIDは別の研究メモに保持してください。
+そのIDは自動保存も取得結果への付加もされません。私的tokenを別のfieldへ移さないでください。
+URL構文の検査は秘密情報の自動検査ではありません。
 
 ```sh
 agent-sleep-lab public-document init --store lib/store.sqlite --roles roles.json
@@ -120,6 +150,32 @@ agent-sleep-lab public-document retrieve --store lib/store.sqlite --target-task 
   untrusted dataとして返すだけです。consumerを呼ばず、利用の実証にもなりません。
   `propose`のfileはbyteそのまま使うため、末尾の改行を足さないでください。
 
+#### IDを転記せず受領JSONを渡す
+
+検証・評価・採用は別々の明示操作のままです。`verify`と`evaluate`のJSON標準出力を保存し、
+そのfileを次のcommandに渡せます。
+
+```sh
+set -C  # 出力先が既存ならshellがcommand実行前に拒否
+agent-sleep-lab public-document verify --store lib/store.sqlite \
+  --identity VERIFIER_ID --identity-version 1 --proposal-id p1 --expires-at WHEN \
+  --format json > verification.json
+agent-sleep-lab public-document evaluate --store lib/store.sqlite \
+  --identity EVALUATOR_ID --identity-version 1 --proposal-id p1 \
+  --expected-parent HEAD --verification-receipt-file verification.json --expires-at WHEN \
+  --format json > evaluation.json
+agent-sleep-lab public-document adopt --store lib/store.sqlite --operation-id op1 \
+  --proposal-id p1 --expected-parent HEAD --expected-generation N \
+  --verification-receipt-file verification.json --evaluation-receipt-file evaluation.json
+```
+
+各終了codeと結果を確認してから次の操作へ進みます。失敗時は空のfileが残り得るため、
+fileがあるだけで受領と判断しないでください。入力は上限付きの厳密なJSON結果形式で、
+`--format text`の出力は使えません。従来の`--verification-receipt`／`--evaluation-receipt`
+によるID指定も残りますが、対応するfile指定との併用は拒否します。fileは未信頼のIDを
+渡すだけで、storeは発行済みか・proposal・親版・generation・期限を引き続き検査します。
+fileを読んだだけでrole・受領・採用・consumer実行は作られません。
+
 #### 読みやすい表示と次の操作
 
 日常commandはすべて`--format text`で、状態・件数・受領または取得した参照と、
@@ -153,7 +209,8 @@ previewはmetadataのみを見て、受入済みbyteや派生物を検査しな�
 （storeは理由を記録しません）。`deleted`はこのlibraryの管理purge完了で、fileや
 forensicな消去ではありません。
 
-副作用がないと保証されるのは`status`と`cleanup-preview`だけです。`cleanup`は明示的な
+store操作で副作用がないと保証されるのは、metricsを指定しない`status`と`cleanup-preview`です。
+別経路の`stage --preview`も、metricsなしならartifactやstoreを作りません。`cleanup`は明示的な
 期限／integrityのsweepで、保留中purgeも完了させます。approvalが現在有効か、管理byteが
 無傷かを検査し、有効で無傷の期間内dataは残しますが、検査に失敗したdataは除外・purgeします。
 有効なcontentを消すには`--purge`か`--exclude-only`を明示する`withdraw`を使います。
@@ -167,8 +224,9 @@ forensicな消去ではありません。
 **終了code。** `0`：完了、または対象なし。`1`：実行したが未完了。`purge_pending_incomplete`は
 除外はcommit済みで物理purgeが終わっていない状態（まず`status`を確認し、同じstoreで`cleanup`を選択）、
 `failed_state_unchanged`は除外前のerror、`purge_attempted_state_unconfirmed`は最終状態を読み戻せなかった
-状態です。`2`：拒否または失敗で、そのcallが完了した影響を確認していません。
-0以外の後は、何かを繰り返す前に`status`で保存された状態を確認してください。
+状態です。`2`：拒否または失敗。特にstagingでは部分fileまたは完成済みartifactが残ることがあるため、
+再実行前に診断を確認してください。store操作で0以外の後は、繰り返す前に`status`で保存状態を確認します。
+statusではstaging artifactを検査できません。
 purge例外後も撤回commandは新しいmetadata snapshotを読み、実際に観測できたときだけ
 `deleted`、読み戻せなければ`unconfirmed`を表示します。遅い例外では
 `managed_purge_completed`を観測できても終了code 1を維持します。別clientが削除を完了した

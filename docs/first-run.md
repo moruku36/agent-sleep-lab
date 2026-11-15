@@ -85,9 +85,42 @@ of rejected responses or authority to retry.
 
 ### Daily use of one persistent store (offline commands)
 
-Every action below names its store with `--store`. Only `init` creates a store (and
+Except for `stage`, every action below names its store with `--store`. Only `init` creates a store (and
 its parent directories); all others open an **existing** store and refuse a missing
 one. Nothing here calls a model, uses the network, or retries anything.
+
+#### Prepare bytes without writing Python
+
+First obtain an **existing host-reviewed approval JSON** matching the exact public
+source bytes, HTTPS document URL, scope and finite expiry. `stage` does not create
+or infer approval, fetch a URL, initialize a store, issue receipts or adopt anything.
+It preserves the source file's UTF-8 bytes (up to 65,536), including newlines.
+
+```sh
+agent-sleep-lab public-document stage --source-file source.txt --approval approval.json \
+  --event-id source-1 --observed-at OBSERVED_AT --captured-at CAPTURED_AT --preview --format text
+agent-sleep-lab public-document stage --source-file source.txt --approval approval.json \
+  --event-id source-1 --observed-at OBSERVED_AT --captured-at CAPTURED_AT --artifact-out staged.json
+```
+
+Replace timestamps with the actual timezone-aware observation/capture times, not
+invented freshness. Preview only validates and prints a content-free summary; it
+writes no artifact. Optional `--metrics-out` still explicitly creates a metrics file.
+Artifact output requires a NEW path with an existing trusted parent. It refuses
+existing files, links and directories, and never overwrites, appends, creates parents
+or deletes anything. Successful writes use mode 0600. A failed write can leave a
+partial file: do not admit it, replay blindly, or confuse file existence with success.
+If the artifact completes but summary output fails, `artifact_written_output_failed`
+means the file exists: inspect it, do not repeat the write just to get output.
+Caller-managed staging files contain the source and must be included in later cleanup;
+store purge does not remove them. Parent-directory stability is a trust assumption.
+
+**A `#` URL is deliberately refused.** Credentials, query strings and fragments can
+carry secrets. The existing locator restriction is unchanged, and nothing is silently
+stripped or normalized. Use a *separately reviewed* document URL without those parts
+in the approval, and keep a public comment/section identifier in separate research
+notes. That identifier is not automatically stored or returned by retrieval. Do not
+move private tokens into another field. Source syntax is not a secrets scan.
 
 ```sh
 agent-sleep-lab public-document init --store lib/store.sqlite --roles roles.json
@@ -131,6 +164,33 @@ agent-sleep-lab public-document retrieve --store lib/store.sqlite --target-task 
   no demonstrated use. The file passed to `propose` is used byte for byte; avoid an
   added trailing newline.
 
+#### Hand off receipt JSON without copying IDs
+
+Keep verification, evaluation and adoption as separate explicit steps. Save JSON
+stdout from `verify` and `evaluate`, then pass those files to the next command:
+
+```sh
+set -C  # shell refuses an existing redirection target before running the command
+agent-sleep-lab public-document verify --store lib/store.sqlite \
+  --identity VERIFIER_ID --identity-version 1 --proposal-id p1 --expires-at WHEN \
+  --format json > verification.json
+agent-sleep-lab public-document evaluate --store lib/store.sqlite \
+  --identity EVALUATOR_ID --identity-version 1 --proposal-id p1 \
+  --expected-parent HEAD --verification-receipt-file verification.json --expires-at WHEN \
+  --format json > evaluation.json
+agent-sleep-lab public-document adopt --store lib/store.sqlite --operation-id op1 \
+  --proposal-id p1 --expected-parent HEAD --expected-generation N \
+  --verification-receipt-file verification.json --evaluation-receipt-file evaluation.json
+```
+
+Inspect each exit code/result before the next command. A failed command may leave
+an empty output file; file presence is not a receipt. Files must contain the exact
+bounded JSON result shape (not `--format text`). The original `--verification-receipt`
+and `--evaluation-receipt` ID options remain available, but cannot be combined with
+the corresponding file option. A file only supplies an untrusted receipt ID: the
+store still checks issuance, proposal, parent, generation and expiry. No role,
+receipt, adoption or consumer execution is created merely by reading a file.
+
 #### Readable output and safe next steps
 
 Every daily action accepts `--format text` for labeled state, counts, receipts or
@@ -169,7 +229,9 @@ retrieval. After exclusion the cause is `unknown`: the store
 does not record why. `deleted` means this library's managed purge finished, not file or
 forensic erasure.
 
-Only `status` and `cleanup-preview` are guaranteed side-effect free. `cleanup` is the
+For store operations, only `status` and `cleanup-preview` are guaranteed side-effect
+free (without opt-in metrics). Separately, `stage --preview` without metrics creates
+no artifact or store. `cleanup` is the
 explicit expiry/integrity sweep and also finishes a pending purge. It checks whether the
 approval is currently valid and the managed bytes are intact; valid, intact in-window
 data stays, but data that fails those checks is excluded and purged. `withdraw` is the
@@ -186,8 +248,10 @@ and any external export or backup are kept and are outside this guarantee.
 `purge_pending_incomplete` means exclusion is committed and the physical purge did not
 finish (inspect `status` first, then choose `cleanup` on the same store); `failed_state_unchanged` means an error
 before any exclusion; `purge_attempted_state_unconfirmed` means the final state could
-not be read back. `2`: refused or failed with no completed effect confirmed by that call.
-After any nonzero code read the persisted state with `status` before repeating anything.
+not be read back. `2`: refused or failed. In particular, staging may leave a partial artifact or a
+completed artifact with failed summary delivery; inspect its diagnostic before retrying.
+For store actions, after any nonzero code read the persisted state with `status`
+before repeating anything. Status cannot inspect staging artifacts.
 After a purge exception, withdrawal now reads a fresh metadata snapshot: it reports
 `deleted` only if observed, or `unconfirmed` if readback fails. A late exception
 keeps exit 1 even when `managed_purge_completed` is observed; this is not proof

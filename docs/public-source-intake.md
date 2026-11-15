@@ -50,8 +50,10 @@ From an explicitly configured private caller, use
 
 The API cannot determine whether a caller passed an obsolete approval object.
 The integration owner must resolve the actual current approval and enforce
-withdrawal/deletion. There is no CLI, implicit state initialization, schema
-migration, synthetic relabelling, verifier registration or paid dispatch.
+withdrawal/deletion. The explicit `public-document stage` CLI wraps preparation
+only; see the [first-run guide](first-run.md#prepare-bytes-without-writing-python).
+There is no implicit state initialization, schema migration, synthetic relabelling,
+verifier registration or paid dispatch.
 
 ## Verification and remaining acceptance
 

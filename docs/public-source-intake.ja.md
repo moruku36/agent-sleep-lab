@@ -44,7 +44,8 @@ URL形式は公開元の証明やSSRF防御ではなく、このmoduleは取得�
 
 古い許可objectを渡されたことをAPIだけで知ることはできません。
 接続側が実際の最新許可を解決し、撤回・削除を実施する責任を持ちます。
-CLI・暗黙の初期化・schema移行・合成への偽装・verifier登録・有料送信はありません。
+明示的な`public-document stage` CLIは準備だけを包みます（[初回手順](first-run.ja.md#pythonを書かずに資料を準備)）。
+暗黙の初期化・schema移行・合成への偽装・verifier登録・有料送信はありません。
 
 ## 検証と残る受入
 
@@ -58,3 +59,9 @@ CLI・暗黙の初期化・schema移行・合成への偽装・verifier登録・
 staging単体はそれらを実行しません。local検証と残る実環境受入は
 [実装状況](implementation-status.ja.md)を参照してください。
 どちらも未公開の試用拡張を検索・復元・取込みしていません。
+
+## 明示的な準備CLI
+
+`public-document stage`で既存approvalと本文fileを指定し、previewまたは新規artifact作成ができます。
+[初回手順](first-run.ja.md#pythonを書かずに資料を準備)を参照してください。許可生成・store変更・
+受領発行・自動採用は行わず、fragment／query／credentials付きURLの拒否も維持します。
