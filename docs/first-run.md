@@ -131,6 +131,27 @@ agent-sleep-lab public-document retrieve --store lib/store.sqlite --target-task 
   no demonstrated use. The file passed to `propose` is used byte for byte; avoid an
   added trailing newline.
 
+#### Readable output and safe next steps
+
+Every daily action accepts `--format text` for labeled state, counts, receipts or
+retrieved references plus a suggested next step. The default and explicit
+`--format json` keep the existing machine-readable result. Text is rendered from
+the same completed action, with no extra dispatch or store access. Dynamic values
+are JSON-escaped, including terminal control characters. Labels are English.
+
+```sh
+agent-sleep-lab public-document status --store lib/store.sqlite --format text
+agent-sleep-lab public-document cleanup-preview --store lib/store.sqlite --format text
+```
+
+`Stored state` is persisted lifecycle state, `Access eligibility` is the time
+window, and `Adopted head present` distinguishes adoption from admission. Inspect
+`Approval window`, `Scope` and `Managed records` before choosing a later action.
+For retrieval, add `--format text` to the explicit different-task command above;
+it includes untrusted quotations and sources. Nothing is automatically adopted,
+retrieved or deleted. Keep the explicit store path yourself: it is not echoed or
+remembered by the tool. Never rerun a write merely to change its output format.
+
 #### Status, preview and cleanup
 
 `status` and `cleanup-preview` open the store read-only inside ONE read transaction, so
@@ -163,10 +184,14 @@ and any external export or backup are kept and are outside this guarantee.
 
 **Exit codes.** `0`: completed or nothing due. `1`: attempted but incomplete.
 `purge_pending_incomplete` means exclusion is committed and the physical purge did not
-finish (run `cleanup` again on the same store); `failed_state_unchanged` means an error
+finish (inspect `status` first, then choose `cleanup` on the same store); `failed_state_unchanged` means an error
 before any exclusion; `purge_attempted_state_unconfirmed` means the final state could
 not be read back. `2`: refused or failed with no completed effect confirmed by that call.
 After any nonzero code read the persisted state with `status` before repeating anything.
+After a purge exception, withdrawal now reads a fresh metadata snapshot: it reports
+`deleted` only if observed, or `unconfirmed` if readback fails. A late exception
+keeps exit 1 even when `managed_purge_completed` is observed; this is not proof
+that this call, rather than another client, completed deletion. Do not repeat withdrawal.
 
 #### Optional minimal metrics
 

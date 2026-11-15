@@ -2,6 +2,31 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
+## 現在の要約 — PR59基点と表示改善
+
+PR59はmain `b07626309b39ec1aaae56b0195abc8f5129851d0`へマージ済みです。
+[CI run 43653126748](https://github.com/moruku36/agent-sleep-lab/actions/runs/43653126748)で、
+head `d225b051a191aca1905046c23bb8d7b15be3cd82`に対する選択4件が合格しました。
+以下の公開前checkpointの状態をこの要約で更新し、古い記録は履歴として残します。
+
+今回の追加改修は`public-document <action> --format text`による任意の読みやすい表示と、
+状態・件数・受領・参照および安全な次の操作案内です。既定JSONの互換性は維持します。
+status／previewはmetadataのみ・read-onlyのままで、表示のために操作を二度実行しません。
+撤回はpurge例外後にも新しいmetadataを読み戻し、観測済み削除と未確認状態を区別します。
+purgeが失敗したcallは、削除を観測できても終了code 1を維持します。
+権限変更・自動採用・model呼出し・定期実行・外部ファイル削除は追加しません。
+[日常利用手順](first-run.ja.md#読みやすい表示と次の操作)を参照してください。
+
+**追加改修の公開前checkpoint：** local Python 3.12.14で**選択4件PASS／1起動（0.372秒）**。
+localのjsonschemaは4.26.0で直接依存pinとは異なり、予約済みPR CIはPython 3.13とpinを使います。
+対象はtext状態／期限の非変更、取得／JSON互換／escape、purge後半の失敗／readback不能、
+既存のpurge／no-retry／metrics回復です。PR CIは同じ**4件／1起動**のみ予約し、成功時の
+合計は**8件／2起動**です。全件suite・matrix・live model・時短効果・費用評価は行いません。
+このcheckpointではexact-head CIとmergeは未完了です。後の結果は追加改修PRで確認し、
+このページ更新のためだけに試験を再実行しません。
+
+### 保存されたPR56／PR59 checkpoint
+
 ## 現在の要約 — PR56マージ済み
 
 本ページと英語訳だけが現在地の正本です。
