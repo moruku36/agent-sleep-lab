@@ -34,7 +34,7 @@
 | Snapshot manager | 検証済み候補、評価報告 | 採用版、親版、内容ハッシュ、見送り理由、ロールバック先 |
 | Diary renderer（任意） | 実際の段階結果と採用判定 | 人向けの説明。非公開保存し、証拠・通常取得の対象外 |
 
-最初はローカルJSON／JSONLとMarkdownを使う。ベクトルDB、グラフDB、専用クラウド基盤は必須にしない。原ログ検索もまずキーワード検索から比較する。
+現在の正本はSQLite、JSON／JSONLとMarkdownは入出力artifactです。ベクトルDB、グラフDB、専用クラウド基盤はcoreの必須依存にしません。原ログ検索はキーワード検索を比較の基点とし、任意のRelate拡張は下記の独立境界で扱います。
 
 ## 一回のsleep
 
@@ -71,6 +71,25 @@ verifiedは「記載した範囲で根拠を確認した」という状態。新
 task_familyとprojectを先に絞り、active版のverified項目だけを通常検索する。将来の注入上限案は2,000トークンですが、現在のライブラリはtokenizerなしの明示UTF-8 byte予算を使います。超過時は順位の低い完全なrecordから除外し、byteをtokenと呼びません。毎回全wikiを読み込まない。
 
 取得内容は根拠付きの参考データとして渡す。現在のユーザー指示・対象リポジトリの方針・実行権限の方が優先される。候補や古い記憶を見る場合は、通常利用と区別した調査モードに限定する。
+
+## Relateハッカソン拡張と既存開発の分離
+
+[比較・詳細設計](relate-memory-design.ja.md)と[ADR 0006](decisions/0006-rebuildable-relate-projection.md)では、
+SQLite正本＋再構築可能なRelate関係索引を推奨します。全面移行は行いません。
+[専用directory](../experiments/relate-memory/README.ja.md)に別package・venv・設定・test・合成fixture・成果物を置き、
+依存方向は拡張→coreだけにします。既存の採用transaction、DB形式、CLIの既定動作、必須依存は維持します。
+
+初回は合成AdoptionStoreの明示exportに限定します。graphの世代manifestを正本と照合し、
+関係探索の候補と説明pathを現在policyで再検査してから短いbundleを作ります。
+graphへの書込みは単一所有processだけで行い、coreへのwritebackはしません。
+古い／破損／欠落した索引は既存SQLite検索へ明示fallbackし、正本の検査失敗なら停止します。
+独立した公開文書storeへの接続や自動関係抽出は後続設計です。
+
+既存開発はmainで継続し、拡張は別branch・独立commitで進めます。
+[固定基点](../experiments/relate-memory/BASELINE.md)を残し、撤退時は拡張を停止／revertします。
+共有mainをresetせず、後続core改修と最新SQLiteデータを保持します。
+ハッカソンの提出物は期間内の新規拡張と再利用部分を区別し、実装・検証の現在地は
+[実装状況](implementation-status.ja.md#relate-experiment)にだけ記載します。
 
 ## 保存と公開の分離
 

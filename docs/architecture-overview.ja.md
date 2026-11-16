@@ -95,3 +95,25 @@ consumer呼出しはhost側の別の明示選択です。入口へ入る前にun
 [OSSリクエスト準備](oss-prepare.ja.md)は送信せずofflineで入力を作ります。
 REM・日記・定期処理・広い接続は[設計／ロードマップ](index.ja.md#設計と評価)の項目であり、
 暗黙の常駐serviceではありません。
+
+## 任意の関係索引
+
+[ADR 0006](decisions/0006-rebuildable-relate-projection.md)と[Relate設計](relate-memory-design.ja.md)は、
+[experiments/relate-memory](../experiments/relate-memory/README.ja.md)への分離を定めます。
+capture・verification・adoptionの正本はSQLiteです。graphは派生索引で、採用や権限付与を行いません。
+初期入力は合成AdoptionStoreに限定し、別の公開文書storeへ暗黙接続しません。
+
+~~~mermaid
+flowchart LR
+  S["SQLite canonical state"] --> E["Consistent authorized export"]
+  E --> G["Optional Relate projection"]
+  G --> C["Candidates and evidence paths"]
+  C --> V["Current SQLite eligibility recheck"]
+  S --> V
+  V --> B["Bounded experiment recall bundle"]
+  S --> L["Existing lexical fallback"]
+~~~
+
+単一processでgraphを扱い、世代manifestと現在のSQLite再検査で鮮度を確認します。
+停止すればDB復元なしに既存取得へ戻ります。root依存と既定CLIは独立したままです。
+現在地は[実装状況](implementation-status.ja.md#relate-experiment)を参照してください。

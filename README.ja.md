@@ -42,6 +42,14 @@ flowchart LR
 providerは記憶案を生成しますが、検証受領や実行権限は発行しません。
 [構成要素と別経路の公開文書lifecycle →](docs/architecture-overview.ja.md)
 
+## 任意のRelate実験
+
+[Connected Recall実験](experiments/relate-memory/README.ja.md)は、既存開発と分けて
+設計・依存・生成データ・切り戻しを管理します。SQLiteを正本に維持し、Relateは
+根拠付き想起のための再構築可能な関係索引とする案です。上記クイックスタートとは別経路です。
+[比較・グラフモデル・実装手順](docs/relate-memory-design.ja.md)と
+[現在の実装状況](docs/implementation-status.ja.md#relate-experiment)を参照してください。
+
 ## 調べる
 
 | 知りたいこと | 入口 |

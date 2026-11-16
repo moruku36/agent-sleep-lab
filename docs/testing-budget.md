@@ -31,13 +31,15 @@ are hidden in static checks. Link checking does not validate anchors/external UR
 PR creation, updates and reruns can each consume four more executions: reserve
 them before publication; authorization and reservations belong in the trial ledger.
 
-The current four selections are the existing `test_demo_text.DemoTextTests`
-methods: JSON serialization compatibility; single-result text without additional
-dispatch; invalid-format rejection before execution; failure exit and temporary
-state cleanup. Each test method is one case; its internal assertions and scripted
-fixture calls are not extra unittest cases or live-model calls. Re-select four
-affected cases when a later change targets another contract; do not accumulate
-previous selections.
+For the isolated Relate design/directory change, the four existing selections in
+`test_packaging_and_examples` check unchanged dependency declarations, the core
+entry point/package data, identical packaged schemas and synthetic promotion
+remaining proposal-only. These are core compatibility checks, not Relate runtime
+acceptance. Local work uses documentation review/checking only; one PR CI
+invocation reserves four case executions. Main push remains static-only.
+Each test method is one case; internal assertions are not extra unittest cases.
+Re-select affected cases when a later change targets another contract; do not
+accumulate previous selections.
 
 Keep dated reports and historical tests intact. Their large counts, former
 matrices and old runner commands describe past acceptance, not current instructions.

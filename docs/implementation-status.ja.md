@@ -2,6 +2,18 @@
 
 [English](implementation-status.md) | **日本語** | [ホーム](../README.ja.md)
 
+<a id="relate-experiment"></a>
+
+## Relate実験 — 設計とdirectory分離のみ（2026-11-17）
+
+[Connected Recall設計](relate-memory-design.ja.md)、[ADR 0006](decisions/0006-rebuildable-relate-projection.md)、
+[専用入口](../experiments/relate-memory/README.ja.md)に、SQLite正本＋再構築可能なRelate索引を記載しました。
+今回の変更は文書と実験directoryで、Relate runtimeの実装・install、core schema／依存／CLIの変更、
+データ移行、model呼出し、ハッカソン提出は行っていません。
+投影、graph取得、現在状態の再検査、比較評価、合成の永続store、動画は実装担当の作業です。
+graphの品質・性能結果は未測定です。[固定core基点](../experiments/relate-memory/BASELINE.md)は9853c4eです。
+応募適格性・配点の記述差、配布版との適合、UNLICENSEDの扱いは確認事項として残します。
+
 ## 現在の要約 — PR60基点と資料準備・受領引継ぎの追加改修
 
 [PR60](https://github.com/moruku36/agent-sleep-lab/pull/60)はmain

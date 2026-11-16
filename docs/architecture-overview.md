@@ -96,6 +96,31 @@ See the [lifecycle contract](public-document-lifecycle.md) for admission, no-ret
 identity, deletion guarantees and limitations. This is not a connected-agent or
 performance-acceptance claim.
 
+## Optional relationship index
+
+[ADR 0006](decisions/0006-rebuildable-relate-projection.md) and the
+[Relate design](relate-memory-design.md) specify an isolated experiment under
+[experiments/relate-memory](../experiments/relate-memory/README.md).
+Canonical capture, verification and adoption remain in SQLite. The graph is a
+derived index; it cannot adopt memories or grant access. The first input is the
+synthetic AdoptionStore, not the separate public-document store.
+
+~~~mermaid
+flowchart LR
+  S["SQLite canonical state"] --> E["Consistent authorized export"]
+  E --> G["Optional Relate projection"]
+  G --> C["Candidates and evidence paths"]
+  C --> V["Current SQLite eligibility recheck"]
+  S --> V
+  V --> B["Bounded experiment recall bundle"]
+  S --> L["Existing lexical fallback"]
+~~~
+
+An owning process serializes graph use. Generation manifests and final canonical
+checks handle stale/failed projections. Stop the experiment to return to existing
+retrieval without a database restore. Root dependencies and default CLI stay independent.
+Implementation and execution status remain [centralized](implementation-status.md#relate-experiment).
+
 ## Beyond this map
 
 The [contracts](contracts-and-acceptance.md) define adoption, rollback and logical
