@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: src
         run: >-
           python tests/run_tests.py
-          test_public_document_daily.DailyUseTests.test_stage_preview_and_exact_new_artifact
-          test_public_document_daily.DailyUseTests.test_stage_refuses_unsafe_locator_and_existing_destinations
-          test_public_document_daily.DailyUseTests.test_stage_output_failure_retains_completed_artifact
-          test_public_document_daily.DailyUseTests.test_receipt_file_handoff_preserves_explicit_adoption
+          test_packaging_and_examples.PinTests.test_requirements_match_pyproject_dependencies
+          test_packaging_and_examples.PinTests.test_package_data_and_entry_point
+          test_packaging_and_examples.SchemaCopyTests.test_packaged_schemas_identical_to_repository_schemas
+          test_packaging_and_examples.SyntheticExampleTests.test_synthetic_promotion_stays_a_proposal

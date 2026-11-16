@@ -43,6 +43,15 @@ Anthropicの[agent memory構成](https://www.anthropic.com/research/components-o
 OpenClawの[Dreaming](https://docs.openclaw.ai/concepts/dreaming)があります。
 各システムの公式実装・再現実験ではありません。
 
+## 分離した拡張
+
+- [Connected Recall／Relate設計](relate-memory-design.ja.md)：案の比較、グラフモデル、取得、整合性、切り戻し。
+- [実験の入口](../experiments/relate-memory/README.ja.md)／[固定基点](../experiments/relate-memory/BASELINE.md)／[再利用の開示](../experiments/relate-memory/REUSE.md)。
+- [ADR 0006](decisions/0006-rebuildable-relate-projection.md)：SQLite正本と任意の再構築可能な関係索引。
+
+依存環境を分ける拡張であり、既存quick startや公開文書storeを置き換えません。
+実装・検証の現在地は[実装状況](implementation-status.ja.md#relate-experiment)に集約します。
+
 ## 作業指示ではない試用記録
 
 - [2026-11-12の公開情報試用](public-source-trial-2026-11-12.ja.md)：別のローカル・未マージ拡張によるものです。レポート公開でその実行経路が公開されるわけではありません。

@@ -1,0 +1,11 @@
+# Private experiment output and isolated dependencies.
+.state/
+.venv/
+__pycache__/
+*.pyc
+build/
+dist/
+*.egg-info/
+
+# Reviewed synthetic submission artifacts are an explicit release allowlist,
+# not a copy of .state/. Add them deliberately after privacy and reopen checks.

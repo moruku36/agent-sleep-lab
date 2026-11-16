@@ -2,6 +2,19 @@
 
 **English** | [日本語](implementation-status.ja.md) | [Home](../README.md)
 
+<a id="relate-experiment"></a>
+
+## Relate experiment — design and directory boundary only (2026-11-17)
+
+The [Connected Recall design](relate-memory-design.md), [ADR 0006](decisions/0006-rebuildable-relate-projection.md)
+and [isolated entry](../experiments/relate-memory/README.md) describe SQLite authority plus a rebuildable Relate index.
+This change adds documentation and an experiment directory; it does not add or install a Relate runtime,
+change core schemas/dependencies/CLI, migrate data, run a model or publish a hackathon submission.
+Projection, graph retrieval, current-state revalidation, comparison, persistent synthetic store and video
+remain implementation work. No graph-quality or performance result is claimed.
+The frozen core baseline is [9853c4e](../experiments/relate-memory/BASELINE.md).
+Event eligibility/scoring discrepancies, release binding and the UNLICENSED core remain explicit confirmation items.
+
 ## Current summary — PR60 baseline; preparation/handoff follow-up
 
 [PR60](https://github.com/moruku36/agent-sleep-lab/pull/60) is merged on main at

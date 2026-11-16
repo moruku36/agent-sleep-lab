@@ -45,6 +45,15 @@ Anthropic's [components of agent memory](https://www.anthropic.com/research/comp
 and OpenClaw [Dreaming](https://docs.openclaw.ai/concepts/dreaming).
 This repository is not an official implementation or reproduction of those systems.
 
+## Isolated extensions
+
+- [Connected Recall / Relate design](relate-memory-design.md): alternatives, graph model, retrieval, consistency and rollback.
+- [Experiment entry](../experiments/relate-memory/README.md), [baseline](../experiments/relate-memory/BASELINE.md) and [reuse disclosure](../experiments/relate-memory/REUSE.md).
+- [ADR 0006](decisions/0006-rebuildable-relate-projection.md): SQLite authority, optional rebuildable graph projection.
+
+This extension has a separate dependency environment and does not replace the core
+quick start or the public-document store. Availability stays in [status](implementation-status.md#relate-experiment).
+
 ## Reports, not operating instructions
 
 - [2026-11-12 public-source trial](public-source-trial-2026-11-12.md): a separate local, unmerged extension; publication of the report does not publish that runtime path.

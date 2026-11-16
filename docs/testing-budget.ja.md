@@ -28,10 +28,11 @@ matrix・wheel・全件回帰・demo command・有料model／API呼出しを静�
 link checkerはanchor／外部URLを検査しません。PR作成・更新・rerunごとにさらに4ケースを
 消費し得るため、公開前に予約します。許可と予約枠は試行ledgerに記録します。
 
-現在の選択は既存`test_demo_text.DemoTextTests`の4methodで、
-JSON直列化互換、追加dispatchなしの単一結果text表示、不正formatの実行前拒否、
-失敗exitと一時state cleanupです。1methodを1ケースと数え、内部assertionや台本fixture呼出しは
-別unittestケースでも実モデル呼出しでもありません。
+Relate設計・directory分離の変更では、既存の`test_packaging_and_examples`から4件を選びます。
+依存宣言の一致、core entry point／package data、同梱schemaの一致、合成promotionが
+proposalのままであることを確認します。core互換の確認であり、Relateの実行受入ではありません。
+localは文書review／checkerのみ、PR CIは4ケース／1起動を予約し、mainは静的確認のみです。
+1methodを1ケースと数え、内部assertionは別unittestケースではありません。
 次の変更では影響する4ケースに入れ替え、過去選択を積み増ししません。
 
 日付付き報告と過去テストは保持します。多件数・旧matrix・旧runner commandは当時の履歴で、
