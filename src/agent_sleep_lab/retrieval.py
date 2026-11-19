@@ -28,6 +28,8 @@ Contract decisions
 * Ranking is deterministic lexical overlap: NFKC/casefold words without punctuation, plus
   Japanese character unigrams/bigrams, then ``memory_id``. No query => ``memory_id`` order.
   This is not morphological analysis or a measured retrieval-quality claim.
+* An optional ``required_tag`` requires exact membership in the hash-bound memory tags
+  before either record or byte limits are applied.
 
 Not claimed: retrieval quality, authentication of the caller, deletion/cache cleanup (rollback is
 a separate writer-side operation, ``AdoptionStore.commit_rollback``; this module never performs it),
@@ -142,7 +144,7 @@ def _memory_bytes(store: AdoptionStore, member: dict[str, Any]) -> bytes:
     return data
 
 
-def _eligible_records(store, scope, partition, snapshot, now, terms, policy):
+def _eligible_records(store, scope, partition, snapshot, now, terms, policy, *, required_tag):
     """Return (active_count, [(sort_key, record)]) for members that pass every recheck."""
     scope_pair = (scope["project"], scope["task_family"])
     active = [m for m in snapshot["members"] if m["state"] == "active"]
@@ -171,6 +173,8 @@ def _eligible_records(store, scope, partition, snapshot, now, terms, policy):
         origins, partitions = _closure(store, [e["event_id"] for e in receipt["evidence"]])
         if partitions != {partition} or evidence_origin_failures(memory["kind"], origins):
             continue
+        if required_tag is not None and required_tag not in memory["tags"]:
+            continue
         record = {
             "memory_id": mid,
             "memory_sha256": digest,
@@ -192,7 +196,7 @@ def _eligible_records(store, scope, partition, snapshot, now, terms, policy):
 def retrieve_reference_bundle(
     store: AdoptionStore, *, scope: dict[str, str], max_bytes: int,
     partition: str = "experience", query: str | None = None,
-    max_records: int = 16,
+    max_records: int = 16, required_tag: str | None = None,
 ) -> ReferenceBundle:
     """Bounded reference-data bundle for one exact scope. See the module docstring."""
     if not isinstance(store, AdoptionStore):
@@ -206,6 +210,8 @@ def retrieve_reference_bundle(
         raise ContractViolation("retrieval.partition_not_served", "partition is not served")
     if query is not None and (type(query) is not str or len(query) > MAX_QUERY_CHARS):
         raise ValueError("query must be a short string or None")
+    if required_tag is not None and type(required_tag) is not str:
+        raise ValueError("required_tag must be a string or None")
     terms = _terms(query) if query else frozenset()
 
     db = store._db()
@@ -225,7 +231,9 @@ def retrieve_reference_bundle(
         active_count, found = 0, []
         if digest is not None:
             snapshot = parse_canonical("candidate_snapshot", store._snapshot(digest, scope))
-            active_count, found = _eligible_records(store, scope, partition, snapshot, now, terms, policy)
+            active_count, found = _eligible_records(
+                store, scope, partition, snapshot, now, terms, policy, required_tag=required_tag,
+            )
         total = len(found)  # before either the record cap or byte budget
         found = found[:max_records]
 

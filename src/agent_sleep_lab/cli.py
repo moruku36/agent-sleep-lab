@@ -71,6 +71,13 @@ def build_parser() -> argparse.ArgumentParser:
                              help="offline read-only pinned synthetic request preparation")
     prepare.add_argument("--manifest", required=True, help="strict bounded preparation JSON")
     prepare.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
+    advice = sub.add_parser("resume-advice", allow_abbrev=False,
+                            help="read-only pre-resume references for one scope and candidate")
+    advice.add_argument("--store-config", required=True, help="explicit existing store configuration JSON")
+    advice.add_argument("--project", required=True, help="exact project ID")
+    advice.add_argument("--task-family", required=True, help="exact task family ID")
+    advice.add_argument("--environment", required=True, help="exact environment ID")
+    advice.add_argument("--candidate", required=True, help="exact candidate ID")
     comparison_prepare = sub.add_parser(
         "compare-prepare", allow_abbrev=False,
         help="offline freeze and inspect an independent-raw comparison; no execution")
@@ -270,7 +277,8 @@ def main(
     parser = build_parser()
     arguments = list(sys.argv[1:] if argv is None else argv)
     private_command = arguments[0] if arguments[:1] in (
-        ["oss-prepare"], ["compare-prepare"], ["compare-inspect"], ["public-document"]) else None
+        ["oss-prepare"], ["compare-prepare"], ["compare-inspect"], ["public-document"],
+        ["resume-advice"]) else None
     try:
         # argparse otherwise echoes unknown options/values from untrusted input.
         if private_command:
@@ -289,6 +297,19 @@ def main(
     if args.command == "public-document":
         from agent_sleep_lab.public_document_daily import execute as run_public_document
         return run_public_document(args, out, err)
+    if args.command == "resume-advice":
+        try:
+            from agent_sleep_lab.resume_advice_cli import execute as read_advice
+            result = read_advice(
+                store_config_path=args.store_config, project=args.project, task_family=args.task_family,
+                environment=args.environment, candidate=args.candidate,
+            )
+            print(result, file=out)
+            return EXIT_OK
+        except Exception:
+            print("error[resume-advice]: read refused. Check the IDs, strict store configuration, "
+                  "existing store integrity and current policy.", file=err)
+            return EXIT_ERROR
     if args.command == "compare-inspect":
         try:
             from agent_sleep_lab.comparison_inspect import execute as inspect_comparison

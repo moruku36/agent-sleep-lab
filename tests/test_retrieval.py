@@ -40,11 +40,11 @@ class RetrievalTests(StoreCase):
             conn.execute(ddl)
 
     def adopt(self, store, mid, event_id, *, scope=SCOPE, claim="do the thing", parent=None,
-              revision=1, tags=("x",)):
+              revision=1, tags=("x",), valid_until=None):
         """Commit one active memory whose evidence is ``event_id`` (already captured)."""
         op_id = "op-" + mid
         blob = support.dumps(support.good_memory(
-            memory_id=mid, scope=scope, claim=claim, tags=list(tags),
+            memory_id=mid, scope=scope, claim=claim, tags=list(tags), valid_until=valid_until,
             evidence=[{"event_id": event_id, "source_uri": "fixture://s-1/1", "locator": "summary"}],
         ))
         vr = store.register_verification(make_verifier(), verification_claim(
