@@ -57,6 +57,31 @@ synthetic-zero／unavailableは実測の節約額ではありません。
 既存1ケースfixtureを再利用し、操作・確認点とpurge失敗／回復まで示します。
 demoの一時cleanupは許可撤回ではありません。入口の文書化で自動実行はせず、実行には別の残枠が必要です。
 
+## 作業再開前に助言を読む
+
+既存のローカル採用storeと[厳密なruntime store設定](../configs/runtime-store.example.json)を
+指定して`resume-advice`を実行します。
+
+```sh
+agent-sleep-lab resume-advice --store-config private/store.json \
+  --project p --task-family t --environment lab:local --candidate resume:1
+```
+
+助言の対象にするには、通常の検証・採用手順で記憶の`tags`に正確な
+`resume-advice:<environment>/<candidate>`を含めます。上の例では
+`resume-advice:lab:local/resume:1`です。IDは大文字と小文字を区別し、128文字以内です。
+先頭はASCIIの英数字で、2文字目以降は英数字に加えて`.`・`_`・`:`・`-`を使えます。
+`/`はenvironmentとcandidateの区切りです。タグは採用記憶のhashの対象です。
+取得時はproject・task family・タグ全体の完全一致が必要です。
+
+現在のpolicyで単一のsnapshotを読み、適格な経験用（`experience`）の記憶を記憶ID順に
+最大3件表示します。内部bundleの上限は32,768 bytesです。該当なしでも正常終了します。
+表示には記憶の主張と有効期限、検証済みの証拠IDとhashが含まれます。locatorは、採用記憶に
+記録された値であると明示します。path区切りを含むlocatorと出典URIは表示しません。
+私的なpathや認証情報は主張やlocatorに含めないでください。
+
+このcommandはofflineかつread-onlyです。助言は参考情報であり、実行や再試行の権限を与えません。
+
 ## 実際の公開文書試用へ進む場合
 
 これは**別の永続store経路**で、demo optionではありません。明示的なoffline command

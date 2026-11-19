@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: src
         run: >-
           python tests/run_tests.py
-          test_packaging_and_examples.PinTests.test_requirements_match_pyproject_dependencies
-          test_packaging_and_examples.PinTests.test_package_data_and_entry_point
-          test_packaging_and_examples.SchemaCopyTests.test_packaged_schemas_identical_to_repository_schemas
-          test_packaging_and_examples.SyntheticExampleTests.test_synthetic_promotion_stays_a_proposal
+          test_resume_advice_cli.ResumeAdviceTests.test_matching_advice_reports_provenance_and_escapes_terminal_text
+          test_resume_advice_cli.ResumeAdviceTests.test_excludes_other_pairs_scopes_partitions_expired_revoked_and_untagged
+          test_resume_advice_cli.ResumeAdviceTests.test_filters_before_three_record_cap_in_deterministic_id_order
+          test_resume_advice_cli.ResumeAdviceTests.test_empty_match_succeeds_read_only_without_mutation

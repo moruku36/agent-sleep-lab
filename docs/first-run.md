@@ -61,6 +61,35 @@ It reuses an existing one-case fixture, with exact operations and checks includi
 purge failure/recovery. Temporary demo cleanup is not authorization withdrawal.
 The documented trace is not automatically executed and consumes its own test allocation.
 
+## Read advice before resuming
+
+Use `resume-advice` with an existing local adoption store and a
+[strict runtime store config](../configs/runtime-store.example.json).
+
+```sh
+agent-sleep-lab resume-advice --store-config private/store.json \
+  --project p --task-family t --environment lab:local --candidate resume:1
+```
+
+To opt in, include the exact tag `resume-advice:<environment>/<candidate>` in the
+memory's `tags` through the normal verification and adoption process. The example
+uses `resume-advice:lab:local/resume:1`. IDs are case-sensitive and limited to
+128 characters. They start with an ASCII letter or digit and may also contain
+`.`, `_`, `:`, or `-` after it. The `/` separates the environment from the candidate.
+The adopted memory's hash covers the tag. Retrieval requires the exact project,
+task family and full tag.
+
+The command reads one snapshot under the current eligibility policy. It shows up
+to three eligible experience memories in memory ID order, subject to a 32,768-byte
+limit on the underlying bundle. An empty result exits successfully. The text shows
+the claim, memory expiry and verified evidence IDs and hashes. A displayed locator
+comes from the adopted memory and is labeled as recorded. Locators containing
+path separators and source URIs are withheld. Keep private paths and credentials
+out of claims and locators.
+
+The command is offline and read-only. Advice is reference only and never authorizes
+execution or retry.
+
 ## If you want a real public-document trial
 
 This is a **separate persistent store path**, not a demo option. It has an explicit
