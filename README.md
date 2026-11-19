@@ -42,11 +42,14 @@ SQLite is the runtime source of truth; JSON/Markdown are interchange artifacts.
 Providers propose memories, not verification receipts or execution permissions.
 [Component map and separate public-document path →](docs/architecture-overview.md)
 
-## Optional Relate experiment
+<a name="optional-relate-experiment"></a>
 
-The [Connected Recall experiment](experiments/relate-memory/README.md) has its own
+## Optional MemoryWeave experiment
+
+The [MemoryWeave experiment](experiments/relate-memory/README.md) has its own
 architecture, dependency boundary and rollback plan. SQLite remains canonical;
-Relate is proposed as a rebuildable relationship index for evidence-backed recall.
+the Relate graph database is proposed as a rebuildable relationship index for
+evidence-backed recall.
 It is separate from the quick start above. See [design and alternatives](docs/relate-memory-design.md)
 and [current implementation status](docs/implementation-status.md#relate-experiment).
 
