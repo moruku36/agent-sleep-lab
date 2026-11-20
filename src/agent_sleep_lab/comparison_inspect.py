@@ -15,6 +15,29 @@ STATES = ("planned_not_dispatched", "dispatch_intent_outcome_unknown", "replied"
           "completed", "timeout", "missing", "invalid")
 
 
+def _paired_outcomes(task_count, arms):
+    # Arm identity is fixed by the plan: A is raw; B adds consolidated memory.
+    # Numeric task keys avoid exposing caller-provided task IDs and never
+    # depend on execution position, insertion order or timestamps.
+    slots = {(entry["task_index"], entry["arm"]): entry for entry in arms}
+    scored = {(0, 1): "improved", (1, 0): "regressed",
+              (1, 1): "both_pass", (0, 0): "both_fail"}
+    buckets = {key: {"task_indices": []} for key in (*scored.values(), "unscored")}
+    reasons = []
+    for index in range(task_count):
+        a, b = (slots[index, arm] for arm in "AB")
+        category = scored.get((a["score"], b["score"]), "unscored")
+        buckets[category]["task_indices"].append(index)
+        if category == "unscored":
+            reasons.append({"task_index": index, "reasons": {
+                arm["arm"]: arm["status"] for arm in (a, b) if arm["score"] is None}})
+    for bucket in buckets.values():
+        bucket["count"] = len(bucket["task_indices"])
+    buckets["unscored"]["details"] = reasons
+    return {"denominator": task_count, "baseline_arm": "A", "candidate_arm": "B",
+            **buckets}
+
+
 def execute(*, store_config_path, journal_path, plan_id, measurements=False):
     """Inspect one existing plan from a journal read snapshot, without a rubric.
 
@@ -90,6 +113,7 @@ def execute(*, store_config_path, journal_path, plan_id, measurements=False):
                 planned_denominator=dict(task_pairs=volume["task_pairs"],
                                          per_arm=volume["task_pairs"], total_arms=volume["total_arms"]),
                 arms=arms, outcomes=outcomes, input_volume=volume,
+                paired_outcomes=_paired_outcomes(volume["task_pairs"], arms),
                 all_outcomes_scored=all(outcomes[a]["completed"] == volume["task_pairs"] for a in "AB"),
                 current_validity={"valid": valid},
                 cost={"label": "unavailable", "value": None}, usage=None,

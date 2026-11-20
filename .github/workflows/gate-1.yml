@@ -45,7 +45,7 @@ jobs:
           PYTHONPATH: src
         run: >-
           python tests/run_tests.py
-          test_resume_advice_cli.ResumeAdviceTests.test_matching_advice_reports_provenance_and_escapes_terminal_text
-          test_resume_advice_cli.ResumeAdviceTests.test_excludes_other_pairs_scopes_partitions_expired_revoked_and_untagged
-          test_resume_advice_cli.ResumeAdviceTests.test_filters_before_three_record_cap_in_deterministic_id_order
-          test_resume_advice_cli.ResumeAdviceTests.test_empty_match_succeeds_read_only_without_mutation
+          test_compare_inspect_cli.CompareInspectionTests.test_paired_outcomes_detect_offsetting_changes_with_ab_ba_and_unscored
+          test_compare_inspect_cli.CompareInspectionTests.test_mixed_unknown_replied_and_missing_slots_keep_fixed_denominators_and_saved_status
+          test_compare_inspect_cli.CompareInspectionTests.test_planned_inspection_is_readonly_no_provider_evaluator_recovery_or_new_contacts
+          test_compare_inspect_cli.CompareInspectionTests.test_corrupt_hashes_arms_scores_and_foreign_schema_refuse_without_repair
