@@ -130,6 +130,10 @@ class CompareInspectionTests(TestCase):
                 self.assertEqual(counts["denominator"], 5)
                 self.assertEqual(sum(counts[s] for s in inspect.STATES), 5)
             self.assertEqual(result["outcomes"]["B"]["evaluator_pass"], 1)
+            self.assertEqual(result["paired_outcomes"]["unscored"]["details"][:3], [
+                {"task_index": 0, "reasons": {"A": "dispatch_intent_outcome_unknown"}},
+                {"task_index": 1, "reasons": {"A": "replied", "B": "timeout"}},
+                {"task_index": 2, "reasons": {"A": "missing", "B": "invalid"}}])
             self.assert_private(result)
             self.assertEqual(self.f.journal_dump(), before)
 
@@ -157,6 +161,42 @@ class CompareInspectionTests(TestCase):
         self.assertTrue(result["scores_are_synthetic"])
         self.assertIsNone(result["performance_claim"])
         self.assertFalse(result["acceptance_complete"])
+        self.assertIsNone(result["comparison"])
+        self.assert_private(result)
+        self.assertEqual(self.f.journal_dump(), before)
+
+    def test_paired_outcomes_detect_offsetting_changes_with_ab_ba_and_unscored(self):
+        prepared = self.f.success()
+        # Insert in reverse order to exercise identity-based pairing, not row order.
+        results = {(0, "A"): ("completed", 0), (0, "B"): ("completed", 1),
+                   (1, "A"): ("completed", 1), (1, "B"): ("completed", 0),
+                   (2, "A"): ("completed", 1), (2, "B"): ("completed", 1),
+                   (3, "A"): ("completed", 0), (3, "B"): ("completed", 0),
+                   (4, "A"): ("invalid", None)}
+        with sqlite3.connect(self.f.journal) as db:
+            for entry in reversed(prepared["arms"]):
+                index, arm = entry["task_index"], entry["arm"]
+                if (index, arm) in results:
+                    state, score = results[index, arm]
+                    db.execute("INSERT INTO comparison_arms VALUES (?,?,?,?,?,?,?,?)",
+                               (self.f.manifest["plan_id"], index, arm, entry["position"],
+                                state, entry["request_sha256"], b"PRIVATE-REPLY", score))
+        before = self.f.journal_dump()
+        result = self.success()
+        self.assertEqual(result["outcomes"]["A"]["evaluator_pass"], 2)
+        self.assertEqual(result["outcomes"]["B"]["evaluator_pass"], 2)
+        self.assertEqual([a["position"] for a in result["arms"]][:4], [0, 1, 1, 0])
+        paired = result["paired_outcomes"]
+        self.assertEqual((paired["denominator"], paired["baseline_arm"],
+                          paired["candidate_arm"]), (5, "A", "B"))
+        keys = ("improved", "regressed", "both_pass", "both_fail", "unscored")
+        for index, key in enumerate(keys):
+            self.assertEqual(paired[key]["count"], 1)
+            self.assertEqual(paired[key]["task_indices"], [index])
+        self.assertEqual(sum(paired[key]["count"] for key in keys), paired["denominator"])
+        self.assertEqual(paired["unscored"]["details"], [
+            {"task_index": 4, "reasons": {"A": "invalid", "B": "planned_not_dispatched"}}])
+        self.assertFalse(result["all_outcomes_scored"])
         self.assertIsNone(result["comparison"])
         self.assert_private(result)
         self.assertEqual(self.f.journal_dump(), before)
